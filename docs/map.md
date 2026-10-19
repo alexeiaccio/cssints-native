@@ -99,6 +99,13 @@ Each step ends in a check that fails when it breaks.
    key in the window, the pressed frame stored (the scripted click releases before the frame it writes).
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:
    a click changes a signal and the next frame.
+   **Done: the renderer and the Sensors page** (`solid/`, solid-js 2.0.0-rc.13, @solidjs/universal and
+   @solidjs/compiler rc.13). The universal renderer keeps a JS tree; each frame it is declared to Clay through flat
+   `bun:ffi` calls into a dylib (Clay + ThorVG + SDL3), styles from `examples/sensors/styles.ts` through the cssints
+   plugin, theme and `:active` picked at run time. Check: `solid/test.sh` renders the Solid page headless and compares
+   it with the C page's three ThorVG frames, pixel for pixel (identical), plus the pressed look and click rules. Cost:
+   about 0.4 ms a frame on an Apple-silicon Mac, 0.006 ms of it the JS walk and FFI, the rest ThorVG's raster. Left: reload on save,
+   `:focus`, text input, JSX types, the window checked by eye.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

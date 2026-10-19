@@ -1,0 +1,84 @@
+// A cssints/clay style (a ClayShape literal) as what ui.c takes: a theme and a state picked, then the fields packed
+// into a Float32Array in a fixed order. The picking is what header() does for C (`<name>_<theme>`, `<name>_active`),
+// done at run time; a variant is packed once and kept.
+import type { ClayShape } from "cssints/clay";
+
+type Shape = Record<string, any>;
+
+/** The fields of a box, by index (ui.c's ui_open reads the same order). */
+export const STYLE_FIELDS = 32;
+/** The fields of a text, by index (ui.c's ui_text). */
+export const TEXT_FIELDS = 10;
+
+const SIZING = { FIT: 0, GROW: 1, PERCENT: 2, FIXED: 3 } as const;
+const ALIGN_X = { LEFT: 0, CENTER: 1, RIGHT: 2 } as const;
+const ALIGN_Y = { TOP: 0, CENTER: 1, BOTTOM: 2 } as const;
+const DIRECTION = { LEFT_TO_RIGHT: 0, TOP_TO_BOTTOM: 1 } as const;
+const WRAP = { WORDS: 0, NEWLINES: 1, NONE: 2 } as const;
+
+// the same merge as header(): a colour or a sizing axis is replaced whole, anything else field by field
+const isLeaf = (v: unknown) => typeof v !== "object" || Object.hasOwn(v as object, "r") || Object.hasOwn(v as object, "type");
+const merge = (a: Shape, b: Shape): Shape => {
+  const out = { ...a };
+  for (const [k, v] of Object.entries(b)) out[k] = isLeaf(v) || out[k] === undefined ? v : merge(out[k], v);
+  return out;
+};
+
+export type State = ":hover" | ":active";
+const STATES = [":hover", ":focus", ":active"];
+
+/** What header() prints as `<name>[_<state>][_<theme>]`: the base, the theme over it, the state over that. */
+export function resolve(shape: ClayShape, theme?: string, state?: State): Shape {
+  const all: Shape = theme ? merge(shape, (shape.themes as Shape | undefined)?.[theme] ?? {}) : shape;
+  const { themes: _, ...v } = all;
+  const base = Object.fromEntries(Object.entries(v).filter(([k]) => !STATES.includes(k)));
+  return state && v[state] ? merge(base, v[state]) : base;
+}
+
+const put = (f: Float32Array, at: number, ...values: (number | undefined)[]) => values.forEach((x, i) => (f[at + i] = x ?? 0));
+const rgba = (c?: Shape) => [c?.r, c?.g, c?.b, c?.a];
+const sides = (s?: Shape) => [s?.left, s?.right, s?.top, s?.bottom];
+const axis = (a?: Shape) => [SIZING[a?.type as keyof typeof SIZING] ?? 0, a?.percent ?? a?.min, a?.max];
+
+export function packBox(d: Shape): Float32Array {
+  const f = new Float32Array(STYLE_FIELDS);
+  const l = d.layout ?? {};
+  put(f, 0, ...axis(l.sizing?.width), ...axis(l.sizing?.height), ...sides(l.padding), l.childGap);
+  put(f, 11, ALIGN_X[l.childAlignment?.x as keyof typeof ALIGN_X], ALIGN_Y[l.childAlignment?.y as keyof typeof ALIGN_Y]);
+  put(f, 13, DIRECTION[l.layoutDirection as keyof typeof DIRECTION]);
+  put(f, 14, ...rgba(d.backgroundColor));
+  put(f, 18, d.cornerRadius?.topLeft, d.cornerRadius?.topRight, d.cornerRadius?.bottomRight, d.cornerRadius?.bottomLeft);
+  put(f, 22, ...sides(d.border?.width), ...rgba(d.border?.color));
+  put(f, 30, d.clip?.horizontal, d.clip?.vertical);
+  return f;
+}
+
+export function packText(t: Shape): Float32Array {
+  const f = new Float32Array(TEXT_FIELDS);
+  put(f, 0, ...rgba(t.textColor), t.fontId, t.fontSize, t.letterSpacing, t.lineHeight);
+  put(f, 8, { LEFT: 0, CENTER: 1, RIGHT: 2 }[t.textAlignment as string], WRAP[t.wrapMode as keyof typeof WRAP]);
+  return f;
+}
+
+export interface Variant {
+  box?: Float32Array;
+  text?: Float32Array;
+}
+
+const cache = new WeakMap<object, Map<string, Variant>>();
+
+/** The packed form of a style under a theme and a state, kept per style object. */
+export function variant(shape: ClayShape, theme?: string, state?: State): Variant {
+  let byKey = cache.get(shape);
+  if (!byKey) cache.set(shape, (byKey = new Map()));
+  const key = `${theme}|${state}`;
+  let v = byKey.get(key);
+  if (!v) {
+    const { text, ...decl } = resolve(shape, theme, state);
+    byKey.set(key, (v = { box: Object.keys(decl).length ? packBox(decl) : undefined, text: text && packText(text) }));
+  }
+  return v;
+}
+
+/** Does the style have a look for a state (so the element must ask where the pointer is)? */
+export const hasStates = (shape: ClayShape) => ":hover" in shape || ":active" in shape;

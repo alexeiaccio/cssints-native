@@ -23,3 +23,6 @@ THEME=light ./build/sensors/app --expect examples/sensors/expected-light.png
 ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg.png
 ./build/sensors/app --raster thorvg --click 180 250 --expect examples/sensors/expected-thorvg-g.png
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
+
+# Solid 2 on the desktop: the Sensors page as JSX, its frames against the same stored ThorVG frames
+sh solid/test.sh
