@@ -11,6 +11,8 @@ import type { SliderConfig } from '../vendor/specs/src/apg/slider.bridge';
 import type { SwitchConfig } from '../vendor/specs/src/apg/switch.bridge';
 import type { TabsConfig } from '../vendor/specs/src/apg/tabs.bridge';
 import type { ToolbarConfig } from '../vendor/specs/src/apg/toolbar.bridge';
+import type { TreeviewConfig } from '../vendor/specs/src/apg/treeview.bridge';
+import { nodeToPath, pathToNode } from '../vendor/specs/src/apg/treeview.bridge';
 import type { ToolbarItemKind } from '../src/toolbar';
 import { createButton } from '../src/button';
 import { createCheckbox } from '../src/checkbox';
@@ -20,6 +22,7 @@ import { createSlider } from '../src/slider';
 import { createSwitch } from '../src/switch';
 import { createTabs } from '../src/tabs';
 import { createToolbar } from '../src/toolbar';
+import { TREE_NODES, createTree } from '../src/tree';
 
 /**
  * One mount per primitive, the analogue of eoa's `*.fixture.tsx`: it creates
@@ -636,6 +639,92 @@ export const mountSlider = (config: SliderConfig): Mounted => {
             break;
           case 'blur':
             slider.blur();
+            break;
+          default:
+            throw new Error(`mount has no prop ${name}`);
+        }
+      },
+      dispose,
+    };
+  });
+};
+
+/**
+ * The tree, the analogue of `treeview.fixture.tsx` without a DOM: the fixed
+ * seven-node tree of the spec, parts keyed by the scenario's slash paths
+ * (`tree`, `treeitem:0/0`). Controlled, the mount is the host and either writes
+ * every request back (`accepts`) or ignores it.
+ */
+export const mountTreeview = (config: TreeviewConfig): Mounted => {
+  const events = new Map<string, Json[]>();
+  const ids = TREE_NODES.map((node) => node.id);
+  const idsOfMask = (mask: number): ReadonlyArray<number> =>
+    ids.filter((id) => (mask & (1 << (id - 1))) !== 0);
+  const [host, setHost] = createSignal<ReadonlyArray<number>>(
+    idsOfMask(config.selected),
+  );
+  const writeHost = (next: ReadonlyArray<number>): void => {
+    if (config.controlled) {
+      setHost([...next].sort((a, b) => a - b));
+    }
+  };
+
+  return createRoot((dispose) => {
+    const tree = createTree({
+      nodes: TREE_NODES,
+      selection: config.multi ? 'multiple' : 'single',
+      defaultExpanded: idsOfMask(config.expanded),
+      defaultValue: idsOfMask(config.selected),
+      defaultFocus: config.focus,
+      get value() {
+        return config.controlled ? host() : undefined;
+      },
+      ...(config.label === undefined ? {} : { label: config.label }),
+      ...(config.orientation === undefined
+        ? {}
+        : { orientation: config.orientation }),
+      onValueChange: (selected) => {
+        if (config.accepts) {
+          setHost([...selected].sort((a, b) => a - b));
+        }
+      },
+      onExpandedChange: (node) => {
+        record(events, 'onExpandedChange', nodeToPath(node.id));
+      },
+      onSelectionChange: (node) => {
+        record(events, 'onSelectionChange', nodeToPath(node.id));
+      },
+      onActivate: (node) => {
+        record(events, 'onActivate', nodeToPath(node.id));
+      },
+    });
+    const parts: Record<string, NeutralPart> = {};
+    for (const id of tree.nodeIds) {
+      parts[nodeToPath(id)] = tree.item(id);
+    }
+    // The tree part last: the driver reports the first part whose `focused` is
+    // true, and that must be the focused item, not the container.
+    parts['tree'] = tree.tree;
+    return {
+      parts,
+      events,
+      setProp: (name, value) => {
+        switch (name) {
+          case 'selected':
+          case 'setValue':
+            if (!Array.isArray(value)) {
+              throw new Error(
+                `selected needs an array, got ${JSON.stringify(value)}`,
+              );
+            }
+            writeHost(value.map((path) => pathToNode(String(path))));
+            break;
+          case 'hostToggle':
+            writeHost(
+              host().includes(1)
+                ? host().filter((id) => id !== 1)
+                : [...host(), 1],
+            );
             break;
           default:
             throw new Error(`mount has no prop ${name}`);

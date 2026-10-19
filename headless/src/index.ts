@@ -54,5 +54,13 @@ export type {
   SliderOrientation,
   SliderThumbPart,
 } from './slider';
+export { TREE_NODES, createTree } from './tree';
+export type {
+  Tree,
+  TreeItemPart,
+  TreeNode,
+  TreeOptions,
+  TreePart,
+} from './tree';
 export { createFocusHost } from './focus-host';
 export type { FocusHost } from './focus-host';

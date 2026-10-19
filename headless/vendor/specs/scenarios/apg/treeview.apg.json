@@ -1,0 +1,928 @@
+{
+  "pattern": "treeview",
+  "source": "apg",
+  "commit": null,
+  "license": "W3C Software and Document License",
+  "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/",
+  "retrieved": "2026-10-03",
+  "fixture": {
+    "orientation": "vertical",
+    "tree": [
+      {
+        "name": "Projects",
+        "children": [
+          {
+            "name": "Reports",
+            "children": [{ "name": "Roadmap" }, { "name": "Summary" }]
+          },
+          { "name": "Notes" }
+        ]
+      },
+      {
+        "name": "Photos",
+        "children": [{ "name": "Trip" }]
+      }
+    ],
+    "treeNote": "Child order is document order. A treeitem target carries its slash path: root item i is `treeitem:i`, and `treeitem:0/1` is child 1 of root item 0. Paths map to the fixed pre-order node ids of specs/apg/treeview.qnt (Projects=1, Reports=2, Roadmap=3, Summary=4, Notes=5, Photos=6, Trip=7)."
+  },
+  "scenarios": [
+    {
+      "id": "treeview.apg.focus-first-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "When a single-select tree receives focus and none of the nodes are selected, focus is set on the first node",
+      "apg": "keyboard",
+      "config": {
+        "focused": false,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "focus", "target": "tree" },
+        { "expect": { "focus": "treeitem:0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.focus-selected-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "When a single-select tree receives focus and a node is selected, focus is set on the selected node",
+      "apg": "keyboard",
+      "config": {
+        "focused": false,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": ["treeitem:0/1"],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "focus", "target": "tree" },
+        { "expect": { "focus": "treeitem:0/1" } }
+      ],
+      "notes": "APG focus-on-entry rule. The current treeview spec deliberately omits it (focusTree keeps the roving node), so this scenario is a known divergence for the spec to grow into."
+    },
+    {
+      "id": "treeview.apg.focus-first-selected-node-multi-select",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "When a multi-select tree receives focus and one or more nodes are selected, focus is set on the first selected node",
+      "apg": "keyboard",
+      "config": {
+        "focused": false,
+        "multiSelectable": true,
+        "expanded": ["0", "0/0"],
+        "selected": ["treeitem:1", "treeitem:0/0/1"],
+        "focus": "treeitem:0/0/0"
+      },
+      "steps": [
+        { "event": "focus", "target": "tree" },
+        { "expect": { "focus": "treeitem:1" } }
+      ],
+      "notes": "First selected node in document order is Photos. Same focus-on-entry divergence as above."
+    },
+    {
+      "id": "treeview.apg.right-opens-closed-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Right arrow: when focus is on a closed node, opens the node; focus does not move",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowRight", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": { "treeitem:0": { "aria-expanded": "true" } },
+            "visible": [
+              "treeitem:0",
+              "treeitem:0/0",
+              "treeitem:0/1",
+              "treeitem:1"
+            ],
+            "events": { "onExpandedChange": ["treeitem:0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.right-moves-to-first-child",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Right arrow: when focus is on an open node, moves focus to the first child node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowRight", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.right-on-end-node-does-nothing",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Right arrow: when focus is on an end node, does nothing",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0/0/0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowRight", "target": "treeitem:0/0/0" },
+        {
+          "expect": {
+            "focus": "treeitem:0/0/0",
+            "attrs": { "treeitem:0/0/0": { "aria-expanded": null } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.left-closes-open-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Left arrow: when focus is on an open node, closes the node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowLeft", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": { "treeitem:0": { "aria-expanded": "false" } },
+            "visible": ["treeitem:0", "treeitem:1"],
+            "events": { "onExpandedChange": ["treeitem:0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.left-moves-to-parent",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Left arrow: when focus is on a child node that is also either an end node or a closed node, moves focus to its parent node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0/1"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowLeft", "target": "treeitem:0/1" },
+        { "expect": { "focus": "treeitem:0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.left-on-root-does-nothing",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Left arrow: when focus is on a root node that is also either an end node or a closed node, does nothing",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:1"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowLeft", "target": "treeitem:1" },
+        { "expect": { "focus": "treeitem:1" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.down-skips-collapsed-subtrees",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Down arrow: moves focus to the next node that is focusable without opening or closing a node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:1",
+            "visible": ["treeitem:0", "treeitem:1"]
+          }
+        }
+      ],
+      "notes": "Children of the collapsed Projects node are skipped; the next focusable node is the root Photos."
+    },
+    {
+      "id": "treeview.apg.down-moves-into-expanded-children",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Down arrow: moves focus to the next node that is focusable without opening or closing a node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.up-moves-to-previous-visible",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Up arrow: moves focus to the previous node that is focusable without opening or closing a node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0/1"
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowUp", "target": "treeitem:0/1" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.home-moves-to-first-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Home: moves focus to the first node in the tree without opening or closing a node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "1"],
+        "selected": [],
+        "focus": "treeitem:1/0"
+      },
+      "steps": [
+        { "event": "key", "key": "Home", "target": "treeitem:1/0" },
+        { "expect": { "focus": "treeitem:0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.end-moves-to-last-visible",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "End: moves focus to the last node in the tree that is focusable without opening a node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "1"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "End", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:1/0" } }
+      ]
+    },
+    {
+      "id": "treeview.apg.enter-opens-and-closes-parent",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Enter: activates a node, i.e., performs its default action; for parent nodes one possible default action is to open or close the node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": {
+              "treeitem:0": { "aria-expanded": "true", "aria-selected": "true" }
+            },
+            "events": {
+              "onActivate": ["treeitem:0"],
+              "onExpandedChange": ["treeitem:0"],
+              "onSelectionChange": ["treeitem:0"]
+            }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": { "treeitem:0": { "aria-expanded": "false" } },
+            "events": {
+              "onActivate": ["treeitem:0"],
+              "onExpandedChange": ["treeitem:0"]
+            }
+          }
+        }
+      ],
+      "notes": "Non-selection-follows-focus single-select: the default action selects the focused node as well as toggling a parent. The spec's pressEnter implements both."
+    },
+    {
+      "id": "treeview.apg.enter-selects-end-node-single-select",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Enter: in single-select trees where selection does not follow focus, the default action is typically to select the focused node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0/0/0"
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "treeitem:0/0/0" },
+        {
+          "expect": {
+            "focus": "treeitem:0/0/0",
+            "attrs": { "treeitem:0/0/0": { "aria-selected": "true" } },
+            "events": {
+              "onActivate": ["treeitem:0/0/0"],
+              "onSelectionChange": ["treeitem:0/0/0"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.typeahead-single-character",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Type a character: focus moves to the next node with a name that starts with the typed character",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "type", "text": "r", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ],
+      "notes": "Search starts at the node after the focused one and wraps; only visible nodes match."
+    },
+    {
+      "id": "treeview.apg.typeahead-multiple-characters",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Type multiple characters in rapid succession: focus moves to the next node with a name that starts with the string of characters typed",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "type", "text": "r", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0" } },
+        { "event": "type", "text": "o", "target": "treeitem:0/0" },
+        { "expect": { "focus": "treeitem:0/0/0" } }
+      ],
+      "notes": "The second character refines the buffer from the already-focused node, so `r` -> Reports then `ro` -> Roadmap."
+    },
+    {
+      "id": "treeview.apg.typeahead-reset-after-timeout",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Type-ahead searches with the string of characters typed in rapid succession; a pause starts a new search string",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "type", "text": "s", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0/1" } },
+        { "event": "typeaheadReset" },
+        { "event": "type", "text": "r", "target": "treeitem:0/0/1" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ],
+      "notes": "`typeaheadReset` models the type-ahead timeout, an event outside the README's base event vocabulary. After it, `r` is a fresh one-character search from the node after focus; without the reset `sr` would match nothing."
+    },
+    {
+      "id": "treeview.apg.star-expands-siblings",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "* (Optional): expands all siblings that are at the same level as the current node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "key", "key": "*", "target": "treeitem:0" },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": {
+              "treeitem:0": { "aria-expanded": "true" },
+              "treeitem:1": { "aria-expanded": "true" }
+            },
+            "visible": [
+              "treeitem:0",
+              "treeitem:0/0",
+              "treeitem:0/1",
+              "treeitem:1",
+              "treeitem:1/0"
+            ],
+            "events": { "onExpandedChange": ["treeitem:0", "treeitem:1"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.blur-clears-typeahead",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Type-ahead buffer restarts after the tree loses focus",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "type", "text": "s", "target": "treeitem:0" },
+        { "expect": { "focus": "treeitem:0/0/1" } },
+        { "event": "blur", "target": "tree" },
+        { "event": "focus", "target": "tree" },
+        { "event": "type", "text": "r", "target": "treeitem:0/0/1" },
+        { "expect": { "focus": "treeitem:0/0" } }
+      ],
+      "notes": "If the buffer survived blur, `sr` would match nothing and focus would stay on Summary."
+    },
+    {
+      "id": "treeview.apg.multi-space-toggles-focused-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Multi-select recommended model: Space toggles the selection state of the focused node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": true,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0/1"
+      },
+      "steps": [
+        { "event": "key", "key": " ", "target": "treeitem:0/1" },
+        {
+          "expect": {
+            "focus": "treeitem:0/1",
+            "attrs": { "treeitem:0/1": { "aria-selected": "true" } },
+            "events": { "onSelectionChange": ["treeitem:0/1"] }
+          }
+        },
+        { "event": "key", "key": " ", "target": "treeitem:0/1" },
+        {
+          "expect": {
+            "focus": "treeitem:0/1",
+            "attrs": { "treeitem:0/1": { "aria-selected": "false" } },
+            "events": { "onSelectionChange": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.multi-shift-down-moves-and-toggles",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Multi-select recommended model: Shift + Down Arrow moves focus to and toggles the selection state of the next node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": true,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "event": "key",
+          "key": "ArrowDown",
+          "target": "treeitem:0",
+          "modifiers": ["Shift"]
+        },
+        {
+          "expect": {
+            "focus": "treeitem:0/0",
+            "attrs": { "treeitem:0/0": { "aria-selected": "true" } },
+            "events": { "onSelectionChange": ["treeitem:0/0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.multi-shift-up-moves-and-toggles",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Multi-select recommended model: Shift + Up Arrow moves focus to and toggles the selection state of the previous node",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": true,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0/1"
+      },
+      "steps": [
+        {
+          "event": "key",
+          "key": "ArrowUp",
+          "target": "treeitem:0/1",
+          "modifiers": ["Shift"]
+        },
+        {
+          "expect": {
+            "focus": "treeitem:0/0",
+            "attrs": { "treeitem:0/0": { "aria-selected": "true" } },
+            "events": { "onSelectionChange": ["treeitem:0/0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.multi-ctrl-a-selects-all-then-clears",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "Multi-select recommended model: Control + A selects all nodes in the tree; optionally, if all nodes are selected, it can also unselect all nodes",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": true,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "event": "key",
+          "key": "a",
+          "target": "treeitem:0",
+          "modifiers": ["Control"]
+        },
+        {
+          "expect": {
+            "focus": "treeitem:0",
+            "attrs": {
+              "treeitem:0": { "aria-selected": "true" },
+              "treeitem:0/0": { "aria-selected": "true" },
+              "treeitem:0/0/0": { "aria-selected": "true" },
+              "treeitem:0/0/1": { "aria-selected": "true" },
+              "treeitem:0/1": { "aria-selected": "true" },
+              "treeitem:1": { "aria-selected": "true" },
+              "treeitem:1/0": { "aria-selected": "true" }
+            }
+          }
+        },
+        {
+          "event": "key",
+          "key": "a",
+          "target": "treeitem:0",
+          "modifiers": ["Control"]
+        },
+        {
+          "expect": {
+            "attrs": {
+              "treeitem:0": { "aria-selected": "false" },
+              "treeitem:0/0/0": { "aria-selected": "false" },
+              "treeitem:1/0": { "aria-selected": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "The spec selects every node including those inside collapsed subtrees (nodes Roadmap, Summary, Trip here)."
+    },
+    {
+      "id": "treeview.apg.click-selects-and-focuses-node",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-1b/",
+      "upstreamTest": "File Directory Treeview: clicking a treeitem moves focus to it and makes it the selected node",
+      "apg": "keyboard",
+      "config": {
+        "focused": false,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        { "event": "click", "target": "treeitem:0/1" },
+        {
+          "expect": {
+            "focus": "treeitem:0/1",
+            "attrs": { "treeitem:0/1": { "aria-selected": "true" } },
+            "events": { "onSelectionChange": ["treeitem:0/1"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.aria-expanded-only-on-parents",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "Each treeitem that serves as a parent node has aria-expanded; end nodes do not have the attribute",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "treeitem:0": { "aria-expanded": "true" },
+              "treeitem:0/0": { "aria-expanded": "false" },
+              "treeitem:0/1": { "aria-expanded": null },
+              "treeitem:0/0/0": { "aria-expanded": null },
+              "treeitem:1": { "aria-expanded": "false" },
+              "treeitem:1/0": { "aria-expanded": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.aria-level-setsize-posinset",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-1b/",
+      "upstreamTest": "File Directory Treeview (declared properties): every treeitem declares aria-level, aria-setsize and aria-posinset",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "treeitem:0": {
+                "aria-level": "1",
+                "aria-setsize": "2",
+                "aria-posinset": "1"
+              },
+              "treeitem:0/0": {
+                "aria-level": "2",
+                "aria-setsize": "2",
+                "aria-posinset": "1"
+              },
+              "treeitem:0/0/0": {
+                "aria-level": "3",
+                "aria-setsize": "2",
+                "aria-posinset": "1"
+              },
+              "treeitem:0/0/1": {
+                "aria-level": "3",
+                "aria-setsize": "2",
+                "aria-posinset": "2"
+              },
+              "treeitem:0/1": {
+                "aria-level": "2",
+                "aria-setsize": "2",
+                "aria-posinset": "2"
+              },
+              "treeitem:1": {
+                "aria-level": "1",
+                "aria-setsize": "2",
+                "aria-posinset": "2"
+              },
+              "treeitem:1/0": {
+                "aria-level": "2",
+                "aria-setsize": "1",
+                "aria-posinset": "1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.aria-selected-on-selectable-nodes",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "If any nodes are selected each selected node has aria-selected true; all selectable but unselected nodes have aria-selected false",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": ["treeitem:0/0"],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "treeitem:0": { "aria-selected": "false" },
+              "treeitem:0/0": { "aria-selected": "true" },
+              "treeitem:0/1": { "aria-selected": "false" },
+              "treeitem:1": { "aria-selected": "false" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.aria-multiselectable-false-by-default",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "If the tree does not support selection of more than one node, aria-multiselectable is false or the default value of false is implied",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "expect": { "attrs": { "tree": { "aria-multiselectable": "false" } } }
+        }
+      ],
+      "notes": "APG also permits omitting the attribute (implied false); the spec derives an explicit \"false\"."
+    },
+    {
+      "id": "treeview.apg.aria-multiselectable-true",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "If the tree supports selection of more than one node, the element with role tree has aria-multiselectable set to true",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": true,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0"
+      },
+      "steps": [
+        {
+          "expect": { "attrs": { "tree": { "aria-multiselectable": "true" } } }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.roving-tabindex-exactly-one-tabbable",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#keyboardinteraction",
+      "upstreamTest": "A tree keeps a roving tabindex: exactly one treeitem is tabbable at a time",
+      "apg": "focus",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0"],
+        "selected": [],
+        "focus": "treeitem:0/1"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "treeitem:0": { "tabindex": "-1" },
+              "treeitem:0/0": { "tabindex": "-1" },
+              "treeitem:0/1": { "tabindex": "0" },
+              "treeitem:1": { "tabindex": "-1" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.tree-has-accessible-label",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "The element with role tree has either a visible label referenced by aria-labelledby or a value specified for aria-label",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0",
+        "label": "File directory"
+      },
+      "steps": [
+        {
+          "expect": { "attrs": { "tree": { "aria-label": "File directory" } } }
+        }
+      ]
+    },
+    {
+      "id": "treeview.apg.tree-orientation-default-vertical",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "If the tree element is horizontally oriented it has aria-orientation set to horizontal; the default for a tree is vertical",
+      "apg": "aria",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": [],
+        "selected": [],
+        "focus": "treeitem:0",
+        "orientation": "vertical"
+      },
+      "steps": [
+        { "expect": { "attrs": { "tree": { "aria-orientation": null } } } }
+      ]
+    },
+    {
+      "id": "treeview.apg.single-select-keeps-at-most-one-selected",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-1b/",
+      "upstreamTest": "File Directory Treeview (single-select): no more than one node is selected at a time",
+      "apg": "keyboard",
+      "config": {
+        "focused": true,
+        "multiSelectable": false,
+        "expanded": ["0", "0/0"],
+        "selected": ["treeitem:0/0"],
+        "focus": "treeitem:0/0"
+      },
+      "steps": [
+        { "event": "click", "target": "treeitem:0/0/1" },
+        {
+          "expect": {
+            "focus": "treeitem:0/0/1",
+            "attrs": {
+              "treeitem:0/0": { "aria-selected": "false" },
+              "treeitem:0/0/1": { "aria-selected": "true" }
+            },
+            "events": { "onSelectionChange": ["treeitem:0/0/1"] }
+          }
+        }
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "id": "treeview.apg.selection-follows-focus",
+      "reason": "APG optional single-select model; the treeview spec keeps selection independent of focus."
+    },
+    {
+      "id": "treeview.apg.shift-space-range-selection",
+      "reason": "Optional contiguous range selection; needs a selection anchor the spec does not model."
+    },
+    {
+      "id": "treeview.apg.ctrl-shift-home-end-range-selection",
+      "reason": "Optional range selection to the first/last node; anchor-based, out of scope."
+    },
+    {
+      "id": "treeview.apg.alternative-selection-model",
+      "reason": "APG alternative modifier-key navigation model (Control+Arrow, Control+Space); the recommended model is ported instead."
+    },
+    {
+      "id": "treeview.apg.aria-activedescendant",
+      "reason": "Focus-management alternative to moving DOM focus among treeitems; reported focus is modelled as DOM focus."
+    },
+    {
+      "id": "treeview.apg.aria-checked-selection-variant",
+      "reason": "APG permits aria-checked instead of aria-selected; the treeview spec fixes aria-selected."
+    },
+    {
+      "id": "treeview.apg.navigation-treeview-links",
+      "reason": "Navigation Treeview example adds aria-current and link semantics, outside the treeview pattern's state machine."
+    },
+    {
+      "id": "treeview.apg.dynamic-lazy-loading",
+      "reason": "Virtualization, dynamic loading and scrolling are rendering concerns with no key/state behaviour to replay."
+    },
+    {
+      "id": "treeview.apg.aria-owns-group-wrappers",
+      "reason": "ARIA group wrappers and aria-owns re-ordering are DOM-structure details, not keyboard/state behaviour."
+    },
+    {
+      "id": "treeview.apg.horizontal-orientation",
+      "reason": "Horizontally oriented tree (arrow keys swap); the spec is vertical-only."
+    },
+    {
+      "id": "treeview.apg.drag-and-drop",
+      "reason": "Drag and drop is not part of the APG treeview pattern."
+    },
+    {
+      "id": "treeview.apg.styling-and-snapshots",
+      "reason": "Styling, snapshots and visual states are out of scope per the scenarios README."
+    },
+    {
+      "id": "treeview.apg.react-api-only",
+      "reason": "React-only props, render props, refs and component composition are not library-neutral behaviour."
+    }
+  ]
+}

@@ -16,12 +16,17 @@ import { flush } from 'solid-js';
 export interface NeutralPart {
   readonly id: string;
   readonly role?: string;
+  readonly label?: string | undefined;
   readonly checked?: boolean | 'mixed';
   readonly pressed?: boolean | undefined;
-  readonly expanded?: boolean;
+  readonly expanded?: boolean | undefined;
   readonly selected?: boolean | undefined;
   readonly disabled?: boolean | undefined;
   readonly readOnly?: boolean | undefined;
+  readonly multiSelectable?: boolean | undefined;
+  readonly level?: number | undefined;
+  readonly posInSet?: number | undefined;
+  readonly setSize?: number | undefined;
   readonly controls?: string | undefined;
   readonly labelledBy?: string | undefined;
   readonly describedBy?: string | undefined;
@@ -70,6 +75,12 @@ export interface NeutralDriverOptions {
    * its own focus cursor, so a key step's target names nothing it acts on (as eoa's tabs driver does).
    */
   readonly keys?: 'target' | 'focused';
+  /**
+   * `cumulative` (default): `events(name)` is everything since mount, as the spec driver reports it. `consumed`:
+   * only what is new since the previous read, as eoa's DOM driver reported it (the treeview scenarios were
+   * written against that).
+   */
+  readonly readEvents?: 'cumulative' | 'consumed';
 }
 
 const flag = (value: boolean | undefined): string | null =>
@@ -113,6 +124,7 @@ export const neutralDriver = (
     focus(part);
     call(() => part.press?.());
   };
+  const consumed = new Map<string, number>();
 
   return {
     perform: (step: ActionStep) => {
@@ -194,6 +206,8 @@ export const neutralDriver = (
         switch (name) {
           case 'role':
             return part.role ?? null;
+          case 'aria-label':
+            return part.label ?? null;
           case 'aria-checked':
             return token(part.checked);
           case 'aria-pressed':
@@ -202,6 +216,14 @@ export const neutralDriver = (
             return token(part.expanded);
           case 'aria-selected':
             return token(part.selected);
+          case 'aria-multiselectable':
+            return token(part.multiSelectable);
+          case 'aria-level':
+            return number(part.level);
+          case 'aria-posinset':
+            return number(part.posInSet);
+          case 'aria-setsize':
+            return number(part.setSize);
           case options.disabledAttr:
             return options.disabledReads === 'token'
               ? token(part.disabled)
@@ -236,7 +258,15 @@ export const neutralDriver = (
         Object.keys(mounted.parts).filter(
           (name) => mounted.parts[name]?.hidden === false,
         ),
-      events: (name) => mounted.events.get(canonical(name)) ?? [],
+      events: (name) => {
+        const fired = mounted.events.get(canonical(name)) ?? [];
+        if (options.readEvents !== 'consumed') {
+          return fired;
+        }
+        const seen = consumed.get(name) ?? 0;
+        consumed.set(name, fired.length);
+        return fired.slice(seen);
+      },
       ...(mounted.value === undefined ? {} : { value: mounted.value }),
     },
     dispose: mounted.dispose,
