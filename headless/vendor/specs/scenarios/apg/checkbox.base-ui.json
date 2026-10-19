@@ -1,0 +1,1126 @@
+{
+  "pattern": "checkbox",
+  "source": "base-ui",
+  "commit": "19511bb171f3b360b006c94cf6d07e53cb446505",
+  "license": "MIT",
+  "skipped": [
+    { "reason": "describeConformance blocks" },
+    { "reason": "id generation, hydration and SSR fallback tests" },
+    {
+      "reason": "Field/Form integration, validation, error focus and description wiring"
+    },
+    {
+      "reason": "form value projection through portals/fieldsets and form-owner changes"
+    },
+    {
+      "reason": "data-* style hooks on root/indicator (data-touched, data-dirty, data-filled, data-focused, data-valid, data-invalid) unless the upstream assertion encodes ARIA state"
+    },
+    { "reason": "inputRef prop tests and imperative ref-callback edge cases" },
+    { "reason": "React StrictMode internals and console-warning tests" },
+    { "reason": "styling/class-name assertions" }
+  ],
+  "scenarios": [
+    {
+      "id": "checkbox.base-ui.aria-attributes",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L24",
+      "upstreamTest": "ARIA attributes > sets the correct aria attributes",
+      "apg": "aria",
+      "config": { "part": "checkbox", "required": false },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "role": "checkbox", "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "prop", "set": { "required": true } },
+        { "expect": { "attrs": { "checkbox": { "aria-required": "true" } } } }
+      ],
+      "notes": "Required adds aria-required to the exposed checkbox."
+    },
+    {
+      "id": "checkbox.base-ui.role-can-be-overridden",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L35",
+      "upstreamTest": "extra props > can override the built-in attributes",
+      "apg": "extension",
+      "config": { "part": "checkbox", "role": "switch" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "role": "switch" } } } }
+      ],
+      "notes": "Consumer role overrides the default checkbox role."
+    },
+    {
+      "id": "checkbox.base-ui.onclick-propagates-once",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L134",
+      "upstreamTest": "prop: onClick > propagates a single click event to ancestors per user click",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-checked": "true" } },
+            "events": { "onAncestorClick": [1] }
+          }
+        }
+      ],
+      "notes": "One user click reaches the ancestor once."
+    },
+    {
+      "id": "checkbox.base-ui.onclick-stop-propagation",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L148",
+      "upstreamTest": "prop: onClick > does not propagate to ancestors when stopPropagation() is called",
+      "apg": "extension",
+      "config": { "part": "checkbox", "stopPropagation": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-checked": "true" } },
+            "events": { "onAncestorClick": [0] }
+          }
+        }
+      ],
+      "notes": "State still toggles when propagation is stopped."
+    },
+    {
+      "id": "checkbox.base-ui.onclick-propagates-once-native-button",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L162",
+      "upstreamTest": "prop: onClick > propagates a single click event to ancestors with a native button",
+      "apg": "extension",
+      "config": { "part": "checkbox", "nativeButton": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-checked": "true" } },
+            "events": { "onAncestorClick": [1] }
+          }
+        }
+      ],
+      "notes": "Native-button rendering keeps single-click propagation."
+    },
+    {
+      "id": "checkbox.base-ui.onclick-stop-propagation-native-button",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L176",
+      "upstreamTest": "prop: onClick > does not propagate to ancestors when stopPropagation() is called with a native button",
+      "apg": "extension",
+      "config": {
+        "part": "checkbox",
+        "nativeButton": true,
+        "stopPropagation": true
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-checked": "true" } },
+            "events": { "onAncestorClick": [0] }
+          }
+        }
+      ],
+      "notes": "Native-button variant honours stopPropagation."
+    },
+    {
+      "id": "checkbox.base-ui.click-toggles-aria-checked-and-input",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L213",
+      "upstreamTest": "interactions > should change its state when clicked",
+      "apg": "aria",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "aria-checked": "false" },
+              "input:hidden": { "checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "aria-checked": "true" },
+              "input:hidden": { "checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "aria-checked": "false" },
+              "input:hidden": { "checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "Exposed aria-checked and hidden input checked stay in sync."
+    },
+    {
+      "id": "checkbox.base-ui.controlled-updates-from-outside",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L240",
+      "upstreamTest": "interactions > should update its state when changed from outside",
+      "apg": "states",
+      "config": { "part": "checkbox", "checked": false },
+      "steps": [
+        { "event": "prop", "set": { "checked": true } },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } },
+        { "event": "prop", "set": { "checked": false } },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "aria-checked follows the controlled checked prop."
+    },
+    {
+      "id": "checkbox.base-ui.oncheckedchange-called",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L269",
+      "upstreamTest": "interactions > should call onCheckedChange when clicked",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "events": { "onCheckedChange": [true] } } }
+      ],
+      "notes": "Callback receives the next checked value."
+    },
+    {
+      "id": "checkbox.base-ui.oncheckedchange-cancel",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L282",
+      "upstreamTest": "interactions > does not update its state when onCheckedChange cancels the event",
+      "apg": "extension",
+      "config": { "part": "checkbox", "cancelOnCheckedChange": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "aria-checked": "false" },
+              "input:hidden": { "checked": "false" }
+            },
+            "events": { "onCheckedChange": [1] }
+          }
+        }
+      ],
+      "notes": "cancel() keeps the checkbox unchecked."
+    },
+    {
+      "id": "checkbox.base-ui.oncheckedchange-reports-modifiers",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L300",
+      "upstreamTest": "interactions > should report keyboard modifier event properties",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "checkbox", "modifiers": ["Shift"] },
+        {
+          "expect": { "events": { "onCheckedChange": [{ "shiftKey": true }] } }
+        }
+      ],
+      "notes": "Event details expose modifier state."
+    },
+    {
+      "id": "checkbox.base-ui.hidden-input-toggle-updates-checkbox",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L313",
+      "upstreamTest": "interactions > should update its state if the underlying input is toggled",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "input:hidden" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Toggling the hidden input updates the exposed checkbox."
+    },
+    {
+      "id": "checkbox.base-ui.ignores-canceled-hidden-input-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L325",
+      "upstreamTest": "interactions > ignores a hidden input click canceled before React handles it",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "input:hidden", "canceled": true },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-checked": "false" } },
+            "events": { "onCheckedChange": [0] }
+          }
+        }
+      ],
+      "notes": "A click whose default is prevented never activates the checkbox."
+    },
+    {
+      "id": "checkbox.base-ui.space-activates",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L340",
+      "upstreamTest": "interactions > can be activated with Space key",
+      "apg": "keyboard",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "checkbox" } },
+        { "event": "key", "key": " ", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Space activates the checkbox."
+    },
+    {
+      "id": "checkbox.base-ui.enter-does-not-activate",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L353",
+      "upstreamTest": "interactions > does not activate with Enter key",
+      "apg": "keyboard",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "checkbox" } },
+        { "event": "key", "key": "Enter", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Enter does not toggle a checkbox (APG spec for the checkbox pattern)."
+    },
+    {
+      "id": "checkbox.base-ui.disabled-uses-aria-disabled",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L368",
+      "upstreamTest": "prop: disabled > uses aria-disabled instead of HTML disabled",
+      "apg": "states",
+      "config": { "part": "checkbox", "disabled": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "disabled": null, "aria-disabled": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "Disabled checkbox exposes aria-disabled."
+    },
+    {
+      "id": "checkbox.base-ui.disabled-ignores-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L374",
+      "upstreamTest": "prop: disabled > should not change its state when clicked",
+      "apg": "states",
+      "config": { "part": "checkbox", "disabled": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Click is ignored while disabled."
+    },
+    {
+      "id": "checkbox.base-ui.readonly-aria",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L389",
+      "upstreamTest": "prop: readOnly > should have the aria-readonly attribute",
+      "apg": "states",
+      "config": { "part": "checkbox", "readOnly": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "aria-readonly": "true" } } } }
+      ],
+      "notes": "Read-only checkbox exposes aria-readonly."
+    },
+    {
+      "id": "checkbox.base-ui.readonly-ignores-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L399",
+      "upstreamTest": "prop: readOnly > should not change its state when clicked",
+      "apg": "states",
+      "config": { "part": "checkbox", "readOnly": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Read-only blocks direct clicks."
+    },
+    {
+      "id": "checkbox.base-ui.readonly-ignores-label-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L412",
+      "upstreamTest": "prop: readOnly > should not change its state when its label is clicked",
+      "apg": "states",
+      "config": { "part": "checkbox", "readOnly": true },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Read-only also blocks activation through the label."
+    },
+    {
+      "id": "checkbox.base-ui.indeterminate-mixed",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L433",
+      "upstreamTest": "prop: indeterminate > should set the aria-checked attribute as mixed",
+      "apg": "states",
+      "config": { "part": "checkbox", "indeterminate": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "mixed" } } } }
+      ],
+      "notes": "Indeterminate maps to aria-checked=mixed."
+    },
+    {
+      "id": "checkbox.base-ui.indeterminate-ignores-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L438",
+      "upstreamTest": "prop: indeterminate > should not change its state when clicked",
+      "apg": "states",
+      "config": { "part": "checkbox", "indeterminate": true },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "mixed" } } } }
+      ],
+      "notes": "A manually indeterminate checkbox stays mixed after a click."
+    },
+    {
+      "id": "checkbox.base-ui.indeterminate-not-overridden-by-checked",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L456",
+      "upstreamTest": "prop: indeterminate > should not be overridden by checked prop",
+      "apg": "states",
+      "config": { "part": "checkbox", "indeterminate": true, "checked": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "mixed" } } } }
+      ],
+      "notes": "indeterminate wins over checked for aria-checked."
+    },
+    {
+      "id": "checkbox.base-ui.indeterminate-native-input-state",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L461",
+      "upstreamTest": "prop: indeterminate > sets the native input state when indeterminate",
+      "apg": "extension",
+      "config": { "part": "checkbox", "indeterminate": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": { "attrs": { "input:hidden": { "indeterminate": "true" } } }
+        }
+      ],
+      "notes": "The hidden native input's indeterminate flag is set."
+    },
+    {
+      "id": "checkbox.base-ui.indeterminate-grouped-parent-mixed",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L506",
+      "upstreamTest": "prop: indeterminate > sets grouped parent aria when manually indeterminate",
+      "apg": "states",
+      "config": {
+        "part": "checkbox",
+        "group": true,
+        "parentIndeterminate": true,
+        "values": []
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": { "checkbox:parent": { "aria-checked": "mixed" } }
+          }
+        }
+      ],
+      "notes": "A manually indeterminate parent checkbox is mixed inside a group."
+    },
+    {
+      "id": "checkbox.base-ui.wrapping-label-toggles",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L589",
+      "upstreamTest": "with native <label> > should toggle the checkbox when a wrapping <label> is clicked",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Wrapping label toggles the checkbox."
+    },
+    {
+      "id": "checkbox.base-ui.click-wrapping-label-checkbox",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1764",
+      "upstreamTest": "should change state when clicking the checkbox if it has a wrapping label",
+      "apg": "extension",
+      "config": { "part": "checkbox" },
+      "steps": [
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } },
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Clicking the control itself also toggles when wrapped in a label."
+    },
+    {
+      "id": "checkbox.base-ui.linked-label-toggles",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L604",
+      "upstreamTest": "with native <label> > should toggle the checkbox when a explicitly linked <label> is clicked",
+      "apg": "extension",
+      "config": { "part": "checkbox", "labelFor": true },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } }
+      ],
+      "notes": "A label with htmlFor pointing at the checkbox toggles it."
+    },
+    {
+      "id": "checkbox.base-ui.native-button-id-association",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L622",
+      "upstreamTest": "with native <label> > should associate id with the native button when nativeButton=true",
+      "apg": "extension",
+      "config": { "part": "checkbox", "nativeButton": true, "labelFor": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox": { "id": "myCheckbox" },
+              "input:hidden": { "id": null }
+            }
+          }
+        },
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } }
+      ],
+      "notes": "In native-button mode the id lives on the button; the label still toggles."
+    },
+    {
+      "id": "checkbox.base-ui.aria-labelledby-from-sibling-label",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1785",
+      "upstreamTest": "sets aria-labelledby from a sibling label associated with the hidden input",
+      "apg": "aria",
+      "config": { "part": "checkbox", "label": "Label", "labelFor": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": { "attrs": { "checkbox": { "aria-labelledby": "label" } } }
+        }
+      ],
+      "notes": "A sibling <label htmlFor> supplies the accessible name."
+    },
+    {
+      "id": "checkbox.base-ui.aria-labelledby-updates-with-input-id",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1798",
+      "upstreamTest": "updates fallback aria-labelledby when the hidden input id changes",
+      "apg": "aria",
+      "config": { "part": "checkbox", "labels": ["Label A", "Label B"] },
+      "steps": [
+        { "event": "prop", "set": { "id": "checkbox-input-a" } },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-labelledby": "label-a" } }
+          }
+        },
+        { "event": "prop", "set": { "id": "checkbox-input-b" } },
+        {
+          "expect": {
+            "attrs": { "checkbox": { "aria-labelledby": "label-b" } }
+          }
+        }
+      ],
+      "notes": "aria-labelledby tracks the current associated label."
+    },
+    {
+      "id": "checkbox.base-ui.aria-label-preferred-over-label",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1833",
+      "upstreamTest": "prefers aria-label over an associated label",
+      "apg": "aria",
+      "config": {
+        "part": "checkbox",
+        "aria-label": "lease.pdf",
+        "label": "lease.pdf"
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "aria-labelledby": null } } } }
+      ],
+      "notes": "With aria-label present the wrapping label is not referenced."
+    },
+    {
+      "id": "checkbox.base-ui.blank-aria-label-ignored",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1856",
+      "upstreamTest": "ignores a blank `aria-label`",
+      "apg": "aria",
+      "config": {
+        "part": "checkbox",
+        "aria-label": " ",
+        "label": "Native label"
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox": { "aria-label": null } } } }
+      ],
+      "notes": "Whitespace-only aria-label is ignored, so the associated label names the control."
+    },
+    {
+      "id": "checkbox.base-ui.native-button-enter-and-space",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox/root/CheckboxRoot.test.tsx#L1947",
+      "upstreamTest": "can render a native button",
+      "apg": "keyboard",
+      "config": { "part": "checkbox", "nativeButton": true },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        {
+          "expect": {
+            "focus": "checkbox",
+            "attrs": { "checkbox": { "aria-checked": "false" } }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } },
+        { "event": "key", "key": " ", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "true" } } } },
+        { "event": "click", "target": "checkbox" },
+        { "expect": { "attrs": { "checkbox": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Even as a native button the checkbox pattern keeps Enter inert and Space/click toggling."
+    },
+    {
+      "id": "checkbox.base-ui.group-controlled-value",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L30",
+      "upstreamTest": "prop: value > should control the value",
+      "apg": "states",
+      "config": {
+        "group": true,
+        "value": ["red"],
+        "values": ["red", "green", "blue"]
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:1" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "false" },
+              "checkbox:1": { "aria-checked": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "Controlled array determines which checkboxes are checked."
+    },
+    {
+      "id": "checkbox.base-ui.group-empty-string-value",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L71",
+      "upstreamTest": "prop: value > supports an empty string item value",
+      "apg": "extension",
+      "config": { "group": true, "value": [""], "values": ["", "other"] },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:0" },
+        { "expect": { "attrs": { "checkbox:0": { "aria-checked": "false" } } } }
+      ],
+      "notes": "An empty-string value is a valid selectable item."
+    },
+    {
+      "id": "checkbox.base-ui.group-controlled-value-undefined-becomes-empty",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L95",
+      "upstreamTest": "prop: value > treats a controlled value that becomes undefined as an empty array",
+      "apg": "extension",
+      "config": { "group": true, "value": ["red"] },
+      "steps": [
+        { "event": "prop", "set": { "value": ["red"] } },
+        { "expect": { "attrs": { "checkbox:0": { "aria-checked": "true" } } } },
+        { "event": "prop", "set": { "value": null } },
+        { "expect": { "attrs": { "checkbox:0": { "aria-checked": "false" } } } }
+      ],
+      "notes": "A controlled value that becomes undefined/null is treated as empty."
+    },
+    {
+      "id": "checkbox.base-ui.group-onvaluechange",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L127",
+      "upstreamTest": "prop: onValueChange > should be called when the value changes",
+      "apg": "extension",
+      "config": {
+        "group": true,
+        "value": [],
+        "values": ["red", "green", "blue"]
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        { "expect": { "events": { "onValueChange": [["red"]] } } },
+        { "event": "click", "target": "checkbox:1" },
+        { "expect": { "events": { "onValueChange": [["red", "green"]] } } },
+        { "event": "click", "target": "checkbox:2" },
+        {
+          "expect": {
+            "events": { "onValueChange": [["red", "green", "blue"]] }
+          }
+        }
+      ],
+      "notes": "Callback receives the next checked-values array."
+    },
+    {
+      "id": "checkbox.base-ui.group-omitted-defaultvalue",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L169",
+      "upstreamTest": "prop: onValueChange > should treat an omitted defaultValue as an empty array",
+      "apg": "states",
+      "config": { "group": true },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        { "expect": { "events": { "onValueChange": [["red"]] } } },
+        { "event": "click", "target": "checkbox:1" },
+        { "expect": { "events": { "onValueChange": [["red", "green"]] } } },
+        { "event": "click", "target": "checkbox:0" },
+        { "expect": { "events": { "onValueChange": [["green"]] } } }
+      ],
+      "notes": "Uncontrolled group starts empty and unchecking removes the item."
+    },
+    {
+      "id": "checkbox.base-ui.group-onvaluechange-cancel",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L196",
+      "upstreamTest": "prop: onValueChange > does not update the group when onValueChange cancels the event",
+      "apg": "extension",
+      "config": { "group": true, "cancelOnValueChange": true },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": { "checkbox:0": { "aria-checked": "false" } },
+            "events": { "onValueChange": [["red"]] }
+          }
+        }
+      ],
+      "notes": "cancel() leaves the group value unchanged."
+    },
+    {
+      "id": "checkbox.base-ui.group-default-label",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L230",
+      "upstreamTest": "prop: defaultValue > should set the initial value",
+      "apg": "states",
+      "config": {
+        "group": true,
+        "defaultValue": ["red"],
+        "values": ["red", "green", "blue"]
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:1" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "defaultValue seeds an uncontrolled group."
+    },
+    {
+      "id": "checkbox.base-ui.group-disabled-all",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L305",
+      "upstreamTest": "prop: disabled > disables all checkboxes when true",
+      "apg": "states",
+      "config": { "group": true, "disabled": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-disabled": "true" },
+              "checkbox:1": { "aria-disabled": "true" },
+              "checkbox:2": { "aria-disabled": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "Group disabled propagates aria-disabled to all items."
+    },
+    {
+      "id": "checkbox.base-ui.group-disabled-precedence",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/CheckboxGroup.test.tsx#L349",
+      "upstreamTest": "prop: disabled > takes precedence over individual checkboxes",
+      "apg": "states",
+      "config": { "group": true, "disabled": true, "itemDisabled": false },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "checkbox:0": { "aria-disabled": "true" } } } }
+      ],
+      "notes": "Group disabled wins over a per-item disabled=false."
+    },
+    {
+      "id": "checkbox.base-ui.parent-controls-children",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L11",
+      "upstreamTest": "should control child checkboxes",
+      "apg": "extension",
+      "config": { "group": true, "parent": true, "values": ["a", "b", "c"] },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" },
+              "checkbox:1": { "aria-checked": "false" },
+              "checkbox:2": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "true" },
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" },
+              "checkbox:2": { "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" },
+              "checkbox:1": { "aria-checked": "false" },
+              "checkbox:2": { "aria-checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "Parent checkbox checks/unchecks all children; child onChange does not fire for parent-driven changes."
+    },
+    {
+      "id": "checkbox.base-ui.parent-mixed-when-some-children-checked",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L58",
+      "upstreamTest": "parent should be marked as mixed if some children are checked",
+      "apg": "states",
+      "config": { "group": true, "parent": true, "values": ["a", "b", "c"] },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": { "checkbox:parent": { "aria-checked": "mixed" } }
+          }
+        }
+      ],
+      "notes": "Partial selection makes the parent mixed."
+    },
+    {
+      "id": "checkbox.base-ui.parent-uncontrolled-updates",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L87",
+      "upstreamTest": "updates uncontrolled parent-enabled groups from child clicks without duplicate callbacks",
+      "apg": "states",
+      "config": { "group": true, "parent": true, "values": ["a", "b", "c"] },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": { "checkbox:parent": { "aria-checked": "mixed" } },
+            "events": { "onValueChange": [["a"]] }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" },
+              "checkbox:2": { "aria-checked": "true" }
+            },
+            "events": { "onValueChange": [["a", "b", "c"]] }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" }
+            },
+            "events": { "onValueChange": [[]] }
+          }
+        }
+      ],
+      "notes": "Child click fires onValueChange once; parent click checks all then clears."
+    },
+    {
+      "id": "checkbox.base-ui.parent-initial-values",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L131",
+      "upstreamTest": "should correctly initialize the values array",
+      "apg": "states",
+      "config": {
+        "group": true,
+        "parent": true,
+        "value": ["a"],
+        "values": ["a", "b", "c"]
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "mixed" },
+              "checkbox:0": { "aria-checked": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "Initial partial value makes the parent mixed."
+    },
+    {
+      "id": "checkbox.base-ui.parent-aria-controls",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L184",
+      "upstreamTest": "should apply space-separated aria-controls attribute with child names",
+      "apg": "aria",
+      "config": { "group": true, "parent": true, "values": ["a", "b", "c"] },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": {
+                "aria-controls": "checkbox-a checkbox-b checkbox-c"
+              }
+            }
+          }
+        }
+      ],
+      "notes": "Parent aria-controls lists the child control ids, space separated."
+    },
+    {
+      "id": "checkbox.base-ui.parent-aria-controls-drops-unmounted",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L272",
+      "upstreamTest": "drops an unmounted child from aria-controls",
+      "apg": "aria",
+      "config": {
+        "group": true,
+        "parent": true,
+        "values": ["a", "b"],
+        "initialMounted": ["a", "b"]
+      },
+      "steps": [
+        { "event": "prop", "set": { "mounted": ["a"] } },
+        {
+          "expect": {
+            "attrs": { "checkbox:parent": { "aria-controls": "checkbox-a" } }
+          }
+        }
+      ],
+      "notes": "Unmounted children are removed from aria-controls."
+    },
+    {
+      "id": "checkbox.base-ui.parent-does-not-select-valueless-child",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L319",
+      "upstreamTest": "does not select a child without an identifying value",
+      "apg": "extension",
+      "config": {
+        "group": true,
+        "parent": true,
+        "values": ["a"],
+        "includeValueless": true
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "true" },
+              "checkbox:valueless": { "aria-checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "Parent only toggles children that carry a value."
+    },
+    {
+      "id": "checkbox.base-ui.parent-preserves-mixed-cycle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L340",
+      "upstreamTest": "preserves initial state if mixed when parent is clicked",
+      "apg": "states",
+      "config": { "group": true, "parent": true, "values": ["a", "b", "c"] },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": { "checkbox:parent": { "aria-checked": "mixed" } }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "true" },
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" },
+              "checkbox:2": { "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "mixed" },
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "mixed -> all -> none -> the previous mixed snapshot."
+    },
+    {
+      "id": "checkbox.base-ui.parent-cancel-change",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L386",
+      "upstreamTest": "lets a parent checkbox cancel a parent-enabled group change",
+      "apg": "extension",
+      "config": {
+        "group": true,
+        "parent": true,
+        "values": ["a", "b", "c"],
+        "cancelParentChange": true
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" }
+            },
+            "events": { "onValueChange": [0] }
+          }
+        }
+      ],
+      "notes": "Cancelling the parent leaves the group unchanged and never fires onValueChange."
+    },
+    {
+      "id": "checkbox.base-ui.child-cancel-change",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L411",
+      "upstreamTest": "lets a child checkbox cancel a parent-enabled group change",
+      "apg": "extension",
+      "config": {
+        "group": true,
+        "parent": true,
+        "values": ["a", "b", "c"],
+        "cancelChildChange": true
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:0" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "false" },
+              "checkbox:0": { "aria-checked": "false" }
+            },
+            "events": { "onValueChange": [0] }
+          }
+        }
+      ],
+      "notes": "Cancelling a child leaves the parent and group untouched."
+    },
+    {
+      "id": "checkbox.base-ui.parent-toggle-cycle-not-advanced-on-cancel",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L434",
+      "upstreamTest": "does not advance the parent toggle cycle when the group cancels a parent change",
+      "apg": "extension",
+      "config": {
+        "group": true,
+        "parent": true,
+        "value": ["a"],
+        "values": ["a", "b", "c"],
+        "cancelAllGroupChanges": true
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:parent" },
+        { "expect": { "events": { "onValueChange": [["a", "b", "c"]] } } },
+        { "event": "click", "target": "checkbox:parent" },
+        { "expect": { "events": { "onValueChange": [["a", "b", "c"]] } } }
+      ],
+      "notes": "Because the group cancels both attempts, the parent retries mixed->all each time instead of advancing."
+    },
+    {
+      "id": "checkbox.base-ui.unchecked-disabled-child",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L488",
+      "upstreamTest": "handles unchecked disabled checkboxes",
+      "apg": "states",
+      "config": {
+        "group": true,
+        "parent": true,
+        "values": ["a", "b", "c"],
+        "disabledChild": 0
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:parent": { "aria-checked": "mixed" },
+              "checkbox:0": { "aria-checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "A disabled unchecked child prevents the parent from reaching checked."
+    },
+    {
+      "id": "checkbox.base-ui.checked-disabled-child",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/checkbox-group/useCheckboxGroupParent.test.tsx#L510",
+      "upstreamTest": "handles checked disabled checkboxes",
+      "apg": "states",
+      "config": {
+        "group": true,
+        "parent": true,
+        "value": ["a"],
+        "values": ["a", "b", "c"],
+        "disabledChild": 0
+      },
+      "steps": [
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "checkbox:parent" },
+        {
+          "expect": {
+            "attrs": {
+              "checkbox:0": { "aria-checked": "true" },
+              "checkbox:1": { "aria-checked": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "A disabled checked child is not unchecked by the parent's clear pass."
+    }
+  ]
+}

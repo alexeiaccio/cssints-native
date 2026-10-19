@@ -108,6 +108,13 @@ Each step ends in a check that fails when it breaks.
    it with the C page's three ThorVG frames, pixel for pixel (identical), plus the pressed look and click rules. Cost:
    about 0.4 ms a frame on an Apple-silicon Mac, 0.006 ms of it the JS walk and FFI, the rest ThorVG's raster. Left: reload on save,
    `:focus`, text input, JSX types, the window checked by eye.
+   **Headless widgets** (`headless/`, between Solid and JSX to C). The first widgets of effects-of-atmosphere's
+   `@eoa/headless` (button, switch, checkbox, disclosure) with no DOM: Solid 2 signals for state and, instead of aria-*
+   attributes, parts of plain fields (`id`, `role`, `checked`, `expanded`, `controls`, `hidden`, `disabled`, `focused`)
+   with handlers (`press()`, `key(name)`, `focus()`, `blur()`) that a Clay renderer and an accessibility tree both read.
+   Check: the ported APG scenarios and a seeded random walk, replayed on the parts and on the generated Quint model,
+   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 29 tests. Left:
+   focus groups and roving focus (`focus/`), overlays, text input.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

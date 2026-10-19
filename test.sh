@@ -30,3 +30,6 @@ THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expect
 sh solid/test.sh
 # the focus manager (no DOM): Tab order, roving focus, restore, and a seeded random walk
 node focus/test/focus.test.ts
+
+# Headless widgets (button, switch, checkbox, disclosure) on neutral parts: ported scenarios and a walk against the Quint models
+(cd headless && bun install --frozen-lockfile >/dev/null && bun run typecheck && bun run test)

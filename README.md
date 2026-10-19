@@ -24,6 +24,7 @@ desktop/                   host.c (SDL3 window or a headless frame), clay_render
 solid/                     Solid 2 on the desktop: a universal renderer over Clay through bun:ffi (solid/README.md)
 focus/                     the focus manager: Tab order, roving focus in groups, restore (no DOM), focus/README.md
 vendor/                    clay.h and Clay's SDL3 renderer (e6cc369), a font
+headless/                  button, switch, checkbox, disclosure as signals + neutral parts, checked against Quint specs
 docs/map.md                targets, layers, order of work
 ```
 
