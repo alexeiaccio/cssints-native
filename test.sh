@@ -23,3 +23,5 @@ THEME=light ./build/sensors/app --expect examples/sensors/expected-light.png
 ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg.png
 ./build/sensors/app --raster thorvg --click 180 250 --expect examples/sensors/expected-thorvg-g.png
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
+# the focus manager (no DOM): Tab order, roving focus, restore, and a seeded random walk
+node focus/test/focus.test.ts

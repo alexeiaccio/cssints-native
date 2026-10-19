@@ -21,6 +21,7 @@ generator/clay-header.ts   styles.ts -> styles.h through the cssints plugin
 examples/units/            the pill proven on the board, and same.c: generated vs hand-written, same render commands
 examples/sensors/          the Sensors page: styles.ts, page.c, its stored frames
 desktop/                   host.c (SDL3 window or a headless frame), clay_renderer_thorvg.c, build.sh
+focus/                     the focus manager: Tab order, roving focus in groups, restore (no DOM), focus/README.md
 vendor/                    clay.h and Clay's SDL3 renderer (e6cc369), a font
 docs/map.md                targets, layers, order of work
 ```
