@@ -25,3 +25,6 @@ THEME=light ./build/sensors/app --raster sdl --expect examples/sensors/expected-
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
 # Units held down: the pressed look (units_active), written while the pointer is still down
 ./build/sensors/app --raster thorvg --press 180 250 --expect examples/sensors/expected-pressed.png
+
+# Solid 2 on the desktop: the Sensors page as JSX, its frames against the same stored ThorVG frames
+sh solid/test.sh
