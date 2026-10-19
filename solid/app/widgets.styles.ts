@@ -1,7 +1,7 @@
 import * as css from "cssints/clay" with { type: "cssints" };
 
 // The styles of the Widgets page. Clay has no checked or disabled flag: the page picks `track` or `trackOn`, `box`,
-// `boxOn`, `boxMixed` or `boxDisabled` from the part's fields, and `:active` and `:focus` are the pressed look and the
+// `boxOn`, `boxMixed` or `boxDisabled` from the part's fields, and `:hover`, `:active` and `:focus` are the hover and pressed looks and the
 // focus ring, laid over the style by the renderer (the ring over the pressed look over the base).
 export const t = css.createTokens({
   color: {
@@ -13,7 +13,9 @@ export const t = css.createTokens({
     off: { $value: "rgb(60 64 78)" },
     accent: { $value: "rgb(240 140 50)" },
     surface: { $value: "rgb(36 40 52)" },
-    pressed: { $value: "rgb(255 200 120)" },
+    // hover and pressed lift the surface a step each, so the ink keeps its contrast (dark 10.3:1 and 7.9:1)
+    hover: { $value: "rgb(48 53 68)" },
+    active: { $value: "rgb(64 70 90)" },
     ring: { $value: "rgb(90 170 255)" },
     thumb: { $value: "rgb(255 255 255)" },
     disabled: { $value: "rgb(88 92 106)" },
@@ -28,7 +30,8 @@ css.createGlobalTheme(t, "light", {
     off: "rgb(190 194 206)",
     accent: "rgb(190 90 10)",
     surface: "rgb(255 255 255)",
-    pressed: "rgb(255 210 150)",
+    hover: "rgb(232 235 241)",
+    active: "rgb(216 221 231)",
     ring: "rgb(20 100 220)",
     thumb: "rgb(255 255 255)",
     disabled: "rgb(170 174 186)",
@@ -59,7 +62,8 @@ export const button = css.cn(
   css.bg(t.color.surface),
   css.borderRadius(20),
   css.border(1, t.color.muted),
-  css.active(css.bg(t.color.pressed)),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
   css.focus(css.border(2, t.color.ring)),
 );
 
@@ -70,7 +74,8 @@ export const row = css.cn(
   css.gap(12),
   css.alignItems("center"),
   css.borderRadius(8),
-  css.active(css.bg(t.color.surface)),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
   css.focus(css.border(2, t.color.ring)),
 );
 export const rowIndented = css.cn(row, css.pl(34));

@@ -139,10 +139,14 @@ function fresh() {
   check("click focuses the switch", p.focused(), "wifi");
   p.click("press");
   check("click on the button counts and moves focus", [p.label(), p.focused()], ["Presses: 1", "press"]);
-  p.move("wifi");
-  p.press();
+  p.away();
   const b = p.box("wifi");
-  check("pressed look (:active) of a row", p.pixel(b[0]! + 20, b[1]! + 3), "36,40,52,255");
+  const fill = () => p.pixel(b[0]! + 20, b[1]! + 3);
+  check("a row at rest has no fill", fill(), "16,18,24,255");
+  p.move("wifi");
+  check("hover look (:hover) of a row", fill(), "48,53,68,255");
+  p.press();
+  check("pressed look (:active) of a row", fill(), "64,70,90,255");
   p.release();
   check("released after a press: toggled back", p.styled(s.trackOn), 0);
   // pressed on the switch, released elsewhere: no toggle
@@ -152,6 +156,34 @@ function fresh() {
   p.click("press");
   p.away(), p.press(), p.release();
   check("a click on empty space blurs", p.focused(), null);
+}
+
+// --- contrast: the ink on every fill a button or a row can have, in both themes (WCAG 2: at least 4.5:1)
+{
+  const lum = (c: { r: number; g: number; b: number }) => {
+    const ch = (v: number) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b);
+  };
+  const ratio = (a: Rgb, b: Rgb) => {
+    const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+    return (x! + 0.05) / (y! + 0.05);
+  };
+  type Rgb = { r: number; g: number; b: number };
+  type Shape = { backgroundColor?: Rgb; text?: { textColor?: Rgb }; [k: string]: unknown };
+  const themed = (shape: Shape, theme?: string): Shape =>
+    theme ? { ...shape, ...((shape.themes as Record<string, Shape>)[theme] ?? {}) } : shape;
+  for (const theme of [undefined, "light"]) {
+    const ink = themed(s.label as Shape, theme).text!.textColor!;
+    const page = themed(s.root as Shape, theme).backgroundColor!;
+    for (const [name, style] of [["button", s.button], ["row", s.row]] as const) {
+      const base = themed(style as Shape, theme);
+      for (const state of ["", ":hover", ":active"]) {
+        const fill = ((state ? (base[state] as Shape) : base).backgroundColor ?? page) as Rgb;
+        const r = ratio(ink, fill);
+        if (r < 4.5) failed++, console.error(`FAIL contrast ${name}${state} ${theme ?? "dark"}: ${r.toFixed(2)}:1`);
+      }
+    }
+  }
 }
 
 // --- the disabled checkbox: skipped by Tab (above), ignores a click, leaves focus where it was
