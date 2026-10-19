@@ -16,4 +16,6 @@ $W --keys Tab,Tab,Tab,Tab,Space --expect solid/frames/widgets-mixed.png
 $W --keys Tab,Tab,Space,Tab,Tab,Tab,Tab,Enter --expect solid/frames/widgets-disclosure.png
 THEME=light $W --keys Tab,Tab,Space,Tab,Tab,Space,Tab,Tab,Enter --expect solid/frames/widgets-light.png
 bun solid/widgets.test.ts
+# the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
+bun solid/inline.test.ts
 bun solid/main.ts --png "${TMPDIR:-/tmp}/cssints-native-solid.png" --bench 1000
