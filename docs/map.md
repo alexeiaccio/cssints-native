@@ -127,7 +127,8 @@ Each step ends in a check that fails when it breaks.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:
    csssky-tui's screen tests on the new renderer. Then deprecate `cssints/tui` (in cssints).
 7. **Back to the board.** esp32's `ui.c` reads generated `styles.h` and C from step 5; then the browser (WASM) and the
-   ESP32-P4.
+   ESP32-P4. Checked by hand in the live window (2026-10-19): Tab order and ring, Space on release, the switch, Select all and mixed, Details, click focus, `t`.
+
 
 ## Not doing
 
