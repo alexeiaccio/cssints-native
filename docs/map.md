@@ -109,12 +109,13 @@ Each step ends in a check that fails when it breaks.
    about 0.4 ms a frame on an Apple-silicon Mac, 0.006 ms of it the JS walk and FFI, the rest ThorVG's raster. Left: reload on save,
    `:focus`, text input, JSX types, the window checked by eye.
    **Headless widgets** (`headless/`, between Solid and JSX to C). The first widgets of effects-of-atmosphere's
-   `@eoa/headless` (button, switch, checkbox, disclosure) with no DOM: Solid 2 signals for state and, instead of aria-*
-   attributes, parts of plain fields (`id`, `role`, `checked`, `expanded`, `controls`, `hidden`, `disabled`, `focused`)
-   with handlers (`press()`, `key(name)`, `focus()`, `blur()`) that a Clay renderer and an accessibility tree both read.
+   `@eoa/headless` (button, switch, checkbox, disclosure, radio, tabs, toolbar, slider) with no DOM: Solid 2 signals for state and, instead of aria-*
+   attributes, parts of plain fields (`id`, `role`, `checked`, `selected`, `expanded`, `controls`, `tabIndex`, `hidden`, `disabled`, `focused`, `valueNow`)
+   with handlers (`press()`, `key(name)`, `focus()`, `blur()`) that a Clay renderer and an accessibility tree both read. Radio, tabs and toolbar are groups of the focus manager
+   (`focus/`) on one page: roving focus inside, Tab between them. The slider is one entry.
    Check: the ported APG scenarios and a seeded random walk, replayed on the parts and on the generated Quint model,
-   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 29 tests. Left:
-   focus groups and roving focus (`focus/`), overlays, text input.
+   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 34 tests. Left:
+   the menu and menu button (the toolbar's menu item), overlays, text input.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

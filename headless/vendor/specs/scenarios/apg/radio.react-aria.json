@@ -1,0 +1,576 @@
+{
+  "pattern": "radio",
+  "source": "react-aria",
+  "commit": "99e610236887da619ad9d54a1cd87983166c043d",
+  "license": "Apache-2.0",
+  "scenarios": [
+    {
+      "id": "radio.react-aria.hover-sets-hovered",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L214",
+      "upstreamTest": "RadioGroup > should support hover",
+      "apg": "extension",
+      "config": { "items": 3, "values": ["a", "b", "c"], "checked": null },
+      "steps": [
+        { "expect": { "attrs": { "radio:0": { "data-hovered": null } } } },
+        { "event": "hover", "target": "radio:0" },
+        {
+          "expect": {
+            "attrs": { "radio:0": { "data-hovered": "true" } },
+            "events": {
+              "onHoverStart": ["radio:0"],
+              "onHoverChange": ["radio:0"]
+            }
+          }
+        },
+        { "event": "unhover", "target": "radio:0" },
+        {
+          "expect": {
+            "attrs": { "radio:0": { "data-hovered": null } },
+            "events": {
+              "onHoverStart": ["radio:0"],
+              "onHoverChange": ["radio:0", null],
+              "onHoverEnd": ["radio:0"]
+            }
+          }
+        }
+      ],
+      "notes": "Hover is not part of the APG radio contract; ported as an extension because upstream asserts it."
+    },
+    {
+      "id": "radio.react-aria.press-pointer-sets-pressed",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L266",
+      "upstreamTest": "RadioGroup > should support press state",
+      "apg": "pointer",
+      "config": { "items": 3, "values": ["a", "b", "c"], "checked": null },
+      "steps": [
+        { "expect": { "attrs": { "radio:0": { "data-pressed": null } } } },
+        { "event": "pointerdown", "target": "radio:0" },
+        { "expect": { "attrs": { "radio:0": { "data-pressed": "true" } } } },
+        { "event": "pointerup", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "value": "a",
+            "attrs": { "radio:0": { "data-pressed": null } },
+            "events": { "onPress": ["a"], "onClick": ["a"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.press-keyboard-space",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L297",
+      "upstreamTest": "RadioGroup > should support press state with keyboard",
+      "apg": "keyboard",
+      "config": { "items": 3, "values": ["a", "b", "c"], "checked": null },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        {
+          "expect": {
+            "focus": "radio:0",
+            "attrs": { "radio:0": { "data-pressed": null } }
+          }
+        },
+        {
+          "event": "key",
+          "key": "Space",
+          "phase": "down",
+          "target": "radio:0"
+        },
+        { "expect": { "attrs": { "radio:0": { "data-pressed": "true" } } } },
+        { "event": "key", "key": "Space", "phase": "up", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "value": "a",
+            "attrs": { "radio:0": { "data-pressed": null } },
+            "events": { "onPress": ["a"], "onClick": ["a"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.disabled-radio-state",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L322",
+      "upstreamTest": "RadioGroup > should support disabled state on radio",
+      "apg": "extension",
+      "config": { "items": 3, "values": ["a", "b", "c"], "disabled": [0] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radio:0": { "disabled": "true", "data-disabled": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.disabled-group-state",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L336",
+      "upstreamTest": "RadioGroup > should support disabled state on group",
+      "apg": "extension",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "groupDisabled": true
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radiogroup": { "aria-disabled": "true" },
+              "radio:0": { "disabled": "true", "data-disabled": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.selected-state-on-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L352",
+      "upstreamTest": "RadioGroup > should support selected state",
+      "apg": "pointer",
+      "config": { "items": 3, "values": ["a", "b", "c"], "checked": null },
+      "steps": [
+        { "expect": { "attrs": { "radio:0": { "data-selected": null } } } },
+        { "event": "click", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "value": "a",
+            "attrs": { "radio:0": { "data-selected": "true" } },
+            "events": { "onChange": ["a"] }
+          }
+        },
+        { "event": "click", "target": "radio:1" },
+        {
+          "expect": {
+            "checked": "radio:1",
+            "value": "b",
+            "attrs": {
+              "radio:0": { "data-selected": null },
+              "radio:1": { "data-selected": "true" }
+            },
+            "events": { "onChange": ["a", "b"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.repeat-arrow-keydown-selects-next",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L383",
+      "upstreamTest": "RadioGroup > should support repeat keydown events when holding an arrow key",
+      "apg": "keyboard",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "checked": null,
+        "holdArrow": true
+      },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "radio:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "radio:0" },
+        {
+          "event": "key",
+          "key": "ArrowDown",
+          "repeat": true,
+          "target": "radio:1"
+        },
+        {
+          "expect": {
+            "checked": "radio:2",
+            "value": "c",
+            "events": { "onChange": ["c"] }
+          }
+        }
+      ],
+      "notes": "A repeated (held) arrow key keeps moving and selects; two ArrowDown presses from the first radio land on the third."
+    },
+    {
+      "id": "radio.react-aria.readonly-attribute",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L400",
+      "upstreamTest": "RadioGroup > should support read only state",
+      "apg": "aria",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "groupReadonly": true
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radiogroup": { "aria-readonly": "true" },
+              "radio:0": { "data-readonly": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.invalid-attribute",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L414",
+      "upstreamTest": "RadioGroup > should support invalid state",
+      "apg": "aria",
+      "config": { "items": 3, "values": ["a", "b", "c"], "invalid": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radiogroup": { "aria-invalid": "true" },
+              "radio:0": { "data-invalid": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.required-attribute",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L429",
+      "upstreamTest": "RadioGroup > should support required state",
+      "apg": "aria",
+      "config": { "items": 3, "values": ["a", "b", "c"], "required": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radiogroup": { "aria-required": "true" },
+              "radio:0": { "data-required": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.orientation-attribute-and-arrows",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L444",
+      "upstreamTest": "RadioGroup > should support orientation",
+      "apg": "keyboard",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "checked": null,
+        "orientation": "horizontal"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": { "radiogroup": { "aria-orientation": "horizontal" } }
+          }
+        },
+        { "event": "click", "target": "radio:0" },
+        { "expect": { "checked": "radio:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "radio:0" },
+        { "expect": { "focus": "radio:1", "checked": "radio:1" } },
+        { "event": "key", "key": "ArrowDown", "target": "radio:1" },
+        { "expect": { "focus": "radio:2", "checked": "radio:2" } }
+      ]
+    },
+    {
+      "id": "radio.react-aria.help-text-describedby",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L463",
+      "upstreamTest": "RadioGroup > supports help text",
+      "apg": "aria",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "invalid": true,
+        "descriptions": {
+          "group": "Description Error",
+          "radio": "Error Description"
+        }
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radiogroup": { "aria-describedby": "Description Error" },
+              "radio:0": { "aria-describedby": "Error Description" }
+            }
+          }
+        }
+      ],
+      "notes": "Values are the referenced elements' text in source order; react-aria assigns the group's description and error to both the group and every radio."
+    },
+    {
+      "id": "radio.react-aria.tab-does-not-move-within-group",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L496",
+      "upstreamTest": "RadioGroup > should not navigate within the group using Tab",
+      "apg": "keyboard",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "checked": null,
+        "flavor": "roving"
+      },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "radio:0" } },
+        { "event": "key", "key": "Tab", "target": "radio:0" },
+        { "expect": { "focus": null } },
+        { "event": "key", "key": "Shift+Tab" },
+        { "expect": { "focus": "radio:2", "checked": null } }
+      ],
+      "notes": "Tab leaves the group as a single stop; upstream's Shift+Tab lands on the last radio when none is checked, diverging from the spec's enter-on-first rule."
+    },
+    {
+      "id": "radio.react-aria.aria-describedby-on-radio",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L590",
+      "upstreamTest": "RadioGroup > should support aria-describedby on a radio",
+      "apg": "aria",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "radioDescribedby": "test"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "radio:0": { "aria-describedby": "test" },
+              "radio:1": { "aria-describedby": "test" },
+              "radio:2": { "aria-describedby": "test" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.focus-events-enter-leave",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L704",
+      "upstreamTest": "RadioGroup > should support focus events",
+      "apg": "focus",
+      "config": { "items": 3, "values": ["a", "b", "c"], "checked": null },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        {
+          "expect": {
+            "focus": "radio:0",
+            "events": {
+              "onFocus": ["radio:0"],
+              "onBlur": [],
+              "onFocusChange": ["radio:0"]
+            }
+          }
+        },
+        { "event": "key", "key": "ArrowRight", "target": "radio:0" },
+        {
+          "expect": {
+            "focus": "radio:1",
+            "events": {
+              "onFocus": ["radio:0"],
+              "onBlur": [],
+              "onFocusChange": ["radio:0"]
+            }
+          }
+        },
+        { "event": "key", "key": "Tab", "target": "radio:1" },
+        {
+          "expect": {
+            "focus": null,
+            "events": {
+              "onFocus": ["radio:0"],
+              "onBlur": ["radio:1"],
+              "onFocusChange": ["radio:0", null]
+            }
+          }
+        }
+      ],
+      "notes": "Focus change inside the group does not fire per-radio blur/focus; leaving the group fires blur and focus-change again."
+    },
+    {
+      "id": "radio.react-aria.arrow-skips-non-radio-children",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L794",
+      "upstreamTest": "RadioGroup > should navigate within the group using ArrowRight/Left but skip non-radios",
+      "apg": "keyboard",
+      "config": {
+        "items": 3,
+        "values": ["a", "b", "c"],
+        "checked": null,
+        "extraChildIn": "radio:0"
+      },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "radio:0" } },
+        { "event": "key", "key": "ArrowRight", "target": "radio:0" },
+        { "expect": { "focus": "radio:1" } },
+        { "event": "key", "key": "ArrowLeft", "target": "radio:1" },
+        { "expect": { "focus": "radio:0" } }
+      ]
+    },
+    {
+      "id": "radio.react-aria.repeated-click-same-radio-no-focus-events",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L824",
+      "upstreamTest": "RadioGroup > should not trigger onBlur/onFocus on sequential presses of a Radio",
+      "apg": "focus",
+      "config": { "items": 2, "values": ["a", "b"], "checked": null },
+      "steps": [
+        { "event": "click", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "events": { "onFocus": ["radio:0"], "onBlur": [] }
+          }
+        },
+        { "event": "click", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "events": { "onFocus": ["radio:0"], "onBlur": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "radio.react-aria.focus-moves-between-radios-fires-blur",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L854",
+      "upstreamTest": "RadioGroup > should trigger onBlur when moving focus between different Radio buttons",
+      "apg": "focus",
+      "config": { "items": 2, "values": ["a", "b"], "checked": null },
+      "steps": [
+        { "event": "click", "target": "radio:0" },
+        {
+          "expect": {
+            "checked": "radio:0",
+            "events": { "onFocusA": ["radio:0"], "onBlurA": [] }
+          }
+        },
+        { "event": "click", "target": "radio:1" },
+        {
+          "expect": {
+            "checked": "radio:1",
+            "events": {
+              "onFocusA": ["radio:0"],
+              "onBlurA": ["radio:0"],
+              "onFocusB": ["radio:1"]
+            }
+          }
+        }
+      ],
+      "notes": "Unlike arrow navigation, a pointer press on another radio blurs the first one."
+    },
+    {
+      "id": "radio.react-aria.arrow-skips-disabled-radios",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/%40react-spectrum/s2/test/RadioGroup.test.tsx#L28",
+      "upstreamTest": "RadioGroup > ltr + horizontal should select the correct radio via keyboard regardless of orientation and disabled radios",
+      "apg": "keyboard",
+      "config": {
+        "items": 5,
+        "values": ["dogs", "cats", "dragons", "unicorns", "chocobo"],
+        "checked": null,
+        "disabled": [1, 2],
+        "orientation": "horizontal",
+        "direction": "ltr"
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": { "radiogroup": { "aria-orientation": "horizontal" } }
+          }
+        },
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "radio:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "radio:0" },
+        {
+          "expect": {
+            "focus": "radio:3",
+            "checked": "radio:3",
+            "value": "unicorns"
+          }
+        },
+        { "event": "key", "key": "ArrowDown", "target": "radio:3" },
+        {
+          "expect": {
+            "focus": "radio:4",
+            "checked": "radio:4",
+            "value": "chocobo"
+          }
+        }
+      ],
+      "notes": "Simplified from the upstream tester sequence; the point is that arrows skip the two consecutive disabled radios."
+    },
+    {
+      "id": "radio.react-aria.rtl-horizontal-arrow-direction",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/%40react-spectrum/s2/test/RadioGroup.test.tsx#L28",
+      "upstreamTest": "RadioGroup > rtl + horizontal should select the correct radio via keyboard regardless of orientation and disabled radios",
+      "apg": "keyboard",
+      "config": {
+        "items": 5,
+        "values": ["dogs", "cats", "dragons", "unicorns", "chocobo"],
+        "checked": null,
+        "disabled": [1, 2],
+        "orientation": "horizontal",
+        "direction": "rtl"
+      },
+      "steps": [
+        { "event": "focus", "target": "radio:0" },
+        { "event": "key", "key": "ArrowLeft", "target": "radio:0" },
+        {
+          "expect": {
+            "focus": "radio:3",
+            "checked": "radio:3",
+            "value": "unicorns"
+          }
+        },
+        { "event": "key", "key": "ArrowRight", "target": "radio:3" },
+        {
+          "expect": {
+            "focus": "radio:0",
+            "checked": "radio:0",
+            "value": "dogs"
+          }
+        }
+      ],
+      "notes": "In rtl, ArrowLeft advances and ArrowRight goes back; direction is not modelled by the spec, so this is an extension."
+    }
+  ],
+  "skipped": [
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L101",
+      "upstreamTest": "default/custom classes, DOM props, custom render function, render props, Radio render props, slot",
+      "reason": "Styling, DOM passthrough and React render APIs."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L245",
+      "upstreamTest": "should support focus ring",
+      "reason": "Styling focus ring."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L531",
+      "upstreamTest": "should not navigate within the group using Tab in Dialog",
+      "reason": "Dialog focus-scope internals; the group-level Tab test is ported."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L598",
+      "upstreamTest": "should render data- attributes only on the outer Radio element or RadioGroup",
+      "reason": "DOM structure internals."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L617",
+      "upstreamTest": "supports validation errors / validation errors when last radio is disabled",
+      "reason": "Form validation internals."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L729",
+      "upstreamTest": "should support refs / input ref / callback ref / merge input ref on context",
+      "reason": "React ref API internals."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L817",
+      "upstreamTest": "should support form prop / implicit form submission from a focused radio on Enter",
+      "reason": "Form association and submission internals."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/RadioGroup.test.js#L48",
+      "upstreamTest": "RadioField > all parameterised cases",
+      "reason": "RadioField is a separate component API; this file ports the RadioGroup variant."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/%40adobe/react-spectrum/test/radio/Radio.test.js#L115",
+      "upstreamTest": "Radios (spectrum v3) defaults / disabled / readonly / default value / controlled / validation / form reset",
+      "reason": "Spectrum component wrappers duplicating RadioGroup behaviour already covered; form/validation internals."
+    }
+  ]
+}

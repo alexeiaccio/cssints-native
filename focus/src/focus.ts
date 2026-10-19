@@ -11,7 +11,7 @@ export type EntryOptions = {
   disabled?: boolean;
   // Below 0: not in the Tab order nor in the group's arrows; focus(id) still works (as tabindex=-1 does).
   tabIndex?: number;
-  group?: string;
+  group?: string | undefined;
 };
 
 export type GroupOptions = {
@@ -41,10 +41,10 @@ export type Focus = {
   pop: () => string | null;
 };
 
-type Entry = { id: string; order: number; disabled: boolean; tabIndex: number; group?: string };
+type Entry = { id: string; order: number; disabled: boolean; tabIndex: number; group?: string | undefined };
 
 // A Tab stop: a plain entry, or a whole group (`group` set, `id` is the group, `target` the member it lands on).
-type Stop = { id: string; order: number; group?: string; target: string };
+type Stop = { id: string; order: number; group?: string | undefined; target: string };
 
 export function createFocus(): Focus {
   const entries = new Map<string, Entry>();
@@ -94,7 +94,7 @@ export function createFocus(): Focus {
   };
 
   // The focused entry stopped being focusable, from where it was: its nearest member, else the next stop, else none.
-  const relocate = (at: { order: number; group?: string }): void => {
+  const relocate = (at: { order: number; group?: string | undefined }): void => {
     if (at.group !== undefined) {
       const list = members(at.group);
       const next = list.find((e) => e.order > at.order) ?? list.at(-1);

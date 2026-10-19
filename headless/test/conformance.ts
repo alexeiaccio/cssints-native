@@ -1,9 +1,11 @@
 import {
   type ActionStep,
   type Probe,
+  type ReplayResult,
   type ScenarioConfig,
   ScenarioMismatch,
   type SpecBridge,
+  Unsupported,
   differentialWalk,
   parseScenarioFile,
   replayScenario,
@@ -26,7 +28,11 @@ export interface Conformance<Config> {
   readonly config: (scenarioConfig: ScenarioConfig) => Config;
   readonly mount: (config: Config) => Mounted;
   readonly disabledAttr: NeutralDriverOptions['disabledAttr'];
+  readonly disabledReads?: NeutralDriverOptions['disabledReads'];
+  readonly keys?: NeutralDriverOptions['keys'];
   readonly steps: ReadonlyArray<ActionStep>;
+  /** The walk's steps for one config, when a config leaves some out (a controlled host cannot be reconfigured). */
+  readonly alphabet?: (config: ScenarioConfig) => ReadonlyArray<ActionStep>;
   readonly probe: Probe;
   /** Scenarios whose expectations the primitive deliberately does not meet, with the reason. */
   readonly divergences: Readonly<Record<string, string>>;
@@ -49,6 +55,10 @@ export const conformance = <Config>(spec: Conformance<Config>): void => {
   const neutral = (config: ScenarioConfig) =>
     neutralDriver(spec.mount(spec.config(config)), {
       disabledAttr: spec.disabledAttr,
+      ...(spec.disabledReads === undefined
+        ? {}
+        : { disabledReads: spec.disabledReads }),
+      ...(spec.keys === undefined ? {} : { keys: spec.keys }),
       ...(spec.bridge.eventName === undefined
         ? {}
         : { eventName: spec.bridge.eventName }),
@@ -61,7 +71,15 @@ export const conformance = <Config>(spec: Conformance<Config>): void => {
       const file = parseScenarioFile(source as never);
       for (const scenario of file.scenarios) {
         it(scenario.id, async () => {
-          const run = replayScenario(scenario, spec.bridge, neutral);
+          // a config the port does not implement throws in `mount` (the neutral gate), after the bridge let it through
+          const run = replayScenario(scenario, spec.bridge, neutral).catch(
+            (error: unknown): ReplayResult => {
+              if (error instanceof Unsupported) {
+                return { status: 'unsupported', reason: error.message };
+              }
+              throw error;
+            },
+          );
           if (spec.divergences[scenario.id] !== undefined) {
             // must still fail, so closing the gap forces removing the entry
             await expect(run).rejects.toBeInstanceOf(ScenarioMismatch);
@@ -85,7 +103,7 @@ export const conformance = <Config>(spec: Conformance<Config>): void => {
     for (const config of spec.walks) {
       it(`matches the generated model for ${JSON.stringify(config)}`, async () => {
         await differentialWalk({
-          alphabet: spec.steps,
+          alphabet: spec.alphabet?.(config) ?? spec.steps,
           probe: spec.probe,
           makePair: () =>
             Promise.resolve([
