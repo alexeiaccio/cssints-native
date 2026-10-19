@@ -32,6 +32,11 @@ const TABS = [
 const TOOLS = ["Bold", "Italic", "Underline"];
 const KNOB = 16;
 
+/** Where the page puts its pointer callback: the host hands it to `createFrame`'s `onPointer` each frame. */
+export interface Drag {
+  onPointer?: (x: number, y: number, down: boolean) => void;
+}
+
 // the slider's filled part is as wide as its value: the one style made at run time, kept per width
 const fills = new Map<number, typeof s.fill>();
 const fillOf = (w: number): typeof s.fill => {
@@ -62,7 +67,7 @@ function Check(props: { cb: Checkbox; bind: Bind; label: string; indented?: bool
 }
 
 /** `disabledSpeeds`: indices of the radios that are disabled (the page has none; the tests mark one). */
-export function Widgets(props: { input: Input; disabledSpeeds?: number[] }) {
+export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?: Drag }) {
   const { input } = props;
   const [count, setCount] = createSignal(0);
 
@@ -126,12 +131,27 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[] }) {
     format: format.items.map((i) => input.bind(i)),
   };
 
-  // a press on the rail sets the value from where the press was: the rail's bounds from the last layout, the thumb's
-  // travel being the rail less the knob, so a press on the knob's middle gives the value the knob shows
-  const onRail = (x: number) => {
+  // a press on the rail (or on the knob, which is inside it) sets the value from where the press was and starts a drag:
+  // the rail's bounds from the last layout, the thumb's travel being the rail less the knob, so a press on the knob's
+  // middle gives the value the knob shows. While the button is held, every frame moves the value to the pointer's x.
+  let dragging = false;
+  const setFrom = (x: number) => {
     const [left, , width] = ui.bounds(Buffer.from("volume-rail")) ?? [0, 0, 0];
-    if (width! > KNOB) volume.pointer((x - left! - KNOB / 2) / (width! - KNOB));
+    if (width! > KNOB) volume.pointer(Math.max(0, Math.min(1, (x - left! - KNOB / 2) / (width! - KNOB))));
   };
+  const onRail = (x: number) => {
+    dragging = true;
+    setFrom(x);
+  };
+  // the host's frame asks once per frame, before the tree is declared: a release ends the drag, a move follows the
+  // pointer. A press that started off the rail never set the flag, so it drags nothing.
+  if (props.drag) {
+    props.drag.onPointer = (x, _y, down) => {
+      if (!dragging) return;
+      if (!down) dragging = false;
+      else setFrom(x);
+    };
+  }
 
   return (
     <box id="Root" style={s.root}>
@@ -195,13 +215,15 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[] }) {
         <box style={s.caption}>
           <text style={s.label}>Volume</text>
         </box>
-        <box id="volume-rail" onPress={onRail} style={s.rail}>
-          <box style={fillOf((volume.value() / 100) * (140 - KNOB))} />
-          <box id={groupBind.volume.id} focused={groupBind.volume.focused} style={s.knob} />
-          <box style={s.slack} />
-        </box>
-        <box style={s.readout}>
-          <text style={s.label}>{volume.thumb.valueText}</text>
+        <box id={groupBind.volume.id} focused={groupBind.volume.focused} style={s.sliderRow}>
+          <box id="volume-rail" onPress={onRail} style={s.rail}>
+            <box style={fillOf((volume.value() / 100) * (140 - KNOB))} />
+            <box id="volume-knob" style={s.knob} />
+            <box style={s.slack} />
+          </box>
+          <box style={s.readout}>
+            <text style={s.label}>{volume.thumb.valueText}</text>
+          </box>
         </box>
       </box>
       <box style={s.tools}>

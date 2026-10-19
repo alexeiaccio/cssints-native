@@ -161,7 +161,10 @@ export const tabPanel = css.cn(
   css.focus(css.border(2, t.color.ring)),
 );
 
-// a slider: a rail to click on, the filled part, the knob, the rest of the rail
+// a slider: the row that takes the focus ring (the rail and the value, one control), the rail to click on, the filled
+// part, the knob, the rest of the rail. The row has no padding or border of its own, so the ring changes no layout and
+// the slider looks the same as before when it is not focused.
+export const sliderRow = css.cn(css.gap(4), css.alignItems("center"), css.borderRadius(8), css.focus(css.border(2, t.color.ring)));
 export const rail = css.cn(css.width(140), css.height(24), css.alignItems("center"));
 export const fill = css.cn(css.height(4), css.borderRadius(2), css.bg(t.color.accent));
 export const slack = css.cn(css.width("stretch"), css.height(4), css.borderRadius(2), css.bg(t.color.off));
@@ -171,7 +174,6 @@ export const knob = css.cn(
   css.borderRadius(8),
   css.bg(t.color.thumb),
   css.border(2, t.color.muted),
-  css.focus(css.border(2, t.color.ring)),
 );
 export const readout = css.cn(css.width(44), css.justifyContent("flex-end"));
 

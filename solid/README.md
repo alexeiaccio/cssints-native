@@ -16,6 +16,7 @@ sh solid/native/build.sh                         # build/solid/libui.dylib (brew
 bun solid/main.ts                                # the window: the mouse is the pointer, `t` flips the theme
 bun solid/main.ts widgets                        # the Widgets page (360x608): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
+bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
 THEME=light bun solid/main.ts --expect examples/sensors/expected-thorvg-light.png
@@ -44,7 +45,7 @@ test.ts, widgets.test.ts   the checks the stored frames cannot make
 A style is the `ClayShape` literal of `cssints/clay`. A theme (`THEME=light`, `t`) and a state are picked at run time
 by `resolve()` in `pack.ts`, the merge `header()` does for C (`units_active_light`). `:hover`/`:active` apply to a box
 with an `id`: Clay tells whether the pointer is over it. `onClick` runs on release over the box that was pressed;
-`onPress` when the button goes down over it. `:focus` applies while the box's `focused` prop is true.
+`onPress` when the button goes down over it. `:focus` applies while the box's `focused` prop is true. `createFrame`'s `View.onPointer` gets the pointer once per frame, before the tree is declared: the widgets page uses it to drag the slider.
 
 ## The FFI (flat, no struct crosses it)
 
@@ -111,7 +112,7 @@ arrow, Home or End (the manager takes plain keys only). Then `input.down(name, r
 (in call order: the document order) and returns the props `{ id, focused, onPress, onClick }` to spread on its row:
 a press focuses it (`focus.focus(id)`) and a release over it calls `part.press()`. A group (radio, tabs, toolbar, slider)
 registers its own items in the manager it is given (`createRadioGroup({ focus: input.focus })`), so `input.bind(part)`
-only routes keys and focus to the part and returns the same props; both `onPress` and `onClick` get the pointer's x and y. A press on a part that cannot take
+only routes keys and focus to the part and returns the same props; both `onPress` and `onClick` get the pointer's x and y. The page also gets the pointer once a frame (`View.onPointer`): a press on the slider's rail sets its own `dragging` flag, and while the button is held each frame's x moves the value (a release clears the flag; a press off the rail never sets it). A press on a part that cannot take
 focus (the disabled checkbox) changes nothing, focus stays where it was and `press()` ignores it. A press on no
 element with `onPress` (empty space) blurs: `createFrame`'s `onPressMiss` calls `input.pressMiss()`.
 
@@ -134,19 +135,20 @@ parts above it, because the manager's document order is the order of registratio
 | --- | --- | --- |
 | Speed (radio, `1x 4x 16x`; `disabledSpeeds` marks some disabled, the tests do) | a group: `orientation: both`, `wrap`, no memory, `entry` = the checked radio | Tab enters at the checked one and leaves as one stop; all four arrows move and check (wrapping, a disabled one skipped); Space checks; a click focuses and checks |
 | Tabs (Overview, Stats, Log) | a group: horizontal, `wrap`, no memory, `entry` = the selected tab; the selected panel is a stop after it | Left and Right move and select (automatic), Home and End go to the ends; a click selects; Tab goes to the panel (ring on it), then on |
-| Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail sets the value: `Slider.pointer(ratio)` with the ratio from the press's x and the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value) |
+| Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail or the knob sets the value and starts a drag: each held frame's x is the ratio from the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value); the ring is the slider's row (rail and value), not the knob |
 | Format (toolbar: Bold, Italic, Underline; each toggles a lamp under its label) | a group: horizontal, no wrap, **memory**, `focusDisabled` | Left and Right, Home and End move; Enter and Space toggle on key down; Tab away and back lands on the item left last |
 
 The slider's filled part is the one style made at run time (`fillOf`: `s.fill` with a fixed width of the value, kept
-per width); Clay has no flex ratio. A slider drag is not modelled (the part has `pointer` for a position, not a capture):
-a press sets the value, moving with the button down does not.
+per width); Clay has no flex ratio. The focus ring is the slider row's (`s.sliderRow`: the rail and the value, no
+padding or border at rest), and a drag reuses `Slider.pointer` for each held frame's x: a press sets the value, moving
+with the button down follows the pointer, and a release ends it where it was.
 
 Checked by `bun solid/widgets.test.ts` (no pixels but a few ring, fill and knob positions: the full Tab order over the
 page and Shift+Tab, one Tab stop for each group, Space on key up and Enter on key down, a held Space once, a click toggling
 and focusing, the disabled box, blur on empty space, select all, the disclosure, the page fitting its window, the radio's
 arrows (wrap, Space, Tab in at the checked one, a disabled radio skipped by arrows, Tab and a click), the tabs' arrows,
 Home, End and panels, the slider's step, page keys, ends, clamping and rail presses, the toolbar's ends, memory and
-toggles, contrast of the ink on every fill, key names) and by ten stored frames in `frames/`:
+toggles, contrast of the ink on every fill, key names, the drag) and by eleven stored frames in `frames/`:
 
 | Frame | Keys | Shows |
 | --- | --- | --- |
@@ -157,7 +159,8 @@ toggles, contrast of the ink on every fill, key names) and by ten stored frames 
 | `widgets-disclosure` | Tab Tab Space Tab×4 Enter | the panel open, everything below it moved down, nothing shrunk |
 | `widgets-radio` | Tab×7 ArrowRight | 4x checked and ringed, 1x cleared |
 | `widgets-tabs` | Tab×8 ArrowRight | Stats selected and ringed, its panel's text |
-| `widgets-slider` | Tab×10 ArrowRight | 45%, the filled part and the knob a step on, ring on the knob |
+| `widgets-slider` | Tab×10 ArrowRight | 45%, the filled part and the knob a step on, ring around the slider's row |
+| `widgets-slider-drag` | a press at a quarter, held, a move to three quarters | the knob near the right end, the fill grown, 80%, ring still on the row |
 | `widgets-toolbar` | Tab×11 Enter ArrowRight Shift+Tab Tab | Bold's lamp on; Italic ringed after leaving for the slider and coming back |
 | `widgets-light` | the disclosure, then the four groups | the light theme: 4x, Stats, 50%, Bold on and ringed |
 
@@ -170,6 +173,6 @@ toggles, contrast of the ink on every fill, key names) and by ten stored frames 
   `*.styles.ts`.
 - Not here yet: floating, images, scrolling, text input, reload on save, JSX types for `box` and `text`, an
   accessibility tree (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the
-  window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), a slider drag, the
+  window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), the
   toolbar's menu item (the headless menu is not ported), a vertical radio, tabs or toolbar on the page (the parts take the
   option; the page has the horizontal ones).

@@ -34,6 +34,11 @@ function bytesOf(el: El): Uint8Array {
 export interface View {
   /** The theme of the styles (`"light"`), or none for the base. */
   theme?: string;
+  /**
+   * The pointer this frame, once, before the tree is declared: `down` is the button. A page that drags keeps its own
+   * flag (`onPress` sets it, `down` false clears it) and follows x while it holds.
+   */
+  onPointer?: (x: number, y: number, down: boolean) => void;
   /** A press (the button going down) that no element with `onPress` was under: a click on empty space. */
   onPressMiss?: () => void;
   /** Each frame pushes its nanoseconds: [events and Solid's flush, the tree declared, layout, draw]. */
@@ -93,6 +98,7 @@ export function createFrame(root: El, view: View = {}) {
     const t0 = Bun.nanoseconds();
     ui.begin(px, py, down ? 1 : 0);
     events(down, px, py);
+    view.onPointer?.(px, py, down);
     flush();
     const t1 = Bun.nanoseconds();
     seen = [];

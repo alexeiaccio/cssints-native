@@ -14,6 +14,7 @@
 //   --frames N                           window: close after N frames (a smoke test)
 //   THEME=light                          the light theme
 import "./plugin.ts";
+import type { Drag } from "./app/Widgets.tsx";
 
 const page = process.argv[2]?.startsWith("--") ? "sensors" : (process.argv[2] ?? "sensors");
 if (page !== "sensors" && page !== "widgets") {
@@ -27,6 +28,8 @@ const arg = (name: string, n = 1) => {
 const png = arg("--png")?.[0];
 const expect = arg("--expect")?.[0];
 const click = arg("--click", 2)?.map(Number);
+// headless: a drag on the widgets slider: two fractions of the rail (press at the first, held, then move to the second)
+const drag = arg("--drag", 2)?.map(Number);
 const keys = arg("--keys")?.[0]?.split(",");
 const bench = Number(arg("--bench")?.[0] ?? 0);
 const maxFrames = Number(arg("--frames")?.[0] ?? Infinity);
@@ -49,20 +52,36 @@ if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", impor
 const root = new El("root");
 const input = createInput();
 input.fallback = (name) => (name === "t" ? ((theme = theme ? undefined : "light"), true) : false);
-const dispose = render(page === "widgets" ? () => Widgets({ input }) : Sensors, root);
+const dragState: Drag = {};
+const dispose = render(page === "widgets" ? () => Widgets({ input, drag: dragState }) : Sensors, root);
 const stats: [number, number, number, number][] = [];
 const frame = createFrame(root, {
   get theme() {
     return theme;
   },
+  onPointer: (x, y, down) => dragState.onPointer?.(x, y, down),
   onPressMiss: () => input.pressMiss(),
   stats,
 });
 
 const headless = png || expect;
 if (headless) {
-  // as host.c: a scripted click is frames 0 to 2 at the point, pressed in frame 1, and frame 3 is written
-  for (let n = 0; n < (click ? 4 : 1); n++) frame(click?.[0] ?? -1, click?.[1] ?? -1, n === 1, 1 / 60);
+  if (drag) {
+    // a drag on the widgets slider: frame 0 lays out, 1 puts the pointer on the rail, 2 presses at the first fraction,
+    // then the pointer moves to the second with the button held and the last frame (still held) is written
+    frame(-1, -1, false, 1 / 60);
+    const [left, top, width, height] = ui.bounds(Buffer.from("volume-rail"))!;
+    const at = (f: number): [number, number] => [left! + width! * f, top! + height! / 2];
+    const [ax, ay] = at(drag[0]!);
+    const [bx, by] = at(drag[1]!);
+    frame(ax, ay, false, 1 / 60);
+    frame(ax, ay, true, 1 / 60);
+    frame(bx, by, true, 1 / 60);
+    frame(bx, by, true, 1 / 60);
+  } else {
+    // as host.c: a scripted click is frames 0 to 2 at the point, pressed in frame 1, and frame 3 is written
+    for (let n = 0; n < (click ? 4 : 1); n++) frame(click?.[0] ?? -1, click?.[1] ?? -1, n === 1, 1 / 60);
+  }
   for (const key of keys ?? []) {
     const name = key === "Space" ? " " : key;
     input.down(name);

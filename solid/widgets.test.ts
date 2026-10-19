@@ -1,8 +1,8 @@
 // What the stored frames of the Widgets page cannot show: the Tab order and Shift+Tab over the whole page, when each key
 // acts, what a click does to a widget and to focus, the disabled checkbox, "Select all" over its two children, the
 // disclosure, the four groups (radio, tabs, slider, toolbar: one Tab stop each, arrows, clamping, memory, a disabled
-// radio, a press on the slider's rail), and how an SDL key becomes a name. Frames are driven as the window does it:
-// pointer and keys in, then one frame.
+// radio, a press on the slider's rail and a drag with the button held), and how an SDL key becomes a name. Frames are
+// driven as the window does it: pointer and keys in, then one frame.
 import "./plugin.ts";
 
 const { ui } = await import("./src/ffi.ts");
@@ -27,10 +27,11 @@ function fresh(options: { disabledSpeeds?: number[] } = {}) {
   dispose();
   const root = new El("root");
   const input = createInput();
+  const drag: { onPointer?: (x: number, y: number, down: boolean) => void } = {};
   const unhandled: string[] = [];
   input.fallback = (name) => (unhandled.push(name), name === "t");
-  dispose = render(() => Widgets({ input, ...options }), root);
-  const frame = createFrame(root, { onPressMiss: () => input.pressMiss() });
+  dispose = render(() => Widgets({ input, drag, ...options }), root);
+  const frame = createFrame(root, { onPointer: (x, y, down) => drag.onPointer?.(x, y, down), onPressMiss: () => input.pressMiss() });
   let at = [-1, -1];
   const step = (down = false) => frame(at[0]!, at[1]!, down, 1 / 60);
   step(), step();
@@ -61,10 +62,10 @@ function fresh(options: { disabledSpeeds?: number[] } = {}) {
       this.down(name);
       this.up(name);
     },
-    move: (id: string, dx = 0.5, dy = 0.5) => {
+    move: (id: string, dx = 0.5, dy = 0.5, down = false) => {
       const b = box(id);
       at = [b[0]! + b[2]! * dx, b[1]! + b[3]! * dy];
-      step();
+      step(down);
     },
     away: () => ((at = [352, 432]), step()),
     press: () => step(true),
@@ -357,10 +358,16 @@ const ORDER = [
   check("a click selects and focuses", [p.focused(), p.exists("tabs-tabpanel-1")], ["tabs-tab-1", true]);
 }
 
-// --- the slider: the keys step, page, jump to the ends, and stop at them; a press on the rail sets the value
+// --- the slider: the keys step, page, jump to the ends, and stop at them; a press on the rail sets the value; a drag
+// with the button held follows the pointer
 {
   const p = fresh();
-  const knobAt = () => (p.box("volume-thumb")[0]! - p.box("volume-rail")[0]!).toFixed(1);
+  const RAIL = 140;
+  const KNOB = 16;
+  // the x of a pointer position on the rail that is `r` of the thumb's travel (the rail less the knob), as `onRail`
+  // measures it: 0.9 of the travel is 90% of the value
+  const at = (r: number) => (KNOB / 2 + r * (RAIL - KNOB)) / RAIL;
+  const knobAt = () => (p.box("volume-knob")[0]! - p.box("volume-rail")[0]!).toFixed(1);
   check("40% at first, the knob at 40% of 124", [p.volume(), knobAt()], ["40%", "49.6"]);
   for (let n = 0; n < 10; n++) p.tap("Tab");
   check("Tab reaches the slider", p.focused(), "volume-thumb");
@@ -399,10 +406,51 @@ const ORDER = [
   p.click("volume-rail", 1);
   check("at the right end: 100%", p.volume(), "100%");
   p.click("volume-rail", 0.5);
-  p.click("volume-thumb", 0.5);
+  p.click("volume-knob", 0.5);
   check("a press on the knob's middle keeps its value", p.volume(), "50%");
+  // a drag: press at a quarter, then move with the button held, both ways
+  p.away();
+  p.move("volume-rail", 0.25);
+  p.press();
+  check("a press at a quarter of the rail: 20%", p.volume(), "20%");
+  const knobPos = () => p.box("volume-knob")[0]! - p.box("volume-rail")[0]!;
+  const quarter = knobPos();
+  p.move("volume-rail", at(0.9), 0.5, true);
+  check("dragging to 0.9: 90%", p.volume(), "90%");
+  check("the knob follows the pointer", knobPos() > quarter + 50, true);
+  p.move("volume-rail", at(0.1), 0.5, true);
+  check("dragging back to 0.1: 10%, no step drift", p.volume(), "10%");
+  check("the knob is back near the start", knobPos().toFixed(1), (0.1 * (RAIL - KNOB)).toFixed(1));
+  p.move("volume-rail", -0.5, 0.5, true);
+  check("dragging past the left end clamps at 0", p.volume(), "0%");
+  p.move("volume-rail", 1.5, 0.5, true);
+  check("dragging past the right end clamps at 100", p.volume(), "100%");
+  p.release();
+  check("a release outside the rail keeps the last value", p.volume(), "100%");
+  p.move("volume-rail", at(0.5));
+  check("after the release, a move changes nothing", p.volume(), "100%");
+  // a press off the rail does not drag, even with the button held over the rail
+  p.away(), p.press();
+  p.move("volume-rail", at(0.2), 0.5, true);
+  check("a press off the rail then a move changes nothing", p.volume(), "100%");
+  p.release();
   p.away(), p.press(), p.release();
   check("empty space blurs it", p.focused(), null);
+}
+
+// --- the slider's focus ring is the row's (the rail and the value text), not the knob's, and moves no layout
+{
+  const p = fresh();
+  const row = p.box("volume-thumb");
+  const edge = () => p.pixel(row[0]! + 1, row[1]! + row[3]! / 2);
+  check("no ring on the row at rest", edge() === "90,170,255,255", false);
+  const before = JSON.stringify(p.box("volume-thumb"));
+  for (let n = 0; n < 10; n++) p.tap("Tab");
+  check("the slider is focused", p.focused(), "volume-thumb");
+  check("the ring is on the row's edge", edge(), "90,170,255,255");
+  check("the focused row has the same box", JSON.stringify(p.box("volume-thumb")), before);
+  const knob = p.box("volume-knob");
+  check("no ring on the knob", p.pixel(knob[0]! + 1, knob[1]! + knob[3]! / 2), "150,155,170,255");
 }
 
 // --- the toolbar: arrows and Home/End move (no wrap), Tab back in lands on the item left last; Enter and Space toggle
