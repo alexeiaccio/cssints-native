@@ -6,7 +6,7 @@ same Quint specs and ported scenarios. State is Solid 2 signals (`solid-js@2.0.0
 renderer will read. Focus is the focus manager of `focus/`, which the groups register with.
 
 Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `checkbox` (with `mixed`), `disclosure`,
-`radio` (a group), `tabs`, `toolbar`, `slider`.
+`radio` (a group), `tabs`, `toolbar`, `slider`, `tree` (a group with expansion).
 
 ```sh
 bun run test        # bun test --conditions browser: scenarios, Quint walks, unit tests
@@ -33,10 +33,18 @@ the aria-* attributes carried, as fields, plus handlers.
 | `createTabs`       | `tablist`, `tabs[]`, `panels[]`        | tablist: `id`, `role: "tablist"`, `orientation`; tab: `id`, `role: "tab"`, `selected`, `disabled`, `focused`, `tabIndex`, `controls`; panel: `id`, `role: "tabpanel"`, `labelledBy`, `hidden`, `focused`, `tabIndex` |
 | `createToolbar`    | `toolbar`, `items[]`                   | toolbar: `id`, `role: "toolbar"`, `orientation`; item: `id`, `role: "button"`, `label`, `kind`, `disabled`, `focused`, `tabIndex` |
 | `createSlider`     | `thumb`                                | `id`, `role: "slider"`, `valueNow`, `valueMin`, `valueMax`, `valueText`, `orientation`, `tabIndex: 0`, `focused` |
+| `createTree`       | `tree`, `item(id)`                     | tree: `id`, `role: "tree"`, `label`, `multiSelectable`, `orientation` (`horizontal` only), `focused`; item: `id`, `role: "treeitem"`, `label`, `level`, `posInSet`, `setSize`, `expanded` (`undefined` on an end node), `selected`, `disabled`, `focused`, `tabIndex`, `hidden` |
 
 `id` is a stable string, `<id>-trigger` / `<id>-panel` from the `id` option, or `<kind>-<n>` in creation order when it
 is not given; Clay hashes it, so pass `id` where the order can change. `controls` and `labelledBy` are ids, as
 `aria-controls` and `aria-labelledby` were; `describedBy` is the string as given.
+
+`createTree` takes the flat node list of eoa's primitive (`{ id, parent, label }`, `parent: 0` for a root, order is
+document order) and returns `tree` plus `item(id)`. Up/Down/Home/End are the focus manager's; Right opens a closed
+item and steps into an open one, Left closes an open item and steps to the parent; Space selects (toggles with
+`selection: 'multiple'`), Enter opens/closes and selects in single-select, `*` opens the focused item's siblings.
+Multi-select's `Shift+ArrowDown` / `Shift+ArrowUp` and `Control+a` / `Meta+a` are key names, since a part gets a key
+string, not an event. Type-ahead is not ported.
 
 Handlers on every interactive part (`PartHandlers`):
 
@@ -67,7 +75,7 @@ with getters, never destructured values.
 
 ## Focus
 
-The four groups use the focus manager (`focus/`) where eoa used `document.activeElement`, `element.focus()` and the
+The groups use the focus manager (`focus/`) where eoa used `document.activeElement`, `element.focus()` and the
 browser's roving tabindex. `createFocusHost(manager?)` (`src/focus-host.ts`) is the seam: a primitive takes a `focus`
 option or makes its own manager; reads go to the manager fresh (`focused()`, `tabOrder()`), and a Solid `version`
 signal tells readers to read again, since the manager is plain TypeScript. Items are registered in registration order
@@ -82,6 +90,7 @@ do this (`test/roving.test.ts`).
 | tabs      | `orientation` as the option (arrows of that axis), `wrap`, no memory, `entry` = the selected tab (or the first enabled, if it is disabled); disabled tabs skipped | in: the selected tab; out: the selected panel (it is a stop after the tablist unless it holds focusable content of its own), then the next |
 | toolbar   | `orientation`, `wrap` (optional), `memory`, `focusDisabled` (a disabled item stays reachable, as `aria-disabled` items do in APG) | in: the item focused last, else the first; out: the next stop. A `text` item keeps the arrows of its axis, a `spin` item Up, Down, Home and End; a Tab from a `text` item steps to its neighbour |
 | slider    | not a group: one entry. Arrows, Page keys, Home and End are the slider's own, not the manager's                    | the host's Tab reaches the thumb like any entry             |
+| tree      | `orientation: vertical`, no wrap (eoa clamps at the ends), no memory, `entry` = the first selected visible item, else the first visible; a node inside a collapsed subtree is registered with `tabIndex: -1`, so it is not in the group and is no Tab stop | in: the entry; out: the next stop. Up/Down/Home/End are the manager's; Left/Right are the tree's own. `focus()` on the tree gives focus to the roving item (the spec keeps it, see the divergences) |
 
 Selection follows focus only where APG says so: radio checks on the arrow keys and on Space; tabs select on the arrow
 or Home/End only with automatic activation (manual waits for Enter or Space), and a click selects. Tab itself moves
@@ -123,14 +132,17 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
 - `test/neutral-driver.ts` is eoa's `dom-driver` on neutral parts. It turns scenario steps into handler calls
   (`click` = `focus()` then `press()`, `key` = `focus()` if needed, `keyDown`, `keyUp`, `prop` = the mount's host) and reads
   the probe back from part fields (`aria-checked` ← `checked`, `aria-pressed` ← `pressed`, `aria-expanded` ← `expanded`,
-  `aria-selected` ← `selected`, `tabindex` ← `tabIndex`, `aria-orientation` ← `orientation`, `aria-valuenow` ← `valueNow`,
+  `aria-selected` ← `selected`, `aria-level` ← `level`, `aria-posinset` ← `posInSet`, `aria-setsize` ← `setSize`,
+  `aria-multiselectable` ← `multiSelectable`, `aria-label` ← `label`, `tabindex` ← `tabIndex`, `aria-orientation` ← `orientation`, `aria-valuenow` ← `valueNow`,
   `aria-valuetext` ← `valueText`, `aria-labelledby` / `aria-controls` ← the part an id names, `hidden`, `aria-readonly`,
   `role`, focus ← `focused`, visible ← `hidden === false`). An attribute no part field carries reads as absent, as an
   unset attribute did; `data-*` is `Unsupported`. Solid's `flush()` runs after every handler call, as every input event of
   a real host is its own tick.
-  - Two options it takes for the eoa behaviour the primitives share: `disabledReads: 'token'` reads `aria-disabled` as
+  - Three options it takes for the eoa behaviour the primitives share: `disabledReads: 'token'` reads `aria-disabled` as
     `true` or `false` (radio wrote it so); `keys: 'focused'` sends a key step to whichever part holds focus, falling
-    back to its target (the tabs spec routes keys through its own focus cursor, and eoa's tabs driver did the same).
+    back to its target (the tabs spec routes keys through its own focus cursor, and eoa's tabs driver did the same);
+    `readEvents: 'consumed'` returns only the events since the previous read (eoa's DOM driver did, and the treeview APG
+    scenarios expect it), while the walk always keeps the cumulative lists of `specDriver`.
 - `test/mounts.ts` is eoa's fixtures without JSX: it creates the primitive and acts as the host (a signal passed as
   `value`, written back only when the host `accepts`). A config the port does not implement throws `Unsupported` in the
   mount (the toolbar's `menutrigger`, which a scenario reaches; the tabs' `deletable` and the radio's `flavor:
@@ -153,13 +165,16 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
 | tabs       | 56        | 36     | 17                   | 3                           | 6            |
 | toolbar    | 84        | 10     | 63                   | 11                          | 2            |
 | slider     | 52        | 1      | 51                   | 0                           | 7            |
+| treeview   | 35        | 26     | 7                    | 2                           | 8            |
 
 **Unsupported (a gate)** is what the bridge refuses (a config key or step it does not translate, or a step field the
 replay does not know), plus, for one scenario, the mount's refusal (the toolbar's menu-button item). The bridge gates most of the 52 slider
 scenarios: the spec fixes one configuration (range 0..10, step 1, value 5) and models no drag, so only one passes.
-A scenario the mount refuses is the port's own gate, not a divergence.
+A scenario the mount refuses is the port's own gate, not a divergence. The treeview's seven are three bridge gates
+(the `modifiers` on the Shift/Ctrl steps) and four driver gates (`type` / `typeaheadReset`, since type-ahead is not
+ported).
 
-The walk configs are eoa's, with three changes, each for a reason the port has:
+The walk configs are eoa's, with four changes, each for a reason the port has:
 
 - **radio:** no `flavor` steps (the port has the roving flavour only) and the `activedescendant` config is gone with it.
   Controlled walks keep eoa's filter (no `preselect` or `disabled` steps). Five walks: uncontrolled, checked, disabled,
@@ -170,12 +185,20 @@ The walk configs are eoa's, with three changes, each for a reason the port has:
   key). Item 0's `aria-haspopup` and `aria-expanded` are the menu's, so the probe does not read them. The walk's
   activation coverage is the unit test's, since an activation has no observable effect but the menu.
 - **tabs:** the eoa configs as they are; the port reads `keys: 'focused'`.
+- **treeview:** eoa's eight configs as they are (uncontrolled single and multi, a pinned selection and roving node,
+  then a controlled host that accepts, one that holds, the same in multi-select, and both pinned). The alphabet leaves
+  out the `type` / `typeaheadReset` steps, since type-ahead is not ported; the four scenarios that type are then
+  unsupported rather than failing. The `modifiers` on the Shift/Ctrl scenarios are an extended step field the vendored
+  bridge does not opt into, so those three scenarios are gated too; multi-select is walked through Space and checked by
+  the unit test's `Shift+ArrowDown` / `Control+a` key names.
 
 **Divergences** are eoa's maps with their reasons, all carried over, none added, none dropped: each scenario still fails,
 and the test requires it to (a closed gap forces removing the entry). For radio: the native `<input type=radio>` attribute
 and the per-radio focus callbacks. For tabs: the axis of the arrows in a vertical stack, the disabled-tab skip (base-ui
 moves onto a disabled tab), and one panel-tabindex convention. For toolbar: the disabled-item skip, the Composite
-initial tab stop and role, and the toggle group: each is a base-ui or ariakit behaviour the spec does not model. None is a browser focus quirk.
+initial tab stop and role, and the toggle group: each is a base-ui or ariakit behaviour the spec does not model. For
+treeview: the two focus-on-entry scenarios (APG focuses the selected node when the tree receives focus; the treeview
+spec, and the primitive with it, keep the roving node, so `focus()` restores that node). None is a browser focus quirk.
 `disabledAttr` in each test says which attribute spells `disabled`.
 
 ### Mutation checks
@@ -189,7 +212,9 @@ Each run breaks one behaviour, runs the tests, and reverts (the file compared wi
 | slider     | arrows ignore `step` (move by 1)                                      | **1 fails: the unit test.** The walks and the scenarios all have step 1, so they cannot see it               |
 | slider     | `Math.sign` on the change (ignores `step` and `largeStep`)            | 9 fail: 7 walks, 2 unit tests                                                                                |
 | toolbar    | a `text` item does not keep its arrows                                | 3 fail: 2 walks, 1 unit test                                                                                 |
-| controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 34 fail (was 29 before the four patterns: more controlled walks and scenarios)                  |
+| treeview   | Right does not expand a closed item                                   | 11 fail: 8 walks, 1 scenario (`right-opens-closed-node`), the pinned count, 1 unit test                      |
+| treeview   | a collapsed subtree stays in the group (every item `tabIndex: 0`)     | 12 fail: 8 walks, 2 scenarios (`down-skips-collapsed-subtrees`, `up-moves-to-previous-visible`), the pinned count, 1 unit test |
+| controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 38 fail (was 34 before the treeview: its controlled walks and scenarios)                     |
 
 The slider row is the blind spot that matters: eoa's slider spec fixes `step`, so its tests cannot tell a slider that
 ignores it. The unit test `test/roving.test.ts` is the only check of `step`.
@@ -208,6 +233,12 @@ another one. `effect@4.0.0` is the one dependency it needs.
 - **Tabs `deletable`** (the Delete key removes a tab) and RTL in the tabs bridge (gated).
 - **Slider** dragging (pointer capture and move) beyond a press: `pointer(ratio)` is the press; a host that drags calls
   it per position. Multi-thumb is eoa's `slider-multithumb`, not ported.
+- **Tree type-ahead** (`type` / `typeaheadReset`): the four scenarios that type are gated, and the walk leaves those
+  steps out. The spec models a two-character buffer with an explicit reset; a consumer that wants it needs the buffer
+  and a timer. **Tree drag-and-drop** is a spec `skipped` entry, not part of the APG state machine.
+- **Tree multi-select modifiers**: the primitive handles `Shift+ArrowDown` / `Shift+ArrowUp` and `Control+a` /
+  `Meta+a`, but the scenarios that use them carry the `modifiers` extended step field, which the vendored bridge does
+  not translate, so they are unsupported (as they are in eoa's browser test).
 - **Overlays** (dialog, tooltip, menu button), **text input** and the caret, and the rest of eoa's patterns (they port the
   same way: a bridge, a mount, a `conformance` call).
 - **The Solid → Clay renderer** that consumes the parts (`solid/`), and an accessibility tree from them.

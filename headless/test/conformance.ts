@@ -30,6 +30,8 @@ export interface Conformance<Config> {
   readonly disabledAttr: NeutralDriverOptions['disabledAttr'];
   readonly disabledReads?: NeutralDriverOptions['disabledReads'];
   readonly keys?: NeutralDriverOptions['keys'];
+  /** Consumed events match eoa's DOM driver; the treeview scenarios were written for it. */
+  readonly readEvents?: NeutralDriverOptions['readEvents'];
   readonly steps: ReadonlyArray<ActionStep>;
   /** The walk's steps for one config, when a config leaves some out (a controlled host cannot be reconfigured). */
   readonly alphabet?: (config: ScenarioConfig) => ReadonlyArray<ActionStep>;
@@ -52,17 +54,24 @@ export interface Conformance<Config> {
  */
 export const conformance = <Config>(spec: Conformance<Config>): void => {
   const model = makeReferenceModel(decodeDefinition(spec.definition));
+  const options = (
+    readEvents: NeutralDriverOptions['readEvents'] | undefined,
+  ): NeutralDriverOptions => ({
+    disabledAttr: spec.disabledAttr,
+    ...(spec.disabledReads === undefined
+      ? {}
+      : { disabledReads: spec.disabledReads }),
+    ...(spec.keys === undefined ? {} : { keys: spec.keys }),
+    ...(spec.bridge.eventName === undefined
+      ? {}
+      : { eventName: spec.bridge.eventName }),
+    ...(readEvents === undefined ? {} : { readEvents }),
+  });
   const neutral = (config: ScenarioConfig) =>
-    neutralDriver(spec.mount(spec.config(config)), {
-      disabledAttr: spec.disabledAttr,
-      ...(spec.disabledReads === undefined
-        ? {}
-        : { disabledReads: spec.disabledReads }),
-      ...(spec.keys === undefined ? {} : { keys: spec.keys }),
-      ...(spec.bridge.eventName === undefined
-        ? {}
-        : { eventName: spec.bridge.eventName }),
-    });
+    neutralDriver(spec.mount(spec.config(config)), options(spec.readEvents));
+  // the walk compares cumulative lists after every step, like `specDriver`
+  const neutralWalk = (config: ScenarioConfig) =>
+    neutralDriver(spec.mount(spec.config(config)), options(undefined));
 
   describe(`${spec.pattern} x ported scenarios (neutral parts)`, () => {
     let passed = 0;
@@ -108,7 +117,7 @@ export const conformance = <Config>(spec: Conformance<Config>): void => {
           makePair: () =>
             Promise.resolve([
               specDriver(model, spec.bridge, config),
-              neutral(config),
+              neutralWalk(config),
             ]),
           runs: 15,
           steps: 25,
