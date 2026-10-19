@@ -84,7 +84,8 @@ Each step ends in a check that fails when it breaks.
    `examples/sensors`: the Sensors page from `styles.ts`, with a fixed sample. Check: two stored frames, before and
    after a scripted click on Units, compared pixel for pixel.
    **Done: the ThorVG raster.** `desktop/clay_renderer_thorvg.c`: Clay's commands as a ThorVG scene on its software
-   canvas (brew thorvg 1.1.3, CPU engine only), `host --raster thorvg`; text measured by ThorVG too. Check: two
+   canvas (brew thorvg 1.1.3, CPU engine only), `host --raster thorvg`, the default raster (`--raster sdl` is Clay's); text measured by ThorVG too.
+    Check: two
    stored frames of its own (`expected-thorvg*.png`). Headless on an M2, the same 360x360 frame, one thread: ThorVG
    0.30 ms, SDL's software renderer 1.2 ms (2026-10-19; it does not transfer to the board). GL/WebGPU engines need a
    ThorVG built with them; then the ESP32-S3: ThorVG SW against `render.c`'s 17.8 ms, measured on the board.
@@ -95,8 +96,8 @@ Each step ends in a check that fails when it breaks.
    `fonts("Roboto")` sets `fontId` and prints the font order as an enum. `examples/sensors`: colours as tokens, the
    pressed pill as `css.active` (page.c picks `units_active` when pressed over it), `THEME=light` for the light theme.
    Check: cssints test/clay.mjs; step 2's two frames unchanged pixel for pixel, a third, `expected-light.png`; and
-   `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. Left: a theme
-   key in the window, the pressed frame stored (the scripted click releases before the frame it writes).
+   `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. In the window,
+   the `t` key toggles the theme; `expected-pressed.png` stores the pressed frame (`--press`, held down).
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:
    a click changes a signal and the next frame.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render

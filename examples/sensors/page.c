@@ -8,9 +8,14 @@
 
 static const float ACCEL[3] = {1.159f, -0.718f, 10.044f}, GYRO[3] = {2.23f, 4.82f, 0.02f};
 static bool use_g;
-// THEME=light picks the light theme: styles.h has every style again as <name>_light
+// THEME=light picks the light theme, and the t key toggles it: styles.h has every style again as <name>_light
 static int light = -1;
 #define T(name) (light ? name##_light : name)
+
+static void theme_init(void)
+{
+    if (light < 0) light = getenv("THEME") && !strcmp(getenv("THEME"), "light");
+}
 
 static Clay_String str(const char *s) { return (Clay_String){.length = (int32_t)strlen(s), .chars = s}; }
 
@@ -20,9 +25,15 @@ static void on_units(Clay_ElementId id, Clay_PointerData p, void *user)
     if (p.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) use_g = !use_g;
 }
 
+void app_key(int key)
+{
+    theme_init();
+    if (key == 't') light = !light;
+}
+
 void app_frame(bool down)
 {
-    if (light < 0) light = getenv("THEME") && !strcmp(getenv("THEME"), "light");
+    theme_init();
     const float scale = use_g ? 1.0f / 9.80665f : 1.0f;
     const char *unit = use_g ? "g" : "m/s\u00b2";
     // static: Clay reads the strings at the render pass, after this function returns

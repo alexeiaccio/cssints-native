@@ -6,8 +6,9 @@
 //   host --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                           ref.png.actual.png on a difference
 //   --click X Y             headless: a press and a release at X,Y before the frame that is written
-//   --raster sdl|thorvg     Clay's SDL3 renderer (the default), or clay_renderer_thorvg.c into a buffer that is
-//                           the frame headless and a texture in the window
+//   --press X Y             headless: a press at X,Y held down, the frame written while still pressed
+//   --raster thorvg|sdl     clay_renderer_thorvg.c into a buffer that is the frame headless and a texture in the
+//                           window (the default), or Clay's SDL3 renderer
 //   --bench N               headless: draw the last frame N more times and print the raster's ms a frame
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
@@ -28,6 +29,7 @@
 #endif
 
 void app_frame(bool down);
+void app_key(int key); // a key press in the window: the SDL keycode (a letter is its ASCII code)
 
 static Clay_Dimensions measure(Clay_StringSlice text, Clay_TextElementConfig *config, void *user)
 {
@@ -82,11 +84,13 @@ static void draw(bool thorvg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int 
 
 int main(int argc, char **argv)
 {
-    const char *png = NULL, *expect = NULL, *raster = "sdl";
+    const char *png = NULL, *expect = NULL, *raster = "thorvg";
     int bench = 0;
     float click_x = -1, click_y = -1;
+    bool hold = false;
     for (int i = 1; i + 1 < argc; i++) {
-        if (!strcmp(argv[i], "--click") && i + 2 < argc) {
+        if ((!strcmp(argv[i], "--click") || !strcmp(argv[i], "--press")) && i + 2 < argc) {
+            hold = !strcmp(argv[i], "--press");
             click_x = strtof(argv[++i], NULL), click_y = strtof(argv[++i], NULL);
             continue;
         }
@@ -158,6 +162,7 @@ int main(int argc, char **argv)
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT) running = false;
+            if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat) app_key((int)e.key.key);
             if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                 e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
                 SDL_ConvertEventToRenderCoordinates(renderer, &e);
@@ -168,8 +173,8 @@ int main(int argc, char **argv)
             }
         }
         // a scripted click: frame 0 lays out (Clay hit-tests against the last frame's boxes), pressed in frame 1,
-        // released in frame 2, and frame 3 is written
-        if (headless && click_x >= 0 && frame < 3) px = click_x, py = click_y, down = frame == 1;
+        // released in frame 2, and frame 3 is written; --press holds it from frame 1 and writes frame 2, still pressed
+        if (headless && click_x >= 0 && frame < 3) px = click_x, py = click_y, down = hold ? frame >= 1 : frame == 1;
         const Uint64 now = SDL_GetTicks();
         const float dt = (now - last) / 1000.0f;
         last = now;
@@ -187,7 +192,7 @@ int main(int argc, char **argv)
             SDL_RenderTexture(renderer, tvg_texture, NULL, NULL);
         }
 
-        if (headless && click_x >= 0 && frame++ < 3) continue;
+        if (headless && click_x >= 0 && frame++ < (hold ? 2 : 3)) continue;
         if (headless && bench > 0) {
             const Uint64 t0 = SDL_GetTicksNS();
             for (int i = 0; i < bench; i++) {

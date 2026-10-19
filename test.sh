@@ -13,13 +13,15 @@ node --conditions=development generator/clay-header.ts examples/sensors/styles.t
 cc -std=c99 -Wall -Wno-unused-variable -I "$OUT/sensors" -I "$CLAY_H" examples/sensors/header.c -lm -o "$OUT/header"
 "$OUT/header"
 
-# The desktop: the Sensors page headless, against its stored frames (the software renderer; the window uses the GPU):
-# dark, after a scripted click on Units, and the light theme
+# The desktop: the Sensors page headless, against its stored frames: the SDL renderer (the software one; the window
+# uses the GPU), dark, after a scripted click on Units, and the light theme
 sh desktop/build.sh examples/sensors >/dev/null
-./build/sensors/app --expect examples/sensors/expected.png
-./build/sensors/app --click 180 250 --expect examples/sensors/expected-g.png
-THEME=light ./build/sensors/app --expect examples/sensors/expected-light.png
-# the same page on ThorVG's software raster (brew thorvg), against its own frames
+./build/sensors/app --raster sdl --expect examples/sensors/expected.png
+./build/sensors/app --raster sdl --click 180 250 --expect examples/sensors/expected-g.png
+THEME=light ./build/sensors/app --raster sdl --expect examples/sensors/expected-light.png
+# the same page on ThorVG's software raster (brew thorvg, the default), against its own frames
 ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg.png
 ./build/sensors/app --raster thorvg --click 180 250 --expect examples/sensors/expected-thorvg-g.png
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
+# Units held down: the pressed look (units_active), written while the pointer is still down
+./build/sensors/app --raster thorvg --press 180 250 --expect examples/sensors/expected-pressed.png
