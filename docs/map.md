@@ -128,6 +128,14 @@ Each step ends in a check that fails when it breaks.
    pressed look). Check: six stored frames (initial, Tab Tab, switch on, mixed, disclosure open, light) and
    `solid/widgets.test.ts` (Tab order, key timing, clicks and focus, the disabled box). Seen by eye: the frames; the live window
    was started, its keys and mouse not tried by hand.
+   **Done: radio, tabs, slider, toolbar on the page.** The four groups of `headless/` on the same page (360x608), in the one
+   shared focus manager: radio, tabs and toolbar are its groups (roving focus, one Tab stop each; the checked radio and
+   the selected tab are the entry, the toolbar remembers its last item), the slider is one entry whose rail takes a press
+   (`ui_bounds` gives the ratio). A key goes to the manager only for Tab; an arrow is the focused part's, which moves
+   focus and checks or selects. Check: ten stored frames (the old six regenerated at the new height, their old layout
+   unchanged above the new widgets; radio, tabs, slider, toolbar re-entered) and asserts for the full Tab order, one stop
+   a group, arrows, clamping, memory, a disabled radio, the rail. Not done: a slider drag, the toolbar's menu. Seen by
+   eye: the ten frames; the window was started (`--frames 60`), its keys and mouse not tried by hand.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

@@ -111,3 +111,82 @@ export const panel = css.cn(
   css.bg(t.color.surface),
   css.borderRadius(8),
 );
+
+// radio, tabs, slider, toolbar: the same tokens and states. Which look a part has (`radioOn`, `tabOn`, `ledOn`) is picked
+// from its fields; the slider's `fill` is the one style the page derives, with the width of the value.
+export const field = css.cn(css.width("stretch"), css.p(0, 0, 0, 10), css.gap(4), css.alignItems("center"));
+export const caption = css.cn(css.width(64));
+
+// a radio: a ring that holds a dot when checked, in a row that takes the focus ring
+export const choice = css.cn(
+  css.p(4, 8),
+  css.gap(8),
+  css.alignItems("center"),
+  css.borderRadius(8),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
+  css.focus(css.border(2, t.color.ring)),
+);
+export const radio = css.cn(
+  css.width(18),
+  css.height(18),
+  css.borderRadius(9),
+  css.border(2, t.color.muted),
+  css.justifyContent("center"),
+  css.alignItems("center"),
+);
+export const radioOn = css.cn(radio, css.borderColor(t.color.accent));
+export const radioDisabled = css.cn(radio, css.borderColor(t.color.disabled));
+export const dot = css.cn(css.width(8), css.height(8), css.borderRadius(4), css.bg(t.color.accent));
+
+// tabs: the selected tab shares the panel's surface and has an accent line under it
+export const tabsBox = css.cn(css.width("stretch"), css.flexDirection("column"));
+export const tablist = css.cn(css.gap(2));
+export const tab = css.cn(
+  css.p(7, 16),
+  css.borderRadius(8, 8, 0, 0),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
+  css.focus(css.border(2, t.color.ring)),
+);
+export const tabOn = css.cn(tab, css.bg(t.color.surface), css.borderWidth(0, 0, 2, 0), css.borderColor(t.color.accent));
+export const tabPanel = css.cn(
+  css.width("stretch"),
+  css.height(58),
+  css.p(10, 14),
+  css.gap(2),
+  css.flexDirection("column"),
+  css.bg(t.color.surface),
+  css.borderRadius(8),
+  css.focus(css.border(2, t.color.ring)),
+);
+
+// a slider: a rail to click on, the filled part, the knob, the rest of the rail
+export const rail = css.cn(css.width(140), css.height(24), css.alignItems("center"));
+export const fill = css.cn(css.height(4), css.borderRadius(2), css.bg(t.color.accent));
+export const slack = css.cn(css.width("stretch"), css.height(4), css.borderRadius(2), css.bg(t.color.off));
+export const knob = css.cn(
+  css.width(16),
+  css.height(16),
+  css.borderRadius(8),
+  css.bg(t.color.thumb),
+  css.border(2, t.color.muted),
+  css.focus(css.border(2, t.color.ring)),
+);
+export const readout = css.cn(css.width(44), css.justifyContent("flex-end"));
+
+// a toolbar of toggle buttons: a lamp under the label says on or off
+export const tools = css.cn(css.width("stretch"), css.p(0, 10), css.gap(6));
+export const tool = css.cn(
+  css.p(5, 12),
+  css.gap(3),
+  css.flexDirection("column"),
+  css.bg(t.color.surface),
+  css.borderRadius(8),
+  css.border(1, t.color.muted),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
+  css.focus(css.border(2, t.color.ring)),
+);
+export const led = css.cn(css.width("stretch"), css.height(3), css.borderRadius(2), css.bg(t.color.off));
+export const ledOn = css.cn(led, css.bg(t.color.accent));

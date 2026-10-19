@@ -1,6 +1,6 @@
 // Keyboard and pointer focus for a page: SDL keycodes to the names the focus manager and the headless parts use, and
-// the routing of one key to the focus manager, then the focused part, then the page.
-import { createFocus, type Focus, type Key } from "../../focus/src/focus.ts";
+// the routing of one key to the focus manager (Tab), then the focused part, then the page.
+import { createFocus, type Focus } from "../../focus/src/focus.ts";
 import type { PartHandlers } from "../../headless/src/index.ts";
 
 const KEYS: Record<number, string> = {
@@ -10,7 +10,9 @@ const KEYS: Record<number, string> = {
   27: "Escape",
   32: " ", // DOM's `key` for Space; the parts take "Space" too
   0x4000004a: "Home",
+  0x4000004b: "PageUp",
   0x4000004d: "End",
+  0x4000004e: "PageDown",
   0x4000004f: "ArrowRight",
   0x40000050: "ArrowLeft",
   0x40000051: "ArrowDown",
@@ -33,24 +35,33 @@ export function keyName(code: number, mod = 0): string | undefined {
   return name;
 }
 
-/** The keys the focus manager may take; it returns false for the ones the focused entry's group does not own. */
-const FOCUS_KEYS = new Set<string>(["Tab", "Shift+Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
-
-/** What a part must have to be focusable here: any button, switch, checkbox or disclosure trigger. */
-export type FocusPart = PartHandlers & { readonly id: string; readonly disabled: boolean };
+/**
+ * What a part must have to take keys and focus here: any part of the headless widgets (a slider's thumb and a tab
+ * panel have no `press`).
+ */
+export type FocusPart = Pick<PartHandlers, "focus" | "blur" | "keyDown" | "keyUp"> & {
+  readonly id: string;
+  readonly focused: boolean;
+  readonly press?: () => void;
+};
 
 /** The props of a `box` that make a part's row clickable and focusable: spread them on it, `<box {...input.add(part)}>`. */
 export interface Bind {
   id: string;
   readonly focused: boolean;
   onPress: () => void;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export interface Input {
   readonly focus: Focus;
   /** Registers a part in the focus manager (in call order: the document order) and returns its box props. */
-  add(part: FocusPart & { readonly focused: boolean }, options?: { group?: string }): Bind;
+  add(part: FocusPart & { readonly disabled: boolean }, options?: { group?: string }): Bind;
+  /**
+   * A part of a group (radio, tabs, toolbar, slider) registered itself in the manager it was given (`focus: input.focus`);
+   * this only routes keys and focus to it and returns its box props. Their document order is the order of creation.
+   */
+  bind(part: FocusPart): Bind;
   /** A key went down. Returns whether something took it. */
   down(name: string, repeat?: boolean): boolean;
   up(name: string): boolean;
@@ -62,8 +73,8 @@ export interface Input {
 
 /**
  * Focus state of one page. The manager decides who is focused; each change blurs the old part and focuses the new one,
- * so a part's `focused` follows. A key goes to the manager first (Tab, Shift+Tab, and the arrows, Home, End inside a
- * group), then to the focused part's `keyDown`/`keyUp`, then to `fallback`. Tab past the last stop releases focus, as the
+ * so a part's `focused` follows. Tab and Shift+Tab go to the manager, any other key to the focused part's `keyDown` (a
+ * group's part moves focus through the manager itself), then to `fallback`; `up` goes to the part's `keyUp`. Tab past the last stop releases focus, as the
  * manager does, and nobody takes that Tab.
  */
 export function createInput(): Input {
@@ -81,8 +92,11 @@ export function createInput(): Input {
   const input: Input = {
     focus,
     add(part, options) {
-      parts.set(part.id, part);
       focus.register(part.id, { disabled: part.disabled, ...options });
+      return input.bind(part);
+    },
+    bind(part) {
+      parts.set(part.id, part);
       return {
         id: part.id,
         get focused() {
@@ -94,7 +108,10 @@ export function createInput(): Input {
       };
     },
     down(name, repeat = false) {
-      if (FOCUS_KEYS.has(name) && focus.key(name as Key)) return true;
+      // Tab is the manager's. An arrow, Home or End is the focused part's: a radio moves focus and checks what it moved
+      // to, tabs select, the toolbar only moves, a slider changes its value; each calls the manager for the move itself
+      // and takes only the keys its pattern has (Home on a radio is nobody's, not a move without a check)
+      if ((name === "Tab" || name === "Shift+Tab") && focus.key(name)) return true;
       if (focused()?.keyDown(name, repeat)) return true;
       return input.fallback?.(name) ?? false;
     },

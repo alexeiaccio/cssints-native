@@ -35,7 +35,7 @@ bun install
 bun run test     # generator, same.c against esp32's clay.h, the Sensors frames on SDL and on ThorVG (needs brew sdl3 sdl3_ttf sdl3_image thorvg)
 sh desktop/build.sh examples/sensors && ./build/sensors/app   # the window, ThorVG's software raster; the t key toggles the theme
 ./build/sensors/app --raster sdl                              # Clay's SDL3 renderer instead (the window uses the GPU)
-bun solid/main.ts widgets                                     # Solid: headless button, switch, checkboxes, disclosure; Tab and Space work
+bun solid/main.ts widgets                                     # Solid: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar; Tab, arrows, Space work
 ./build/sensors/app --press 180 250 --png out.png             # headless: a press held at 180,250, the frame written while pressed
 ```
 

@@ -14,7 +14,7 @@ solid-js 2.0.0-rc.13, @solidjs/universal 2.0.0-rc.13 (createRenderer), @solidjs/
 ```sh
 sh solid/native/build.sh                         # build/solid/libui.dylib (brew sdl3 sdl3_image thorvg)
 bun solid/main.ts                                # the window: the mouse is the pointer, `t` flips the theme
-bun solid/main.ts widgets                        # the Widgets page: Tab, Shift+Tab, Space, Enter, the mouse (below)
+bun solid/main.ts widgets                        # the Widgets page (360x608): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
@@ -35,7 +35,7 @@ plugin.ts          Bun plugin: JSX through @solidjs/compiler, `styles.ts` throug
 compile-styles.ts  Node child of the plugin: Vite + cssints, prints the style module as JS
 src/input.ts       SDL keys to names, and where a key goes: the focus manager, the focused part, the page
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
-app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure; its styles are app/widgets.styles.ts
+app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar; its styles are app/widgets.styles.ts
 frames/            the Widgets page's stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
 test.ts, widgets.test.ts   the checks the stored frames cannot make
@@ -90,13 +90,17 @@ Sizing type: 0 fit, 1 grow, 2 percent, 3 fixed (Clay's order).
 **A key.** The window queues every key down and up (repeats too); the host pops them (`ui_key_pop`) after the poll and
 before the frame. `keyName` (`src/input.ts`) gives the names the manager and the parts use: `Tab`, `Shift+Tab`, `Enter`
 (keypad too), `" "` for Space (DOM's `key`; the parts take `"Space"` too), `Escape`, `ArrowLeft/Right/Up/Down`, `Home`,
-`End`, a letter as itself in lower case. A Ctrl, Alt or Cmd chord has no name and is dropped, and so is Shift with an
+`End`, `PageUp`, `PageDown`, a letter as itself in lower case. A Ctrl, Alt or Cmd chord has no name and is dropped, and so is Shift with an
 arrow, Home or End (the manager takes plain keys only). Then `input.down(name, repeat)`:
 
-1. Tab, Shift+Tab, the arrows, Home, End go to the focus manager. It answers true when it moved focus (or owns the arrow).
-   Past the last Tab stop it releases focus and answers false (a browser would hand Tab to its chrome): the next Tab
-   starts at the first stop again, so the order cycles through one "nothing focused" stop.
-2. Otherwise the focused part's `keyDown(name, repeat)`: Enter on a button, Space armed on key down.
+1. Tab and Shift+Tab go to the focus manager. It answers true when it moved focus. Past the last Tab stop it releases
+   focus and answers false (a browser would hand Tab to its chrome): the next Tab starts at the first stop again, so the
+   order cycles through one "nothing focused" stop.
+2. Otherwise the focused part's `keyDown(name, repeat)`: Enter on a button, Space armed on key down; in a group the
+   arrows, Home and End: the part asks the manager to move focus itself and then checks or selects what it moved to (a
+   radio checks, tabs select, a toolbar only moves), a slider changes its value, and PageUp and PageDown are its large
+   step. A key a pattern does not have (Home on a radio, Up on a horizontal toolbar) is nobody's. The arrows must not go
+   to the manager first: it would move focus and the radio would never check.
 3. Otherwise `input.fallback(name)`, the page level: `t` toggles the theme.
 
 `input.up(name)` goes to the focused part's `keyUp` (Space fires there). `focus.onChange` blurs the part that lost focus
@@ -105,7 +109,9 @@ arrow, Home or End (the manager takes plain keys only). Then `input.down(name, r
 **The pointer.** A box with `onPress` runs it when the button goes down over it, as a browser focuses on mousedown;
 `onClick` still runs on release over the box that was pressed. `input.add(part)` registers the part in the manager
 (in call order: the document order) and returns the props `{ id, focused, onPress, onClick }` to spread on its row:
-a press focuses it (`focus.focus(id)`) and a release over it calls `part.press()`. A press on a part that cannot take
+a press focuses it (`focus.focus(id)`) and a release over it calls `part.press()`. A group (radio, tabs, toolbar, slider)
+registers its own items in the manager it is given (`createRadioGroup({ focus: input.focus })`), so `input.bind(part)`
+only routes keys and focus to the part and returns the same props; both `onPress` and `onClick` get the pointer's x and y. A press on a part that cannot take
 focus (the disabled checkbox) changes nothing, focus stays where it was and `press()` ignores it. A press on no
 element with `onPress` (empty space) blurs: `createFrame`'s `onPressMiss` calls `input.pressMiss()`.
 
@@ -114,16 +120,46 @@ element with `onPress` (empty space) blurs: `createFrame`'s `onPressMiss` calls 
 they both set, and focus ring and pressed look show together (`resolve` in `pack.ts`). The Widgets styles use a 2px
 border in the `ring` token (a border does not change Clay's layout, so the ring moves nothing).
 
-**The page.** `app/Widgets.tsx`: a button that counts presses, a Wi-Fi switch (the thumb is at the end of the track
+**The page.** `app/Widgets.tsx` (360x608: the page is as tall as it needs to be with the disclosure open; a page taller
+than the window makes Clay shrink its boxes, a row wider than it widens the root, both are asserted): a button that counts presses, a Wi-Fi switch (the thumb is at the end of the track
 by `trackOn` instead of `track`), "Select all" (mixed) over Wired and Wireless (`all` is controlled: its `value` is
 read from the two, its `onValueChange` sets both), a disabled checkbox, and a disclosure whose panel is in the tree
-while `!panel.hidden`. Tab order: button, switch, select all, wired, wireless, trigger.
+while `!panel.hidden`. Tab order: button, switch, select all, wired, wireless, trigger, then the four groups below.
 
-Checked by `bun solid/widgets.test.ts` (no pixels but one ring and one pressed pixel: the order and wrap of Tab and
-Shift+Tab, Space on key up and Enter on key down, a held Space once, a click toggling and focusing, the disabled box,
-blur on empty space, select all, the disclosure, key names) and by six stored frames in `frames/`: initial, Tab Tab
-(ring on the switch), Space on it (on), Tab×4 and Space (the first child checked, "Select all" mixed), the disclosure
-opened with Enter, and the light theme after a longer run.
+The groups come after the disclosure, so the first part of the page is the old layout pixel for pixel (checked against
+the earlier six frames over their old height; the frames are regenerated at the new size). Each is made after the
+parts above it, because the manager's document order is the order of registration:
+
+| Widget | In the manager | Keys and pointer |
+| --- | --- | --- |
+| Speed (radio, `1x 4x 16x`; `disabledSpeeds` marks some disabled, the tests do) | a group: `orientation: both`, `wrap`, no memory, `entry` = the checked radio | Tab enters at the checked one and leaves as one stop; all four arrows move and check (wrapping, a disabled one skipped); Space checks; a click focuses and checks |
+| Tabs (Overview, Stats, Log) | a group: horizontal, `wrap`, no memory, `entry` = the selected tab; the selected panel is a stop after it | Left and Right move and select (automatic), Home and End go to the ends; a click selects; Tab goes to the panel (ring on it), then on |
+| Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail sets the value: `Slider.pointer(ratio)` with the ratio from the press's x and the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value) |
+| Format (toolbar: Bold, Italic, Underline; each toggles a lamp under its label) | a group: horizontal, no wrap, **memory**, `focusDisabled` | Left and Right, Home and End move; Enter and Space toggle on key down; Tab away and back lands on the item left last |
+
+The slider's filled part is the one style made at run time (`fillOf`: `s.fill` with a fixed width of the value, kept
+per width); Clay has no flex ratio. A slider drag is not modelled (the part has `pointer` for a position, not a capture):
+a press sets the value, moving with the button down does not.
+
+Checked by `bun solid/widgets.test.ts` (no pixels but a few ring, fill and knob positions: the full Tab order over the
+page and Shift+Tab, one Tab stop for each group, Space on key up and Enter on key down, a held Space once, a click toggling
+and focusing, the disabled box, blur on empty space, select all, the disclosure, the page fitting its window, the radio's
+arrows (wrap, Space, Tab in at the checked one, a disabled radio skipped by arrows, Tab and a click), the tabs' arrows,
+Home, End and panels, the slider's step, page keys, ends, clamping and rail presses, the toolbar's ends, memory and
+toggles, contrast of the ink on every fill, key names) and by ten stored frames in `frames/`:
+
+| Frame | Keys | Shows |
+| --- | --- | --- |
+| `widgets-initial` | | the page at rest: 1x checked, Overview selected, Volume 40%, no lamp on |
+| `widgets-tab2` | Tab Tab | ring on the switch |
+| `widgets-switch-on` | Tab Tab Space | the switch on |
+| `widgets-mixed` | Tab×4 Space | Wired checked and ringed, "Select all" mixed |
+| `widgets-disclosure` | Tab Tab Space Tab×4 Enter | the panel open, everything below it moved down, nothing shrunk |
+| `widgets-radio` | Tab×7 ArrowRight | 4x checked and ringed, 1x cleared |
+| `widgets-tabs` | Tab×8 ArrowRight | Stats selected and ringed, its panel's text |
+| `widgets-slider` | Tab×10 ArrowRight | 45%, the filled part and the knob a step on, ring on the knob |
+| `widgets-toolbar` | Tab×11 Enter ArrowRight Shift+Tab Tab | Bold's lamp on; Italic ringed after leaving for the slider and coming back |
+| `widgets-light` | the disclosure, then the four groups | the light theme: 4x, Stats, 50%, Bold on and ringed |
 
 ## Notes
 
@@ -134,5 +170,6 @@ opened with Enter, and the light theme after a longer run.
   `*.styles.ts`.
 - Not here yet: floating, images, scrolling, text input, reload on save, JSX types for `box` and `text`, an
   accessibility tree (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the
-  window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), groups on the page
-  (roving focus is in `focus/`, the radio, tabs and toolbar ports are not wired here).
+  window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), a slider drag, the
+  toolbar's menu item (the headless menu is not ported), a vertical radio, tabs or toolbar on the page (the parts take the
+  option; the page has the horizontal ones).

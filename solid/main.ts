@@ -20,8 +20,6 @@ if (page !== "sensors" && page !== "widgets") {
   console.error(`unknown page "${page}": sensors or widgets`);
   process.exit(1);
 }
-const W = 360;
-const H = page === "widgets" ? 440 : 360;
 const arg = (name: string, n = 1) => {
   const i = process.argv.indexOf(name);
   return i < 0 ? undefined : process.argv.slice(i + 1, i + 1 + n);
@@ -39,7 +37,10 @@ const { createFrame } = await import("./src/frame.ts");
 const { createInput, keyName } = await import("./src/input.ts");
 const { El, render } = await import("./src/renderer.ts");
 const { Sensors } = await import("./app/Sensors.tsx");
-const { Widgets } = await import("./app/Widgets.tsx");
+const { Widgets, size } = await import("./app/Widgets.tsx");
+
+const W = 360;
+const H = page === "widgets" ? size.height : 360;
 
 if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
