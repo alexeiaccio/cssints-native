@@ -28,3 +28,5 @@ THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expect
 
 # Solid 2 on the desktop: the Sensors page as JSX, its frames against the same stored ThorVG frames
 sh solid/test.sh
+# the focus manager (no DOM): Tab order, roving focus, restore, and a seeded random walk
+node focus/test/focus.test.ts
