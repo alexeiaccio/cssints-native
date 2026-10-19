@@ -97,7 +97,8 @@ Each step ends in a check that fails when it breaks.
    pressed pill as `css.active` (page.c picks `units_active` when pressed over it), `THEME=light` for the light theme.
    Check: cssints test/clay.mjs; step 2's two frames unchanged pixel for pixel, a third, `expected-light.png`; and
    `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. In the window,
-   the `t` key toggles the theme; `expected-pressed.png` stores the pressed frame (`--press`, held down).
+   the `t` key toggles the theme; `expected-pressed.png` stores the pressed frame (`--press`, held down). Seen in the live window (2026-10-19): `t` switches the theme, the pill presses and toggles the unit.
+
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:
    a click changes a signal and the next frame.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
