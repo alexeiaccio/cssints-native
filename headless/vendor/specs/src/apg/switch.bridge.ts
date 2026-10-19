@@ -178,7 +178,7 @@ const setEvents = (
 };
 
 /** The extended step fields this bridge honours. */
-const stepFields: ReadonlyArray<ExtendedStepField> = ['set'];
+const stepFields: ReadonlyArray<ExtendedStepField> = ['set', 'phase'];
 
 export const switchBridge: SpecBridge = {
   setup: (config) => {
@@ -211,6 +211,13 @@ export const switchBridge: SpecBridge = {
           throw new Unsupported('key repeat');
         }
         const key = keyOf(step.key);
+        // `phase` walks a half press: keydown Space, blur, keyup Space (bean ci3i)
+        if (step.phase === 'up') {
+          return [specEvent('key_up', { key })];
+        }
+        if (step.phase === 'down') {
+          return [specEvent('focus'), specEvent('key_down', { key })];
+        }
         return [
           specEvent('focus'),
           specEvent('key_down', { key }),
@@ -255,6 +262,8 @@ export const switchSteps: ReadonlyArray<ActionStep> = [
   { event: 'blur', target: 'switch' },
   { event: 'click', target: 'switch' },
   { event: 'key', key: ' ', target: 'switch' },
+  { event: 'key', key: ' ', phase: 'down', target: 'switch' },
+  { event: 'key', key: ' ', phase: 'up', target: 'switch' },
   { event: 'key', key: 'Enter', target: 'switch' },
   { event: 'prop', prop: 'disabled', value: true },
   { event: 'prop', prop: 'disabled', value: false },

@@ -1,4 +1,4 @@
-import { type Accessor } from 'solid-js';
+import { type Accessor, createEffect } from 'solid-js';
 import { createControllable } from './controllable';
 import { type PartHandlers, createPressable, nextId } from './parts';
 
@@ -70,6 +70,16 @@ export const createButton = (options: ButtonOptions = {}): Button => {
       }
     },
   });
+  // Disabling drops an armed Space, as it does on the switch and the checkbox.
+  // `disabled` is a lazy option (not the button's own signal), so watch it.
+  createEffect(
+    () => disabled(),
+    (isDisabled) => {
+      if (isDisabled) {
+        pressable.disarm();
+      }
+    },
+  );
   const id = options.id ?? nextId('button');
 
   return {

@@ -150,17 +150,30 @@ export const neutralDriver = (
           break;
         case 'key': {
           const key = step.key ?? '';
-          if (options.keys === 'focused') {
-            const holder = Object.keys(mounted.parts)
-              .map((name) => mounted.parts[name])
-              .find((part) => part?.focused === true);
+          const holder =
+            options.keys === 'focused'
+              ? Object.keys(mounted.parts)
+                  .map((name) => mounted.parts[name])
+                  .find((part) => part?.focused === true)
+              : undefined;
+          // A half press is one event only: `down` focuses and keyDowns, `up`
+          // keyUps wherever focus is now and deliberately does not re-focus, so
+          // a keydown -> blur -> keyup walk reaches the part after the blur.
+          if (step.phase === 'down') {
             const part = holder ?? partOf(step.target);
+            if (part.focused !== true) {
+              focus(part);
+            }
             call(() => part.keyDown?.(key));
+            break;
+          }
+          if (step.phase === 'up') {
+            const part = holder ?? partOf(step.target);
             call(() => part.keyUp?.(key));
             break;
           }
-          const part = partOf(step.target);
-          if (part.focused !== true) {
+          const part = holder ?? partOf(step.target);
+          if (options.keys !== 'focused' && part.focused !== true) {
             focus(part);
           }
           call(() => part.keyDown?.(key));

@@ -132,7 +132,7 @@ const setEvents = (
 };
 
 /** The extended step fields this bridge honours. */
-const stepFields: ReadonlyArray<ExtendedStepField> = ['set'];
+const stepFields: ReadonlyArray<ExtendedStepField> = ['set', 'phase'];
 
 /**
  * Button vocabulary <-> `specs/apg/button.qnt`. Parts: `button`. `click` is a
@@ -180,6 +180,13 @@ export const buttonBridge: SpecBridge = {
         const tag = keyTag(step.key);
         if (tag === undefined) {
           throw new Unsupported(`key ${step.key ?? ''}`);
+        }
+        // `phase` walks a half press: keydown Space, blur, keyup Space (bean ci3i)
+        if (step.phase === 'up') {
+          return [specEvent('key_up', { key: tag })];
+        }
+        if (step.phase === 'down') {
+          return [specEvent('focus'), specEvent('key_down', { key: tag })];
         }
         return [
           specEvent('focus'),
@@ -233,6 +240,9 @@ export const buttonSteps: ReadonlyArray<ActionStep> = [
   { event: 'click', target: 'button' },
   { event: 'key', key: 'Enter', target: 'button' },
   { event: 'key', key: ' ', target: 'button' },
+  // the halves of a Space press, so keydown -> blur -> keyup is walked
+  { event: 'key', key: ' ', phase: 'down', target: 'button' },
+  { event: 'key', key: ' ', phase: 'up', target: 'button' },
   { event: 'prop', prop: 'disabled', value: true },
   { event: 'prop', prop: 'disabled', value: false },
   { event: 'prop', prop: 'pressed', value: true },

@@ -14,9 +14,16 @@
 //     aria-valuemin, aria-valuemax, aria-valuetext, aria-orientation
 //     (default horizontal), as derived defs of the state.
 //   - Examples (slider-color-viewer, slider-temperature, slider-rating,
-//     slider-seek): the range 0..10 with step 1 and large step 3 stands in for
-//     all four; `valueText` is the aria-valuetext hook (a low/medium/high band,
-//     like the rating example's "Very Dissatisfied ... Very Satisfied").
+//     slider-seek): the range 0..10 stands in for all four; `valueText` is the
+//     aria-valuetext hook (a low/medium/high band, like the rating example's
+//     "Very Dissatisfied ... Very Satisfied").
+//   - Configuration variants (bean qtmy): `configure` remounts the widget with
+//     a packed variant int, because init is literal-only and the generator
+//     allows one nondet per action. Variant 0 is step 1 / large step 3 / value
+//     5; variant 1 is step 2 / large step 4 / value 6 (large step on the grid,
+//     so a page jump never leaves it). The range stays 0..10 so one walk
+//     alphabet is valid for every variant and a step that does not divide the
+//     range is still a deliberate omission.
 //
 // Request vs commit (map ticket rt1p). A key or a rail press is a *request*
 // carrying an intent (`requested`); it fires onValueChange (`requests` counts
@@ -34,19 +41,20 @@
 // Deliberate omissions (ponytail: ceilings, not bugs):
 //   - aria-label / aria-labelledby (labelling is a rendering concern).
 //   - Non-integer values and a step that does not divide the range: the range
-//     is 0..10, step 1, so every value is on the step grid; snapping pointer
-//     input to a coarser grid is not modelled.
+//     is 0..10 and every variant's step divides it, so `End` and a pointer
+//     press always land on the grid.
 //   - Dragging (pointer capture, move events): only a discrete pointer
-//     "press at value" is modelled, clamped to the range.
+//     "press at value" is modelled, snapped to the step grid and clamped.
 //   - Disabled / read-only, touch assistive-technology key synthesis, and
 //     aria-valuetext formatting (units, locale): a real widget formats the text
 //     from its own value; the spec only fixes WHEN the text is derived (always,
 //     from valuenow).
-//   - Constants (range, step, large step) are defs, not events: the spec
-//     verifies one concrete configuration.
+//   - The range (0..10) is fixed; `configure` varies step, large step and the
+//     starting value. The bridge rejects a config outside the variant table.
 module apg_slider {
   import aria.* from "../../shared/aria"
 
+  var flavor: int         // configuration variant (0 | 1), see `configure`
   var value: int          // the current value (aria-valuenow)
   var focused: bool       // the thumb has keyboard focus
   var orientation: str    // "horizontal" | "vertical"
@@ -63,12 +71,23 @@ module apg_slider {
   // --- configuration -----------------------------------------------------
   def rangeMin: int = 0
   def rangeMax: int = 10
-  def smallStep: int = 1
-  def largeStep: int = 3
+  // packed variant (0 | 1); see the header and `configure`
+  def variantSmallStep(v: int): int = if (v == 1) 2 else 1
+  def variantLargeStep(v: int): int = if (v == 1) 4 else 3
+  def variantStart(v: int): int = if (v == 1) 6 else 5
+  def smallStep: int = variantSmallStep(flavor)
+  def largeStep: int = variantLargeStep(flavor)
 
   // --- pure behaviour ----------------------------------------------------
   def clamp(v: int): int =
     if (v < rangeMin) rangeMin else if (v > rangeMax) rangeMax else v
+
+  // a raw pointer position lands on the nearest step (the widget corrects an
+  // off-grid press; APG's Home/End name "first/last allowed value")
+  def snap(v: int): int =
+    rangeMin + ((v - rangeMin + smallStep / 2) / smallStep) * smallStep
+
+  def pointerValue(raw: int): int = clamp(snap(raw))
 
   // signed change for a key; 0 for keys that do not change by a delta
   // (arrows and RTL mirroring: shared/aria.qnt ariaValueArrow)
@@ -116,6 +135,7 @@ module apg_slider {
 
   // --- machine -----------------------------------------------------------
   action init = all {
+    flavor' = 0,
     value' = 5,
     focused' = false,
     orientation' = "horizontal",
@@ -131,6 +151,7 @@ module apg_slider {
   }
 
   action focus = all {
+    flavor' = flavor,
     value' = value,
     focused' = true,
     orientation' = orientation,
@@ -146,6 +167,7 @@ module apg_slider {
   }
 
   action blur = all {
+    flavor' = flavor,
     value' = value,
     focused' = false,
     orientation' = orientation,
@@ -167,6 +189,7 @@ module apg_slider {
       "Home", "End", "PageUp", "PageDown", "Enter"
     ).oneOf()
     all {
+      flavor' = flavor,
       value' = if (and(focused, isHandledKey(key))) landed(holds, value, nextValue(value, key, orientation, dir)) else value,
       focused' = focused,
       orientation' = orientation,
@@ -186,24 +209,26 @@ module apg_slider {
   action pointer = {
     nondet raw = Set(-3, 0, 4, 7, 10, 14).oneOf()
     all {
-      value' = landed(holds, value, clamp(raw)),
+      flavor' = flavor,
+      value' = landed(holds, value, pointerValue(raw)),
       focused' = true,
       orientation' = orientation,
       dir' = dir,
       handled' = false,
       controlled' = controlled,
       accepting' = accepting,
-      valueProp' = propAfter(follows, valueProp, clamp(raw)),
-      requested' = if (wants(true, value, clamp(raw))) clamp(raw) else requested,
-      outcome' = if (wants(true, value, clamp(raw))) verdict else outcome,
-      base' = if (wants(true, value, clamp(raw))) value else base,
-      requests' = if (wants(true, value, clamp(raw))) requests + 1 else requests
+      valueProp' = propAfter(follows, valueProp, pointerValue(raw)),
+      requested' = if (wants(true, value, pointerValue(raw))) pointerValue(raw) else requested,
+      outcome' = if (wants(true, value, pointerValue(raw))) verdict else outcome,
+      base' = if (wants(true, value, pointerValue(raw))) value else base,
+      requests' = if (wants(true, value, pointerValue(raw))) requests + 1 else requests
     }
   }
 
   action setOrientation = {
     nondet o = Set("horizontal", "vertical").oneOf()
     all {
+      flavor' = flavor,
       value' = value,
       focused' = focused,
       orientation' = o,
@@ -222,6 +247,7 @@ module apg_slider {
   action setDir = {
     nondet d = Set("ltr", "rtl").oneOf()
     all {
+      flavor' = flavor,
       value' = value,
       focused' = focused,
       orientation' = orientation,
@@ -238,9 +264,11 @@ module apg_slider {
   }
 
   // commit: the host writes the controlled value (a no-op while uncontrolled)
+  // a host write is a value on the step grid (0..10 is even for both variants)
   action setValue = {
-    nondet v = Set(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10).oneOf()
+    nondet v = Set(0, 2, 4, 6, 8, 10).oneOf()
     all {
+      flavor' = flavor,
       value' = if (controlled) v else value,
       focused' = focused,
       orientation' = orientation,
@@ -259,6 +287,7 @@ module apg_slider {
   // commit: the host flips its own copy of the value between the range ends
   // (an outside two-state control)
   action hostToggle = all {
+    flavor' = flavor,
     value' = if (controlled) (if (valueProp == rangeMax) rangeMin else rangeMax) else value,
     focused' = focused,
     orientation' = orientation,
@@ -275,6 +304,7 @@ module apg_slider {
 
   // configuration: the host starts owning the value, adopting the current one
   action control = all {
+    flavor' = flavor,
     value' = value,
     focused' = focused,
     orientation' = orientation,
@@ -291,6 +321,7 @@ module apg_slider {
 
   // configuration: the controlled host answers every request with its intent
   action acceptRequests = all {
+    flavor' = flavor,
     value' = value,
     focused' = focused,
     orientation' = orientation,
@@ -305,8 +336,29 @@ module apg_slider {
     requests' = requests
   }
 
+  // configuration: remount with a packed variant (step, large step, start).
+  // Resets the widget to uncontrolled and horizontal/ltr, like a fresh mount.
+  action configure = {
+    nondet variant = Set(0, 1).oneOf()
+    all {
+      flavor' = variant,
+      value' = variantStart(variant),
+      focused' = false,
+      orientation' = "horizontal",
+      dir' = "ltr",
+      handled' = false,
+      controlled' = false,
+      accepting' = false,
+      valueProp' = variantStart(variant),
+      requested' = variantStart(variant),
+      outcome' = "none",
+      base' = variantStart(variant),
+      requests' = 0
+    }
+  }
+
   action step = any {
-    init, focus, blur, keydown, pointer, setOrientation, setDir,
+    init, configure, focus, blur, keydown, pointer, setOrientation, setDir,
     setValue, hostToggle, control, acceptRequests
   }
 

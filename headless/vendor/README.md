@@ -1,7 +1,7 @@
 # vendor
 
 The spec side of the tests, copied **read-only** from `~/github/effects-of-atmosphere` at commit
-`8b7210986cd6924d344a0003369e6577841d2476` (`EOA_COMMIT`). The files are byte for byte the originals, except
+`09f218595df64a068fc5cdcfc3c90ca54bda712a` (`EOA_COMMIT`). The files are byte for byte the originals, except
 `quint-machine/src/index.ts`, which drops the `scxml` re-export. `sync.sh` reads them from git at that commit, so the eoa
 checkout may be on another one.
 

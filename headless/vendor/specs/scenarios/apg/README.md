@@ -76,30 +76,30 @@ the following step.
 
 Action fields (all decoded and typed in `ActionStep`):
 
-| field              | type                                    | meaning                                                                                                                   |
-| ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `event`            | string                                  | `focus` `blur` `click` `pointerdown` `pointermove` `pointerup` `hover` `unhover` `key` `type` `prop` `wait` …             |
-| `target`           | target (grammar below)                  | the part the event is delivered to; `key`/`type` first focuses it, as a user would                                        |
-| `key`              | string                                  | `KeyboardEvent.key` (`Enter`, `ArrowDown`, `Tab`, `" "`; `Space` is accepted for `" "`)                                   |
-| `text`             | string                                  | text typed by a `type` event                                                                                              |
-| `prop`             | string                                  | prop name for a `prop` event; with no `value` it is a trigger (`beforematch` fires the `beforematch` event on the target) |
-| `value`            | JSON                                    | the new value for `prop`, or the value an event carries                                                                   |
-| `set`              | object                                  | `prop` event changing several props at once: `{ "event": "prop", "set": { "open": true } }`                               |
-| `repeat`           | `true` \| integer                       | `true`: this keydown is an auto-repeat (`KeyboardEvent.repeat`); `N`: the key is held for `N` repeat keydowns             |
-| `ms`               | number                                  | duration of a `wait` event (fake-timer milliseconds)                                                                      |
-| `position`         | number 0..1                             | where on the target track a pointer event lands, as a fraction of its length                                              |
-| `modifiers`        | `Alt`\|`Control`\|`Meta`\|`Shift` array | held modifiers (a set; write them sorted). Never `shiftKey`, `ctrl`, `altKey`, …                                          |
-| `phase`            | `down` \| `up`                          | which half of a `key` press (default: the full press)                                                                     |
-| `button`           | number                                  | `MouseEvent.button` (0 primary, 1 auxiliary, 2 secondary)                                                                 |
-| `buttons`          | number                                  | `MouseEvent.buttons` bitmask                                                                                              |
-| `pointerType`      | `mouse` \| `pen` \| `touch`             | `PointerEvent.pointerType` (default `mouse`)                                                                              |
-| `pointerId`        | number                                  | `PointerEvent.pointerId`                                                                                                  |
-| `detail`           | number                                  | `UIEvent.detail` of a click                                                                                               |
-| `count`            | number                                  | click count (`2` = double click)                                                                                          |
-| `canceled`         | boolean                                 | the event is canceled (`preventDefault`) before the widget sees it                                                        |
-| `defaultPrevented` | boolean                                 | the event is expected to end with its default prevented (`true`) or not (`false`)                                         |
-| `isComposing`      | boolean                                 | `KeyboardEvent.isComposing`                                                                                               |
-| `inputEvent`       | string                                  | origin of a `type` event (`paste`, `programmatic`)                                                                        |
+| field              | type                                    | meaning                                                                                                                       |
+| ------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `event`            | string                                  | `focus` `blur` `click` `pointerdown` `pointermove` `pointerup` `hover` `unhover` `key` `type` `prop` `wait` …                 |
+| `target`           | target (grammar below)                  | the part the event is delivered to; `key`/`type` first focuses it, as a user would (a `phase: "up"` key does not)             |
+| `key`              | string                                  | `KeyboardEvent.key` (`Enter`, `ArrowDown`, `Tab`, `" "`; `Space` is accepted for `" "`)                                       |
+| `text`             | string                                  | text typed by a `type` event                                                                                                  |
+| `prop`             | string                                  | prop name for a `prop` event; with no `value` it is a trigger (`beforematch` fires the `beforematch` event on the target)     |
+| `value`            | JSON                                    | the new value for `prop`, or the value an event carries                                                                       |
+| `set`              | object                                  | `prop` event changing several props at once: `{ "event": "prop", "set": { "open": true } }`                                   |
+| `repeat`           | `true` \| integer                       | `true`: this keydown is an auto-repeat (`KeyboardEvent.repeat`); `N`: the key is held for `N` repeat keydowns                 |
+| `ms`               | number                                  | duration of a `wait` event (fake-timer milliseconds)                                                                          |
+| `position`         | number 0..1                             | where on the target track a pointer event lands, as a fraction of its length                                                  |
+| `modifiers`        | `Alt`\|`Control`\|`Meta`\|`Shift` array | held modifiers (a set; write them sorted). Never `shiftKey`, `ctrl`, `altKey`, …                                              |
+| `phase`            | `down` \| `up`                          | which half of a `key` press (default: the full press); `down` holds the key for a later `up` step, so a blur can land between |
+| `button`           | number                                  | `MouseEvent.button` (0 primary, 1 auxiliary, 2 secondary)                                                                     |
+| `buttons`          | number                                  | `MouseEvent.buttons` bitmask                                                                                                  |
+| `pointerType`      | `mouse` \| `pen` \| `touch`             | `PointerEvent.pointerType` (default `mouse`)                                                                                  |
+| `pointerId`        | number                                  | `PointerEvent.pointerId`                                                                                                      |
+| `detail`           | number                                  | `UIEvent.detail` of a click                                                                                                   |
+| `count`            | number                                  | click count (`2` = double click)                                                                                              |
+| `canceled`         | boolean                                 | the event is canceled (`preventDefault`) before the widget sees it                                                            |
+| `defaultPrevented` | boolean                                 | the event is expected to end with its default prevented (`true`) or not (`false`)                                             |
+| `isComposing`      | boolean                                 | `KeyboardEvent.isComposing`                                                                                                   |
+| `inputEvent`       | string                                  | origin of a `type` event (`paste`, `programmatic`)                                                                            |
 
 Any other field is **unknown**: it is preserved on decode and makes the scenario
 `unsupported` (skipped, never silently replayed as a different step).

@@ -205,7 +205,7 @@ const setEvents = (
 };
 
 /** The extended step fields this bridge honours. */
-const stepFields: ReadonlyArray<ExtendedStepField> = ['set'];
+const stepFields: ReadonlyArray<ExtendedStepField> = ['set', 'phase'];
 
 export const checkboxBridge: SpecBridge = {
   setup: (config) => {
@@ -236,6 +236,13 @@ export const checkboxBridge: SpecBridge = {
           throw new Unsupported('key repeat');
         }
         const key = keyOf(step.key);
+        // `phase` walks a half press: keydown Space, blur, keyup Space (bean ci3i)
+        if (step.phase === 'up') {
+          return [specEvent('key_up', { key })];
+        }
+        if (step.phase === 'down') {
+          return [specEvent('focus'), specEvent('key_down', { key })];
+        }
         return [
           specEvent('focus'),
           specEvent('key_down', { key }),
@@ -287,6 +294,8 @@ export const checkboxSteps: ReadonlyArray<ActionStep> = [
   { event: 'blur', target: 'checkbox' },
   { event: 'click', target: 'checkbox' },
   { event: 'key', key: ' ', target: 'checkbox' },
+  { event: 'key', key: ' ', phase: 'down', target: 'checkbox' },
+  { event: 'key', key: ' ', phase: 'up', target: 'checkbox' },
   { event: 'key', key: 'Enter', target: 'checkbox' },
   { event: 'prop', prop: 'disabled', value: true },
   { event: 'prop', prop: 'disabled', value: false },

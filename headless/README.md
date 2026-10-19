@@ -1,7 +1,7 @@
 # headless
 
 Headless APG widgets for cssints-native: **state plus a neutral parts description**, with no DOM, no events and no JSX.
-Ported from `@eoa/headless` (effects-of-atmosphere, commit `8b72109`, `packages/headless`) and checked against the
+Ported from `@eoa/headless` (effects-of-atmosphere, commit `09f2185`, `packages/headless`) and checked against the
 same Quint specs and ported scenarios. State is Solid 2 signals (`solid-js@2.0.0-rc.13`), which the Solid → Clay
 renderer will read. Focus is the focus manager of `focus/`, which the groups register with.
 
@@ -138,6 +138,11 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
   `role`, focus ← `focused`, visible ← `hidden === false`). An attribute no part field carries reads as absent, as an
   unset attribute did; `data-*` is `Unsupported`. Solid's `flush()` runs after every handler call, as every input event of
   a real host is its own tick.
+  - A `key` step with `phase: 'down' | 'up'` is one half of a press: `down` focuses and calls `keyDown` only, `up` calls
+    `keyUp` only and does not re-focus, so a keydown → blur → keyup walk reaches the part after the blur. A whole `key`
+    step still calls the pair.
+  - The slider's `configure` variant (step / large step / start) is the bridge's setup event; the mount creates the
+    primitive with the same `step`, `largeStep` and `value` from `sliderConfig`, so no run-time setter is needed.
   - Three options it takes for the eoa behaviour the primitives share: `disabledReads: 'token'` reads `aria-disabled` as
     `true` or `false` (radio wrote it so); `keys: 'focused'` sends a key step to whichever part holds focus, falling
     back to its target (the tabs spec routes keys through its own focus cursor, and eoa's tabs driver did the same);
@@ -164,15 +169,16 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
 | radio      | 56        | 18     | 36                   | 2                           | 5            |
 | tabs       | 56        | 36     | 17                   | 3                           | 6            |
 | toolbar    | 84        | 10     | 63                   | 11                          | 2            |
-| slider     | 52        | 1      | 51                   | 0                           | 7            |
+| slider     | 52        | 1      | 51                   | 0                           | 10           |
 | treeview   | 35        | 26     | 7                    | 2                           | 8            |
 
 **Unsupported (a gate)** is what the bridge refuses (a config key or step it does not translate, or a step field the
 replay does not know), plus, for one scenario, the mount's refusal (the toolbar's menu-button item). The bridge gates most of the 52 slider
-scenarios: the spec fixes one configuration (range 0..10, step 1, value 5) and models no drag, so only one passes.
-A scenario the mount refuses is the port's own gate, not a divergence. The treeview's seven are three bridge gates
-(the `modifiers` on the Shift/Ctrl steps) and four driver gates (`type` / `typeaheadReset`, since type-ahead is not
-ported).
+scenarios: the spec carries two configurations only (range 0..10, step 1 / large step 3 / start 5, and step 2 / large
+step 4 / start 6) and models no drag, so only one passes. A scenario the mount refuses is the port's own gate, not a
+divergence. The treeview's seven are three bridge gates (the `modifiers` on the Shift/Ctrl steps) and four driver gates
+(`type` / `typeaheadReset`, since type-ahead is not ported). No gate is left for the key halves: the button, checkbox and
+switch bridges honour `phase`, and their walks draw keydown Space, blur, keyup Space.
 
 The walk configs are eoa's, with four changes, each for a reason the port has:
 
@@ -184,7 +190,11 @@ The walk configs are eoa's, with four changes, each for a reason the port has:
   (it would turn the other arrow into the open key), and the arrow of the other axis (a menu-button takes it as its open
   key). Item 0's `aria-haspopup` and `aria-expanded` are the menu's, so the probe does not read them. The walk's
   activation coverage is the unit test's, since an activation has no observable effect but the menu.
-- **tabs:** the eoa configs as they are; the port reads `keys: 'focused'`.
+- **tabs:** the eoa configs as they are; the port reads `keys: 'focused'`. The alphabet now carries ArrowUp/ArrowDown,
+  so the vertical walk moves along its axis and notices a tablist that does not wrap.
+- **slider:** eoa's ten configs as they are: uncontrolled, vertical, right-to-left, both, the step-2 walk in plain and
+  right-to-left, then a controlled host that accepts or pins the value, the last one vertical and one on the step-2
+  variant. The step-2 walks are what let a walk see arrows that ignore `step`.
 - **treeview:** eoa's eight configs as they are (uncontrolled single and multi, a pinned selection and roving node,
   then a controlled host that accepts, one that holds, the same in multi-select, and both pinned). The alphabet leaves
   out the `type` / `typeaheadReset` steps, since type-ahead is not ported; the four scenarios that type are then
@@ -207,21 +217,26 @@ Each run breaks one behaviour, runs the tests, and reverts (the file compared wi
 
 | Widget     | Break                                                                 | Result                                                                                                       |
 | ---------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| tabs       | `wrap: false` in the group                                            | 11 fail: 5 of 6 walks (not the vertical one: its alphabet has no Up/Down), 4 scenarios, the pinned count, 1 unit test |
+| tabs       | `wrap: false` in the group                                            | 12 fail: 6 of 6 walks (the vertical one now sees Up/Down), 4 scenarios, the pinned count, 1 unit test         |
 | radio      | an arrow moves focus without checking the radio                       | 9 fail: 5 walks, 1 scenario, the pinned count, 2 unit tests                                                  |
-| slider     | arrows ignore `step` (move by 1)                                      | **1 fails: the unit test.** The walks and the scenarios all have step 1, so they cannot see it               |
-| slider     | `Math.sign` on the change (ignores `step` and `largeStep`)            | 9 fail: 7 walks, 2 unit tests                                                                                |
+| slider     | arrows ignore `step` (move by 1)                                      | 4 fail: 3 step-2 walks and the unit test (was 1: the unit test alone)                                        |
+| slider     | `Math.sign` on the change (ignores `step` and `largeStep`)            | 12 fail: 10 walks, 2 unit tests                                                                              |
 | toolbar    | a `text` item does not keep its arrows                                | 3 fail: 2 walks, 1 unit test                                                                                 |
 | treeview   | Right does not expand a closed item                                   | 11 fail: 8 walks, 1 scenario (`right-opens-closed-node`), the pinned count, 1 unit test                      |
 | treeview   | a collapsed subtree stays in the group (every item `tabIndex: 0`)     | 12 fail: 8 walks, 2 scenarios (`down-skips-collapsed-subtrees`, `up-moves-to-previous-visible`), the pinned count, 1 unit test |
-| controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 38 fail (was 34 before the treeview: its controlled walks and scenarios)                     |
+| pressable  | a blur keeps an armed Space (button, checkbox, switch share it)       | 15 fail: 6 button walks, 9 checkbox walks. The switch walks do not draw down→blur→up with seed 7             |
+| controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 39 fail (was 38 before the three new slider walks)                                      |
 
-The slider row is the blind spot that matters: eoa's slider spec fixes `step`, so its tests cannot tell a slider that
-ignores it. The unit test `test/roving.test.ts` is the only check of `step`.
+The slider row was the blind spot: eoa's slider spec used to fix `step`, so its tests could not tell a slider that ignores
+it. The step-2 variant in `slider.qnt` closes it; the unit test is no longer the only check. The pressable row is the
+complement: before the key halves, no walk could draw Space down, blur, Space up, so a pressable that kept the press armed
+after a blur passed every test. The new halves exposed one more divergence on the way: `createButton` did not disarm on
+`disabled` (switch and checkbox did), which `test/button.test.ts` now catches; `src/button.ts` watches the option and
+disarms.
 
 ## Vendored
 
-`vendor/` holds the spec side, copied **read-only** from effects-of-atmosphere at `8b72109` (`EOA_COMMIT`); see
+`vendor/` holds the spec side, copied **read-only** from effects-of-atmosphere at `09f2185` (`EOA_COMMIT`); see
 [vendor/README.md](vendor/README.md). `sync.sh` reads the files from git at that commit, so the eoa checkout may be on
 another one. `effect@4.0.0` is the one dependency it needs.
 
@@ -244,5 +259,6 @@ another one. `effect@4.0.0` is the one dependency it needs.
 - **The Solid → Clay renderer** that consumes the parts (`solid/`), and an accessibility tree from them.
 - Pointer arming (`pointer_down` … `pointer_cancel`) is not a primitive state: `press()` is the release. The spec models
   it, eoa's DOM primitive did not either, and its scenarios on it are `data-pressed` ones, skipped.
-- **Walk coverage the eoa alphabets do not have:** tabs' walk has no Up/Down, so the vertical wrap is covered by the
-  scenarios only; the slider walk has step 1 throughout.
+- **Walk coverage the eoa alphabets do not have:** the switch's seeded draw does not happen to emit keydown Space → blur
+  → keyup Space (the button and checkbox walks do), so the shared pressable's blur disarm is proved through those two.
+  The tabs and slider alphabets now match eoa's, including Up/Down and the step-2 variant.

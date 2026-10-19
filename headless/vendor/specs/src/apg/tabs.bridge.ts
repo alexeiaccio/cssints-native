@@ -356,6 +356,9 @@ export const tabsSteps: ReadonlyArray<ActionStep> = [
   { event: 'click', target: 'tab:3' },
   { event: 'key', key: 'ArrowRight', target: 'tab:0' },
   { event: 'key', key: 'ArrowLeft', target: 'tab:0' },
+  // one alphabet serves both orientations: the off-axis arrows are inert
+  { event: 'key', key: 'ArrowDown', target: 'tab:0' },
+  { event: 'key', key: 'ArrowUp', target: 'tab:0' },
   { event: 'key', key: 'Home', target: 'tab:0' },
   { event: 'key', key: 'End', target: 'tab:0' },
   { event: 'key', key: 'Enter', target: 'tab:0' },

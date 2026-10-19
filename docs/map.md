@@ -119,7 +119,7 @@ Each step ends in a check that fails when it breaks.
    with handlers (`press()`, `key(name)`, `focus()`, `blur()`) that a Clay renderer and an accessibility tree both read. Radio, tabs, toolbar and the tree are groups of the focus manager
    (`focus/`) on one page: roving focus inside, Tab between them. The slider is one entry.
    Check: the ported APG scenarios and a seeded random walk, replayed on the parts and on the generated Quint model,
-   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 38 tests. Left:
+   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 39 tests. Left:
    the menu and menu button (the toolbar's menu item), overlays, text input, tree type-ahead.
    **Done: the Widgets page** (`solid/app/Widgets.tsx`, `bun solid/main.ts widgets`): the headless widgets and the focus
    manager wired to one live page; the page's styles sit in `Widgets.tsx` itself (the loader compiles JSX, then cssints

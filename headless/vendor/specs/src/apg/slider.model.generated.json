@@ -1,8 +1,12 @@
 {
   "generatedFrom": "../../specs/apg/slider.qnt",
-  "specHash": "17e49ab4b8ed83eea2373e452e81cfe544ac3ee7603a0d957830e0c7c31ec8ee",
+  "specHash": "7734b9af7b4b65ea2658d6478b554a74ce13ee7f110396b10a407286023834ab",
   "module": "apg_slider",
   "vars": [
+    {
+      "name": "flavor",
+      "type": "int"
+    },
     {
       "name": "value",
       "type": "int"
@@ -69,20 +73,134 @@
         "value": "10"
       }
     },
+    "variantSmallStep": {
+      "kind": "function",
+      "params": [
+        "v"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "v"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "2"
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "variantLargeStep": {
+      "kind": "function",
+      "params": [
+        "v"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "v"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "4"
+          },
+          {
+            "kind": "int",
+            "value": "3"
+          }
+        ]
+      }
+    },
+    "variantStart": {
+      "kind": "function",
+      "params": [
+        "v"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "v"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "6"
+          },
+          {
+            "kind": "int",
+            "value": "5"
+          }
+        ]
+      }
+    },
     "smallStep": {
       "kind": "function",
       "params": [],
       "body": {
-        "kind": "int",
-        "value": "1"
+        "kind": "app",
+        "opcode": "variantSmallStep",
+        "args": [
+          {
+            "kind": "name",
+            "name": "flavor"
+          }
+        ]
       }
     },
     "largeStep": {
       "kind": "function",
       "params": [],
       "body": {
-        "kind": "int",
-        "value": "3"
+        "kind": "app",
+        "opcode": "variantLargeStep",
+        "args": [
+          {
+            "kind": "name",
+            "name": "flavor"
+          }
+        ]
       }
     },
     "clamp": {
@@ -137,6 +255,98 @@
               {
                 "kind": "name",
                 "name": "v"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "snap": {
+      "kind": "function",
+      "params": [
+        "v"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "iadd",
+        "args": [
+          {
+            "kind": "name",
+            "name": "rangeMin"
+          },
+          {
+            "kind": "app",
+            "opcode": "imul",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "idiv",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "iadd",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "isub",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "v"
+                          },
+                          {
+                            "kind": "name",
+                            "name": "rangeMin"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "idiv",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "smallStep"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "2"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "smallStep"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "smallStep"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "pointerValue": {
+      "kind": "function",
+      "params": [
+        "raw"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "clamp",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "snap",
+            "args": [
+              {
+                "kind": "name",
+                "name": "raw"
               }
             ]
           }
@@ -2776,6 +2986,13 @@
       "name": "init",
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "int",
@@ -2865,6 +3082,13 @@
       "name": "focus",
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "name",
@@ -2953,6 +3177,13 @@
     {
       "name": "blur",
       "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
         {
           "field": "value",
           "rhs": {
@@ -3057,6 +3288,13 @@
         ]
       },
       "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
         {
           "field": "value",
           "rhs": {
@@ -3477,6 +3715,13 @@
       },
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "app",
@@ -3492,7 +3737,7 @@
               },
               {
                 "kind": "app",
-                "opcode": "clamp",
+                "opcode": "pointerValue",
                 "args": [
                   {
                     "kind": "name",
@@ -3561,7 +3806,7 @@
               },
               {
                 "kind": "app",
-                "opcode": "clamp",
+                "opcode": "pointerValue",
                 "args": [
                   {
                     "kind": "name",
@@ -3592,7 +3837,7 @@
                   },
                   {
                     "kind": "app",
-                    "opcode": "clamp",
+                    "opcode": "pointerValue",
                     "args": [
                       {
                         "kind": "name",
@@ -3604,7 +3849,7 @@
               },
               {
                 "kind": "app",
-                "opcode": "clamp",
+                "opcode": "pointerValue",
                 "args": [
                   {
                     "kind": "name",
@@ -3639,7 +3884,7 @@
                   },
                   {
                     "kind": "app",
-                    "opcode": "clamp",
+                    "opcode": "pointerValue",
                     "args": [
                       {
                         "kind": "name",
@@ -3680,7 +3925,7 @@
                   },
                   {
                     "kind": "app",
-                    "opcode": "clamp",
+                    "opcode": "pointerValue",
                     "args": [
                       {
                         "kind": "name",
@@ -3721,7 +3966,7 @@
                   },
                   {
                     "kind": "app",
-                    "opcode": "clamp",
+                    "opcode": "pointerValue",
                     "args": [
                       {
                         "kind": "name",
@@ -3765,6 +4010,13 @@
         ]
       },
       "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
         {
           "field": "value",
           "rhs": {
@@ -3863,6 +4115,13 @@
       },
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "name",
@@ -3955,19 +4214,21 @@
         "kind": "int",
         "pool": [
           "0",
-          "1",
           "2",
-          "3",
           "4",
-          "5",
           "6",
-          "7",
           "8",
-          "9",
           "10"
         ]
       },
       "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
         {
           "field": "value",
           "rhs": {
@@ -4099,6 +4360,13 @@
     {
       "name": "hostToggle",
       "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
         {
           "field": "value",
           "rhs": {
@@ -4279,6 +4547,13 @@
       "name": "control",
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "name",
@@ -4368,6 +4643,13 @@
       "name": "acceptRequests",
       "assignments": [
         {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "flavor"
+          }
+        },
+        {
           "field": "value",
           "rhs": {
             "kind": "name",
@@ -4452,10 +4734,139 @@
           }
         }
       ]
+    },
+    {
+      "name": "configure",
+      "nondet": {
+        "name": "variant",
+        "kind": "int",
+        "pool": [
+          "0",
+          "1"
+        ]
+      },
+      "assignments": [
+        {
+          "field": "flavor",
+          "rhs": {
+            "kind": "name",
+            "name": "variant"
+          }
+        },
+        {
+          "field": "value",
+          "rhs": {
+            "kind": "app",
+            "opcode": "variantStart",
+            "args": [
+              {
+                "kind": "name",
+                "name": "variant"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focused",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "orientation",
+          "rhs": {
+            "kind": "str",
+            "value": "horizontal"
+          }
+        },
+        {
+          "field": "dir",
+          "rhs": {
+            "kind": "str",
+            "value": "ltr"
+          }
+        },
+        {
+          "field": "handled",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "variantStart",
+            "args": [
+              {
+                "kind": "name",
+                "name": "variant"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "app",
+            "opcode": "variantStart",
+            "args": [
+              {
+                "kind": "name",
+                "name": "variant"
+              }
+            ]
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "str",
+            "value": "none"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "app",
+            "opcode": "variantStart",
+            "args": [
+              {
+                "kind": "name",
+                "name": "variant"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        }
+      ]
     }
   ],
   "step": [
     "init",
+    "configure",
     "focus",
     "blur",
     "keydown",

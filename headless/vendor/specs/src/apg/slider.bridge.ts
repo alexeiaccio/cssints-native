@@ -20,11 +20,11 @@ const specEvent = (
  * the DOM driver so both gate scenarios identically.
  *
  * Parts: `thumb` (role=slider, the focus holder) and `track` (the spec's
- * `rail`). The spec fixes one concrete configuration — range 0..10, step 1,
- * large step 3, initial value 5 (its constants are `def`s, not events) — so any
- * scenario config that changes the range, step, value or disabled state cannot
- * be translated and is `Unsupported`. Only `orientation` and `dir` are state the
- * spec lets us set (`setOrientation` / `setDir`).
+ * `rail`). The spec fixes the range at 0..10 but now carries a small variant
+ * table (`configure`): step 1 / large step 3 / value 5, and step 2 / large
+ * step 4 / value 6. A scenario config outside the table is `Unsupported`; only
+ * `orientation` and `dir` are state the spec lets us set directly
+ * (`setOrientation` / `setDir`).
  *
  * Controlled (map ticket rt1p): `controlled` puts the value in a host; a `value`
  * alongside it pins the host (a rejecting host, react-aria's fixed value), a
@@ -37,6 +37,7 @@ const specEvent = (
  * alphabet, mapped to the nearest pool raw value.
  */
 export interface SliderConfig {
+  readonly flavor: number;
   readonly value: number;
   readonly min: number;
   readonly max: number;
@@ -49,87 +50,130 @@ export interface SliderConfig {
   readonly accepts: boolean;
 }
 
-const DEFAULT_MIN = 0;
-const DEFAULT_MAX = 10;
-const DEFAULT_STEP = 1;
-const DEFAULT_LARGE_STEP = 3;
-const INITIAL_VALUE = 5;
+/**
+ * The spec's `configure` variants: step, large step and starting value.
+ * `largeStep` is a multiple of `step`, so a page jump stays on the grid. The
+ * range is 0..10 in every variant, so one walk alphabet fits all of them.
+ */
+const VARIANTS = [
+  { min: 0, max: 10, step: 1, largeStep: 3, value: 5 },
+  { min: 0, max: 10, step: 2, largeStep: 4, value: 6 },
+] as const;
 
-const numberEquals = (
-  key: string,
-  value: Schema.Json,
-  expected: number,
-): void => {
-  if (typeof value !== 'number' || value !== expected) {
+const numberIn = (key: string, value: Schema.Json) => {
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
     throw new Unsupported(`config ${key}=${JSON.stringify(value)}`);
+  }
+  return value;
+};
+
+interface SliderSlice {
+  readonly min: number;
+  readonly max: number;
+  readonly step: number;
+  readonly largeStep: number;
+  readonly value: number | undefined;
+  readonly orientation: 'horizontal' | 'vertical';
+  readonly dir: 'ltr' | 'rtl';
+  readonly controlled: boolean;
+  readonly pinned: boolean;
+}
+
+const DEFAULT_SLICE: SliderSlice = {
+  min: VARIANTS[0].min,
+  max: VARIANTS[0].max,
+  step: VARIANTS[0].step,
+  largeStep: VARIANTS[0].largeStep,
+  value: undefined,
+  orientation: 'horizontal',
+  dir: 'ltr',
+  controlled: false,
+  pinned: false,
+};
+
+const parseSlice = (slice: SliderSlice, key: string, raw: Schema.Json) => {
+  switch (key) {
+    case 'thumbs':
+      if (numberIn(key, raw) !== 1) {
+        throw new Unsupported(`config thumbs=${JSON.stringify(raw)}`);
+      }
+      return slice;
+    case 'value':
+      return { ...slice, value: numberIn(key, raw), pinned: true };
+    case 'min':
+      return { ...slice, min: numberIn(key, raw) };
+    case 'max':
+      return { ...slice, max: numberIn(key, raw) };
+    case 'step':
+      return { ...slice, step: numberIn(key, raw) };
+    case 'largeStep':
+      return { ...slice, largeStep: numberIn(key, raw) };
+    case 'orientation':
+      switch (raw) {
+        case 'horizontal':
+        case 'vertical':
+          return { ...slice, orientation: raw };
+        default:
+          throw new Unsupported(`config orientation=${JSON.stringify(raw)}`);
+      }
+    case 'dir':
+      switch (raw) {
+        case 'ltr':
+        case 'rtl':
+          return { ...slice, dir: raw };
+        default:
+          throw new Unsupported(`config dir=${JSON.stringify(raw)}`);
+      }
+    case 'controlled':
+      if (typeof raw !== 'boolean') {
+        throw new Unsupported(`config controlled=${JSON.stringify(raw)}`);
+      }
+      return { ...slice, controlled: raw };
+    default:
+      throw new Unsupported(`config ${key}=${JSON.stringify(raw)}`);
   }
 };
 
 /** Scenario `config` -> what both targets are mounted with. */
-export const sliderConfig = (config: ScenarioConfig): SliderConfig => {
-  let value = INITIAL_VALUE;
-  let min = DEFAULT_MIN;
-  let max = DEFAULT_MAX;
-  let step = DEFAULT_STEP;
-  let largeStep = DEFAULT_LARGE_STEP;
-  let orientation: 'horizontal' | 'vertical' = 'horizontal';
-  let dir: 'ltr' | 'rtl' = 'ltr';
-  let controlled = false;
-  let pinned = false;
-  for (const [key, raw] of Object.entries(config)) {
-    switch (key) {
-      case 'thumbs':
-        numberEquals(key, raw, 1);
-        break;
-      case 'value': {
-        const number = Number(raw);
-        if (number !== INITIAL_VALUE) {
-          throw new Unsupported(`config value=${JSON.stringify(raw)}`);
-        }
-        value = number;
-        pinned = true;
-        break;
-      }
-      case 'min':
-        numberEquals(key, raw, DEFAULT_MIN);
-        min = DEFAULT_MIN;
-        break;
-      case 'max':
-        numberEquals(key, raw, DEFAULT_MAX);
-        max = DEFAULT_MAX;
-        break;
-      case 'step':
-        numberEquals(key, raw, DEFAULT_STEP);
-        step = DEFAULT_STEP;
-        break;
-      case 'largeStep':
-        numberEquals(key, raw, DEFAULT_LARGE_STEP);
-        largeStep = DEFAULT_LARGE_STEP;
-        break;
-      case 'orientation':
-        if (raw !== 'horizontal' && raw !== 'vertical') {
-          throw new Unsupported(`config orientation=${JSON.stringify(raw)}`);
-        }
-        orientation = raw;
-        break;
-      case 'dir':
-        if (raw !== 'ltr' && raw !== 'rtl') {
-          throw new Unsupported(`config dir=${JSON.stringify(raw)}`);
-        }
-        dir = raw;
-        break;
-      case 'controlled':
-        if (typeof raw !== 'boolean') {
-          throw new Unsupported(`config controlled=${JSON.stringify(raw)}`);
-        }
-        controlled = raw;
-        break;
-      default:
-        throw new Unsupported(`config ${key}=${JSON.stringify(raw)}`);
-    }
+export const sliderConfig = (config: ScenarioConfig) => {
+  const {
+    min,
+    max,
+    step,
+    largeStep,
+    value,
+    orientation,
+    dir,
+    controlled,
+    pinned,
+  } = Object.entries(config).reduce(
+    (slice: SliderSlice, [key, raw]) => parseSlice(slice, key, raw),
+    DEFAULT_SLICE,
+  );
+  const flavor = VARIANTS.findIndex(
+    (variant) =>
+      variant.min === min &&
+      variant.max === max &&
+      variant.step === step &&
+      variant.largeStep === largeStep,
+  );
+  if (flavor < 0) {
+    throw new Unsupported(
+      `config min=${min} max=${max} step=${step} largeStep=${largeStep}`,
+    );
+  }
+  const start = VARIANTS[flavor]?.value ?? VARIANTS[0].value;
+  const resolved = value ?? start;
+  const onGrid = (resolved - min) % step === 0;
+  if (controlled ? !onGrid : resolved !== start) {
+    throw new Unsupported(`config value=${JSON.stringify(resolved)}`);
+  }
+  if (resolved < min || resolved > max) {
+    throw new Unsupported(`config value=${JSON.stringify(resolved)}`);
   }
   return {
-    value,
+    flavor,
+    value: resolved,
     min,
     max,
     step,
@@ -224,6 +268,8 @@ export const sliderBridge: SpecBridge = {
   setup: (config) => {
     const mount = sliderConfig(config);
     return [
+      // remount with the scenario's step/large-step/start variant
+      specEvent('configure', { variant: BigInt(mount.flavor) }),
       ...(mount.controlled
         ? [
             specEvent('control'),
@@ -275,15 +321,16 @@ export const sliderBridge: SpecBridge = {
       throw new Unsupported(`attribute ${name} on ${target}`);
     }
     const value = Number(state['value']);
+    const variant = VARIANTS[Number(state['flavor'])] ?? VARIANTS[0];
     switch (name) {
       case 'role':
         return 'slider';
       case 'aria-valuenow':
         return String(value);
       case 'aria-valuemin':
-        return String(DEFAULT_MIN);
+        return String(variant.min);
       case 'aria-valuemax':
-        return String(DEFAULT_MAX);
+        return String(variant.max);
       case 'aria-valuetext':
         return valueTextFor(value);
       case 'aria-orientation':
@@ -323,8 +370,8 @@ export const sliderSteps: ReadonlyArray<ActionStep> = [
   { event: 'prop', prop: 'pointer', value: 0.7 },
   { event: 'prop', prop: 'pointer', value: 1 },
   { event: 'prop', prop: 'setValue', value: 0 },
-  { event: 'prop', prop: 'setValue', value: 3 },
-  { event: 'prop', prop: 'setValue', value: 7 },
+  { event: 'prop', prop: 'setValue', value: 2 },
+  { event: 'prop', prop: 'setValue', value: 8 },
   { event: 'prop', prop: 'setValue', value: 10 },
   { event: 'prop', prop: 'hostToggle' },
 ];
