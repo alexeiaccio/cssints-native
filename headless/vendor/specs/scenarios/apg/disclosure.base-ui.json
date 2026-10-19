@@ -1,0 +1,451 @@
+{
+  "pattern": "disclosure",
+  "source": "base-ui",
+  "commit": "19511bb171f3b360b006c94cf6d07e53cb446505",
+  "license": "MIT",
+  "skipped": [
+    {
+      "reason": "styling and state-callback assertions (className/style callbacks, inline styles, CSS custom properties)"
+    },
+    {
+      "reason": "CSS transition and keyframe animation timing (data-starting-style, data-ending-style, measured panel heights, getAnimations, animation durations)"
+    },
+    {
+      "reason": "server-side rendering tests and React.Activity / React 19 replay tests"
+    },
+    {
+      "reason": "describeConformance suites (ref forwarding, render props, prop merging) as React-API-only"
+    },
+    {
+      "reason": "console warning assertions (keepMounted with hiddenUntilFound, mixed CSS transition + animation)"
+    },
+    {
+      "reason": "BaseUIChangeEventDetails API assertions (details.reason, details.event, details.cancel(), details.isCanceled, details.allowPropagation)"
+    },
+    {
+      "reason": "trivial prop pass-through checks (id forwarding) and hiddenUntilFound re-collapse races that depend on the controlled change-event reason API"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "disclosure.base-ui.sets-aria-attributes",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L19",
+      "upstreamTest": "<Collapsible.Root /> > ARIA attributes > sets ARIA attributes",
+      "apg": "aria",
+      "config": { "defaultOpen": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "aria-controls": "panel:0"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.manual-panel-id-in-aria-controls",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L35",
+      "upstreamTest": "<Collapsible.Root /> > ARIA attributes > references manual panel id in trigger aria-controls",
+      "apg": "aria",
+      "config": { "defaultOpen": true, "panelId": "custom-panel-id" },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": { "aria-controls": "custom-panel-id" },
+              "panel:0": { "id": "custom-panel-id" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.aria-controls-removed-when-panel-unmounts",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L50",
+      "upstreamTest": "<Collapsible.Root /> > ARIA attributes > unregisters and restores the generated panel id when the panel remounts",
+      "apg": "aria",
+      "config": { "defaultOpen": true },
+      "steps": [
+        {
+          "event": "prop",
+          "target": "panel:0",
+          "prop": "mounted",
+          "value": false
+        },
+        { "expect": { "attrs": { "trigger:0": { "aria-controls": null } } } },
+        {
+          "event": "prop",
+          "target": "panel:0",
+          "prop": "mounted",
+          "value": true
+        },
+        {
+          "expect": { "attrs": { "trigger:0": { "aria-controls": "panel:0" } } }
+        }
+      ],
+      "notes": "The panel is removed from the tree while the trigger stays mounted; the trigger drops and then restores its aria-controls reference."
+    },
+    {
+      "id": "disclosure.base-ui.disabled-trigger-has-data-disabled",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L74",
+      "upstreamTest": "<Collapsible.Root /> > collapsible status > disabled status",
+      "apg": "extension",
+      "config": { "disabled": true },
+      "steps": [
+        { "expect": { "attrs": { "trigger:0": { "data-disabled": "true" } } } }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.disabled-click-does-not-toggle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L87",
+      "upstreamTest": "<Collapsible.Root /> > collapsible status > does not toggle or call onOpenChange when clicked while disabled",
+      "apg": "extension",
+      "config": { "disabled": true },
+      "steps": [
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "events": { "onOpenChange": [] },
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.on-open-change-called-with-true",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L108",
+      "upstreamTest": "<Collapsible.Root /> > BaseUIChangeEventDetails > calls onOpenChange with eventDetails",
+      "apg": "extension",
+      "config": { "initialOpen": false },
+      "steps": [
+        { "event": "click", "target": "trigger:0" },
+        { "expect": { "events": { "onOpenChange": [true] } } }
+      ],
+      "notes": "Only the callback argument is restated; the richer eventDetails object is a React-only API and is skipped."
+    },
+    {
+      "id": "disclosure.base-ui.controlled-external-toggle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L226",
+      "upstreamTest": "<Collapsible.Root /> > open state > controlled mode",
+      "apg": "extension",
+      "config": { "controlled": true, "initialOpen": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "aria-controls": "panel:0",
+                "data-panel-open": "true"
+              },
+              "panel:0": { "data-open": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null }
+            }
+          }
+        }
+      ],
+      "notes": "The open state is owned by the page; trigger:1 is the external button."
+    },
+    {
+      "id": "disclosure.base-ui.uncontrolled-pointer-toggle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L267",
+      "upstreamTest": "<Collapsible.Root /> > open state > uncontrolled mode",
+      "apg": "extension",
+      "config": { "initialOpen": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "aria-controls": "panel:0",
+                "data-panel-open": "true"
+              },
+              "panel:0": { "data-open": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "false",
+                "aria-controls": null,
+                "data-panel-open": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.keyboard-enter-space-toggle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L372",
+      "upstreamTest": "<Collapsible.Root /> > keyboard interactions > key: Enter/Space should toggle the Collapsible",
+      "apg": "keyboard",
+      "config": { "initialOpen": false },
+      "steps": [
+        { "event": "focus", "target": "trigger:0" },
+        {
+          "expect": {
+            "focus": "trigger:0",
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null }
+            }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "aria-controls": "panel:0",
+                "data-panel-open": "true"
+              },
+              "panel:0": { "data-open": "true" }
+            }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null }
+            }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "data-panel-open": "true"
+              }
+            }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        }
+      ],
+      "notes": "Enter and Space are separate upstream cases (a forEach over both keys); restated here as one scenario."
+    },
+    {
+      "id": "disclosure.base-ui.keyboard-disabled-does-not-toggle",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/root/CollapsibleRoot.test.tsx#L348",
+      "upstreamTest": "<Collapsible.Root /> > keyboard interactions > key: Enter/Space does not toggle or call onOpenChange when disabled",
+      "apg": "extension",
+      "config": { "disabled": true },
+      "steps": [
+        { "event": "key", "key": "Tab", "target": "trigger:0" },
+        { "expect": { "focus": null } },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "events": { "onOpenChange": [] },
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "events": { "onOpenChange": [] },
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.trigger-disabled-attribute",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/trigger/CollapsibleTrigger.test.tsx#L32",
+      "upstreamTest": "<Collapsible.Trigger /> > renders the disabled attribute when disabled",
+      "apg": "extension",
+      "config": { "disabled": true, "nativeButton": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": { "disabled": "true", "aria-disabled": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.disabled-non-native-trigger-tab-order",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/trigger/CollapsibleTrigger.test.tsx#L44",
+      "upstreamTest": "<Collapsible.Trigger /> > removes a disabled non-native trigger from the tab order",
+      "apg": "extension",
+      "config": { "disabled": true, "nativeButton": false },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": {
+                "aria-disabled": "true",
+                "tabindex": "-1",
+                "disabled": null
+              }
+            }
+          }
+        },
+        { "event": "key", "key": "Tab", "target": "trigger:0" },
+        { "expect": { "focus": null } }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.panel-keep-mounted-visibility",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/panel/CollapsiblePanel.test.tsx#L77",
+      "upstreamTest": "<Collapsible.Panel /> > prop: keepMounted > does not unmount the panel when true",
+      "apg": "extension",
+      "config": { "keepMounted": true, "initialOpen": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false" },
+              "panel:0": { "data-closed": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "true",
+                "aria-controls": "panel:0"
+              },
+              "panel:0": { "data-open": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false", "aria-controls": null },
+              "panel:0": { "data-closed": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "keepMounted keeps the panel in the tree while closed; it is present but not visible."
+    },
+    {
+      "id": "disclosure.base-ui.keep-mounted-external-close",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/panel/CollapsiblePanel.test.tsx#L117",
+      "upstreamTest": "<Collapsible.Panel /> > prop: keepMounted > hides the panel after external controlled close when true and no animations are applied",
+      "apg": "extension",
+      "config": {
+        "keepMounted": true,
+        "controlled": true,
+        "initialOpen": false
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false" },
+              "panel:0": { "hidden": "true", "data-closed": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "true" },
+              "panel:0": { "hidden": null, "data-open": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false" },
+              "panel:0": { "hidden": "true", "data-closed": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.base-ui.hidden-until-found-reveals",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/collapsible/panel/CollapsiblePanel.test.tsx#L1840",
+      "upstreamTest": "<Collapsible.Panel /> > prop: hiddenUntilFound > uses `hidden=\"until-found\" to hide panel when true",
+      "apg": "extension",
+      "config": {
+        "hiddenUntilFound": true,
+        "keepMounted": true,
+        "initialOpen": false
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": { "panel:0": { "hidden": "until-found" } }
+          }
+        },
+        { "event": "prop", "prop": "beforematch", "target": "panel:0" },
+        {
+          "expect": {
+            "events": { "onOpenChange": [true] },
+            "attrs": { "panel:0": { "data-open": "true" } }
+          }
+        }
+      ],
+      "notes": "beforematch is a browser find-in-page reveal, expressed here as a prop event because the documented event set has no dedicated beforematch event; the panel is expanded when it fires."
+    }
+  ]
+}

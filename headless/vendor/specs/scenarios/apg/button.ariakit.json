@@ -1,0 +1,136 @@
+{
+  "pattern": "button",
+  "source": "ariakit",
+  "commit": "404c72257b879569feb08465da4ff9915fd873da",
+  "license": "MIT",
+  "skipped": [
+    {
+      "reason": "visual/screenshot tests (@visual, capturePage/captureInView)"
+    },
+    {
+      "reason": "geometry/layout assertions (getBox, getCapsOffset, badge/shortcut sizing)"
+    },
+    {
+      "reason": "colour-scheme sweeps and CSS/animation (glider transitions, focus outline, clip-path)"
+    },
+    { "reason": "React 19 ref-prop, ref-cleanup and hydration/SSR tests" },
+    {
+      "reason": "sandbox-browser runner tests (test-chrome*, test-browser*) beyond behaviour ports"
+    },
+    {
+      "reason": "ariakit-specific data-focus-visible styling hooks and ref-reported native types"
+    },
+    { "reason": "tooltip/menu-button sandboxes whose pattern is not button" },
+    {
+      "reason": "switches: ariakit has no switch implementation or switch test under the scoped sandbox/examples dirs"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "button.ariakit.toggle-button-pressed-on-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/ariakit-ui-button/test.ts#L7",
+      "upstreamTest": "preserves the selected avatar color when its kind changes",
+      "apg": "aria",
+      "config": { "part": "button", "pressed": false, "toggle": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "button": { "aria-pressed": "false" } } } },
+        { "event": "click", "target": "button" },
+        { "expect": { "attrs": { "button": { "aria-pressed": "true" } } } },
+        { "event": "click", "target": "button" },
+        { "expect": { "attrs": { "button": { "aria-pressed": "false" } } } }
+      ],
+      "notes": "Image colour assertions dropped; only the toggle-button aria-pressed cycle retained."
+    },
+    {
+      "id": "button.ariakit.native-button-types",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/native-button-semantics/test.ts#L42",
+      "upstreamTest": "declares native button types before refs run",
+      "apg": "extension",
+      "config": {
+        "types": {
+          "default": "button",
+          "submit": "submit",
+          "reset": "reset",
+          "custom": "none"
+        }
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "button:default": { "type": "button" },
+              "button:submit": { "type": "submit" },
+              "button:reset": { "type": "reset" },
+              "button:custom": { "type": null }
+            }
+          }
+        }
+      ],
+      "notes": "Ref-reported types, toolbar items and menu buttons omitted."
+    },
+    {
+      "id": "button.ariakit.custom-element-button-role-and-tabindex",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/native-button-semantics/test.ts#L33",
+      "upstreamTest": "declares native button types before refs run",
+      "apg": "aria",
+      "config": { "render": "div" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "button:custom": {
+                "role": "button",
+                "tabindex": "0",
+                "type": null
+              }
+            }
+          }
+        }
+      ],
+      "notes": "Non-native element receives role=button and tabindex=0 and no native type attribute."
+    },
+    {
+      "id": "button.ariakit.custom-element-and-disabled-semantics",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/native-button-semantics/test.ts#L50",
+      "upstreamTest": "preserves custom element semantics",
+      "apg": "states",
+      "config": {
+        "focusable": "custom-div",
+        "disabledLink": true,
+        "disabledButton": true
+      },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "button:focusable": { "tabindex": "0" },
+              "button:disabled-link": { "tabindex": "-1", "disabled": null },
+              "button:disabled": { "disabled": "" }
+            }
+          }
+        }
+      ],
+      "notes": "A disabled anchor uses tabindex=-1 and no disabled attribute; a disabled native button uses the disabled attribute."
+    },
+    {
+      "id": "button.ariakit.updates-custom-focusability",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/native-button-semantics/test.ts#L57",
+      "upstreamTest": "updates custom focusability",
+      "apg": "extension",
+      "config": { "focusable": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "text:focusable": { "tabindex": "0" } } } },
+        { "event": "click", "target": "button:toggle-focusable" },
+        { "expect": { "attrs": { "text:focusable": { "tabindex": null } } } },
+        { "event": "click", "target": "button:toggle-focusable" },
+        { "expect": { "attrs": { "text:focusable": { "tabindex": "0" } } } }
+      ],
+      "notes": "Toggling a non-button element's focusable prop adds/removes tabindex."
+    }
+  ]
+}

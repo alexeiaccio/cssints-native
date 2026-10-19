@@ -1,0 +1,349 @@
+{
+  "pattern": "disclosure",
+  "source": "apg",
+  "commit": null,
+  "license": "W3C Software and Document License",
+  "skipped": [
+    {
+      "reason": "Examples sub-pages (FAQ, navigation, card): composition of this pattern, not behaviour of it"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "disclosure.apg.collapsed-by-default",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "When the content area is hidden, aria-expanded is false",
+      "apg": "aria",
+      "config": {},
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false"
+              },
+              "panel": {
+                "hidden": "true"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.expanded-by-default",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#wai-ariaroles,states,andproperties",
+      "upstreamTest": "When the content is visible, aria-expanded is true",
+      "apg": "aria",
+      "config": {
+        "defaultExpanded": true
+      },
+      "steps": [
+        {
+          "expect": {
+            "visible": ["panel"],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "true"
+              },
+              "panel": {
+                "hidden": null
+              }
+            },
+            "events": {
+              "onExpandedChange": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.enter-toggles",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#keyboardinteraction",
+      "upstreamTest": "Enter: activates the disclosure control and toggles the visibility of the disclosure content",
+      "apg": "keyboard",
+      "config": {},
+      "steps": [
+        {
+          "event": "focus",
+          "target": "trigger"
+        },
+        {
+          "event": "key",
+          "key": "Enter",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "focus": "trigger",
+            "visible": ["panel"],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "true"
+              }
+            },
+            "events": {
+              "onExpandedChange": [true]
+            }
+          }
+        },
+        {
+          "event": "key",
+          "key": "Enter",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false"
+              }
+            },
+            "events": {
+              "onExpandedChange": [true, false]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.space-toggles",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#keyboardinteraction",
+      "upstreamTest": "Space: activates the disclosure control and toggles the visibility of the disclosure content",
+      "apg": "keyboard",
+      "config": {},
+      "steps": [
+        {
+          "event": "focus",
+          "target": "trigger"
+        },
+        {
+          "event": "key",
+          "key": "Space",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": ["panel"],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "true"
+              }
+            }
+          }
+        },
+        {
+          "event": "key",
+          "key": "Space",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.click-toggles-and-focuses",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#aboutthispattern",
+      "upstreamTest": "activating the button shows or hides the content it controls",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        {
+          "event": "click",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "focus": "trigger",
+            "visible": ["panel"],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "true"
+              }
+            }
+          }
+        },
+        {
+          "event": "click",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.disabled-ignores-click",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/button/",
+      "upstreamTest": "a disabled button cannot be activated",
+      "apg": "extension",
+      "config": {
+        "disabled": true
+      },
+      "steps": [
+        {
+          "event": "click",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "focus": null,
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false",
+                "disabled": "true"
+              }
+            },
+            "events": {
+              "onExpandedChange": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.disabled-ignores-keys",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/button/",
+      "upstreamTest": "a disabled button does not respond to Enter or Space, even if it was focused first",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        {
+          "event": "focus",
+          "target": "trigger"
+        },
+        {
+          "event": "prop",
+          "prop": "disabled",
+          "value": true
+        },
+        {
+          "event": "key",
+          "key": "Enter",
+          "target": "trigger"
+        },
+        {
+          "event": "key",
+          "key": "Space",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false",
+                "disabled": "true"
+              }
+            },
+            "events": {
+              "onExpandedChange": []
+            }
+          }
+        },
+        {
+          "event": "prop",
+          "prop": "disabled",
+          "value": false
+        },
+        {
+          "event": "key",
+          "key": "Enter",
+          "target": "trigger"
+        },
+        {
+          "expect": {
+            "visible": ["panel"],
+            "events": {
+              "onExpandedChange": [true]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.apg.programmatic-expand-collapse",
+      "upstream": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/#aboutthispattern",
+      "upstreamTest": "content can be expanded or collapsed without the button; aria-expanded follows",
+      "apg": "aria",
+      "config": {},
+      "steps": [
+        {
+          "event": "prop",
+          "prop": "expand"
+        },
+        {
+          "expect": {
+            "visible": ["panel"],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "true"
+              }
+            },
+            "events": {
+              "onExpandedChange": [true]
+            }
+          }
+        },
+        {
+          "event": "prop",
+          "prop": "expand"
+        },
+        {
+          "expect": {
+            "events": {
+              "onExpandedChange": [true]
+            }
+          }
+        },
+        {
+          "event": "prop",
+          "prop": "collapse"
+        },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger": {
+                "aria-expanded": "false"
+              }
+            },
+            "events": {
+              "onExpandedChange": [true, false]
+            }
+          }
+        },
+        {
+          "event": "prop",
+          "prop": "toggle"
+        },
+        {
+          "expect": {
+            "visible": ["panel"],
+            "value": {
+              "isExpanded": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

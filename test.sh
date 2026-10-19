@@ -23,3 +23,6 @@ THEME=light ./build/sensors/app --expect examples/sensors/expected-light.png
 ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg.png
 ./build/sensors/app --raster thorvg --click 180 250 --expect examples/sensors/expected-thorvg-g.png
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
+
+# Headless widgets (button, switch, checkbox, disclosure) on neutral parts: ported scenarios and a walk against the Quint models
+(cd headless && bun install --frozen-lockfile >/dev/null && bun run typecheck && bun run test)

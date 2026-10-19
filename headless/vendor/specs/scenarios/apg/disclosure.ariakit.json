@@ -1,0 +1,163 @@
+{
+  "pattern": "disclosure",
+  "source": "ariakit",
+  "commit": "404c72257b879569feb08465da4ff9915fd873da",
+  "license": "MIT",
+  "skipped": [
+    {
+      "reason": "styling and layout assertions (Tailwind classes, grid-template-rows, badge and slot visuals)"
+    },
+    {
+      "reason": "DOM-structure assertions on the React-only Label/Slot composition API (children counts, .disclosure-button-slot, span ordering)"
+    },
+    {
+      "reason": "transition and animation lifecycle tests (data-animating, data-enter, data-leave, data-mounted-state, data-animated-state) in disclosure-content-animating, disclosure-content-lifecycle and disclosure-transition"
+    },
+    {
+      "reason": "store-only tests in disclosure-store.test.ts (createDisclosureStore standalone/sync, unstable_onHideRequest) that exercise the React store API without observable DOM behaviour"
+    },
+    {
+      "reason": "disclosure integrations whose own APG pattern is not disclosure (combobox-disclosure, combobox-disclosure-6296, dialog-disclosure-5224, hovercard-disclosure-interactions, popover-disclosure-7087, popover-disclosure-render)"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "disclosure.ariakit.click-enter-space-toggle",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/disclosure-core-interactions/test.ts#L4",
+      "upstreamTest": "toggles disclosure with click, Enter, and Space",
+      "apg": "keyboard",
+      "config": { "initialOpen": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": { "trigger:0": { "aria-expanded": "true" } }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": { "trigger:0": { "aria-expanded": "true" } }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": { "trigger:0": { "aria-expanded": "false" } }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": { "trigger:0": { "aria-expanded": "true" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "disclosure.ariakit.controlled-outside-button-shares-state",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/ariakit-ui-disclosure/test-chrome.ts#L89",
+      "upstreamTest": "shares the open state of a controlled disclosure with an outside button",
+      "apg": "extension",
+      "config": { "controlled": true, "initialOpen": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": {
+                "aria-expanded": "false",
+                "aria-controls": "panel:0"
+              },
+              "trigger:1": {
+                "aria-expanded": "false",
+                "aria-controls": "panel:0"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "true" },
+              "trigger:1": { "aria-expanded": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:0" },
+        {
+          "expect": {
+            "visible": [],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "false" },
+              "trigger:1": { "aria-expanded": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "The disclosure is controlled by the page; trigger:1 is the outside button and shares the same aria-controls target as trigger:0."
+    },
+    {
+      "id": "disclosure.ariakit.group-members-toggle-independently",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/ariakit-ui-disclosure/test-chrome.ts#L125",
+      "upstreamTest": "opens and closes group members independently",
+      "apg": "extension",
+      "config": { "group": true, "defaultOpen": [0] },
+      "steps": [
+        {
+          "expect": {
+            "visible": ["panel:0"],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "true" },
+              "trigger:1": { "aria-expanded": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger:1" },
+        {
+          "expect": {
+            "visible": ["panel:0", "panel:1"],
+            "attrs": {
+              "trigger:0": { "aria-expanded": "true" },
+              "trigger:1": { "aria-expanded": "true" }
+            }
+          }
+        }
+      ],
+      "notes": "Group members are independent; opening one does not collapse another (not an exclusive accordion)."
+    },
+    {
+      "id": "disclosure.ariakit.default-open-click-closes-enter-opens",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/ariakit-ui-disclosure/test.ts#L5",
+      "upstreamTest": "keeps a trailing badge beside the label",
+      "apg": "extension",
+      "config": { "defaultOpen": true },
+      "steps": [
+        { "event": "click", "target": "trigger:0" },
+        { "expect": { "visible": [] } },
+        { "event": "key", "key": "Enter", "target": "trigger:0" },
+        { "expect": { "visible": ["panel:0"] } }
+      ],
+      "notes": "Only the toggle behaviour is restated; the upstream test also asserts trailing-badge composition, which is skipped as a React-only Label/Slot detail."
+    }
+  ]
+}

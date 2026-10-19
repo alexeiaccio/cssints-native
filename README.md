@@ -22,6 +22,7 @@ examples/units/            the pill proven on the board, and same.c: generated v
 examples/sensors/          the Sensors page: styles.ts, page.c, its stored frames
 desktop/                   host.c (SDL3 window or a headless frame), clay_renderer_thorvg.c, build.sh
 vendor/                    clay.h and Clay's SDL3 renderer (e6cc369), a font
+headless/                  button, switch, checkbox, disclosure as signals + neutral parts, checked against Quint specs
 docs/map.md                targets, layers, order of work
 ```
 

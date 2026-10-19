@@ -1,0 +1,456 @@
+{
+  "pattern": "switch",
+  "source": "base-ui",
+  "commit": "19511bb171f3b360b006c94cf6d07e53cb446505",
+  "license": "MIT",
+  "skipped": [
+    { "reason": "describeConformance blocks" },
+    {
+      "reason": "Field/Form integration, validation, error and dirty/filled/focused style hooks"
+    },
+    {
+      "reason": "form submission (uncheckedValue, external form, native checkbox parity)"
+    },
+    { "reason": "SSR/hydration, inputRef plumbing" },
+    {
+      "reason": "style-hook assertions on Switch.Thumb and data-* attributes unless they encode checked/disabled/readonly/required state"
+    },
+    { "reason": "console-warning and imperative ref-callback edge cases" },
+    { "reason": "styling/class-name assertions" }
+  ],
+  "scenarios": [
+    {
+      "id": "switch.base-ui.click-toggles-aria-checked",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L36",
+      "upstreamTest": "interactions > should change its state when clicked",
+      "apg": "aria",
+      "config": { "part": "switch", "checked": false },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": { "switch": { "role": "switch", "aria-checked": "false" } }
+          }
+        },
+        { "event": "click", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Click toggles aria-checked on the exposed switch element."
+    },
+    {
+      "id": "switch.base-ui.controlled-updates-from-outside",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L49",
+      "upstreamTest": "interactions > should update its state when changed from outside",
+      "apg": "aria",
+      "config": { "part": "switch", "checked": false },
+      "steps": [
+        { "event": "prop", "set": { "checked": true } },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } },
+        { "event": "prop", "set": { "checked": false } },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } }
+      ],
+      "notes": "aria-checked follows the controlled checked prop."
+    },
+    {
+      "id": "switch.base-ui.hidden-input-toggle-updates-switch",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L78",
+      "upstreamTest": "interactions > should update its state if the underlying input is toggled",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } },
+        { "event": "click", "target": "input:hidden" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "The hidden native checkbox and the exposed switch stay in sync."
+    },
+    {
+      "id": "switch.base-ui.ignores-canceled-hidden-input-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L90",
+      "upstreamTest": "interactions > ignores a hidden input click canceled before React handles it",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "input:hidden", "canceled": true },
+        {
+          "expect": {
+            "attrs": { "switch": { "aria-checked": "false" } },
+            "events": { "onCheckedChange": [0] }
+          }
+        }
+      ],
+      "notes": "A click whose default is prevented before React never reaches the switch behaviour."
+    },
+    {
+      "id": "switch.base-ui.enter-activates",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L105",
+      "upstreamTest": "interactions > can be activated with Enter key",
+      "apg": "keyboard",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "switch" } },
+        { "event": "key", "key": "Enter", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Enter toggles the switch."
+    },
+    {
+      "id": "switch.base-ui.space-activates",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L105",
+      "upstreamTest": "interactions > can be activated with Space key",
+      "apg": "keyboard",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        { "expect": { "focus": "switch" } },
+        { "event": "key", "key": " ", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Space toggles the switch."
+    },
+    {
+      "id": "switch.base-ui.role-can-be-overridden",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L122",
+      "upstreamTest": "extra props > should override the built-in attributes",
+      "apg": "extension",
+      "config": { "part": "switch", "role": "checkbox" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "role": "checkbox" } } } }
+      ],
+      "notes": "Consumer role prop wins over the built-in switch role."
+    },
+    {
+      "id": "switch.base-ui.aria-labelledby-from-sibling-label",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L127",
+      "upstreamTest": "extra props > sets aria-labelledby from a sibling label associated with the hidden input",
+      "apg": "aria",
+      "config": { "part": "switch", "label": "Label", "labelFor": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "aria-labelledby": "label" } } } }
+      ],
+      "notes": "A <label htmlFor> bound to the hidden input supplies the accessible name."
+    },
+    {
+      "id": "switch.base-ui.aria-labelledby-updates-with-input-id",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L140",
+      "upstreamTest": "extra props > updates fallback aria-labelledby when the hidden input id changes",
+      "apg": "aria",
+      "config": { "part": "switch", "labels": ["Label A", "Label B"] },
+      "steps": [
+        { "event": "prop", "set": { "id": "switch-input-a" } },
+        {
+          "expect": { "attrs": { "switch": { "aria-labelledby": "label-a" } } }
+        },
+        { "event": "prop", "set": { "id": "switch-input-b" } },
+        {
+          "expect": { "attrs": { "switch": { "aria-labelledby": "label-b" } } }
+        }
+      ],
+      "notes": "aria-labelledby tracks the currently associated label."
+    },
+    {
+      "id": "switch.base-ui.aria-label-preferred-over-label",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L175",
+      "upstreamTest": "extra props > prefers aria-label over an associated label",
+      "apg": "aria",
+      "config": { "part": "switch", "aria-label": "Wi-Fi", "label": "Wi-Fi" },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "aria-labelledby": null } } } }
+      ],
+      "notes": "With aria-label present the wrapping label is not referenced by aria-labelledby."
+    },
+    {
+      "id": "switch.base-ui.oncheckedchange-called",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L199",
+      "upstreamTest": "prop: onCheckedChange > should call onCheckedChange when clicked",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        { "expect": { "events": { "onCheckedChange": [true] } } }
+      ],
+      "notes": "Callback receives the next checked value."
+    },
+    {
+      "id": "switch.base-ui.oncheckedchange-reports-modifiers",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L213",
+      "upstreamTest": "prop: onCheckedChange > should report keyboard modifier event properties",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "switch", "modifiers": ["Shift"] },
+        {
+          "expect": {
+            "events": {
+              "onCheckedChange": [{ "canceled": false, "shiftKey": true }]
+            }
+          }
+        }
+      ],
+      "notes": "Event details expose the modifier state at activation time."
+    },
+    {
+      "id": "switch.base-ui.cancel-root-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L226",
+      "upstreamTest": "prop: onCheckedChange > does not change state when canceled via a root click",
+      "apg": "extension",
+      "config": { "part": "switch", "cancelOnCheckedChange": true },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        {
+          "expect": {
+            "attrs": {
+              "switch": { "aria-checked": "false", "data-dirty": null }
+            }
+          }
+        }
+      ],
+      "notes": "eventDetails.cancel() reverts aria-checked and keeps the input unchecked."
+    },
+    {
+      "id": "switch.base-ui.cancel-hidden-input-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L247",
+      "upstreamTest": "prop: onCheckedChange > does not change state when canceled via a hidden input click",
+      "apg": "extension",
+      "config": { "part": "switch", "cancelOnCheckedChange": true },
+      "steps": [
+        { "event": "click", "target": "input:hidden" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Cancelling from a hidden-input click keeps the switch off."
+    },
+    {
+      "id": "switch.base-ui.onclick-called",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L269",
+      "upstreamTest": "prop: onClick > should call onClick when clicked",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        { "expect": { "events": { "onClick": [1] } } }
+      ],
+      "notes": "Consumer onClick fires once."
+    },
+    {
+      "id": "switch.base-ui.click-propagates-once",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L282",
+      "upstreamTest": "prop: onClick > propagates a single click event to ancestors per user click",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        {
+          "expect": {
+            "events": { "onAncestorClick": [1] },
+            "attrs": { "switch": { "aria-checked": "true" } }
+          }
+        }
+      ],
+      "notes": "The synthetic click does not double-fire on ancestors."
+    },
+    {
+      "id": "switch.base-ui.stop-propagation",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L296",
+      "upstreamTest": "prop: onClick > does not propagate to ancestors when stopPropagation() is called",
+      "apg": "extension",
+      "config": { "part": "switch", "stopPropagation": true },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        {
+          "expect": {
+            "events": { "onAncestorClick": [0] },
+            "attrs": { "switch": { "aria-checked": "true" } }
+          }
+        }
+      ],
+      "notes": "State still toggles when propagation is stopped."
+    },
+    {
+      "id": "switch.base-ui.click-propagates-once-native-button",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L310",
+      "upstreamTest": "prop: onClick > propagates a single click event to ancestors with a native button",
+      "apg": "extension",
+      "config": { "part": "switch", "nativeButton": true },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        {
+          "expect": {
+            "events": { "onAncestorClick": [1] },
+            "attrs": { "switch": { "aria-checked": "true" } }
+          }
+        }
+      ],
+      "notes": "Native-button rendering keeps single-click propagation."
+    },
+    {
+      "id": "switch.base-ui.stop-propagation-native-button",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L324",
+      "upstreamTest": "prop: onClick > does not propagate to ancestors when stopPropagation() is called with a native button",
+      "apg": "extension",
+      "config": {
+        "part": "switch",
+        "nativeButton": true,
+        "stopPropagation": true
+      },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        {
+          "expect": {
+            "events": { "onAncestorClick": [0] },
+            "attrs": { "switch": { "aria-checked": "true" } }
+          }
+        }
+      ],
+      "notes": "Native-button variant honours stopPropagation."
+    },
+    {
+      "id": "switch.base-ui.disabled-uses-aria-disabled",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L344",
+      "upstreamTest": "prop: disabled > uses aria-disabled instead of HTML disabled",
+      "apg": "states",
+      "config": { "part": "switch", "disabled": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": { "switch": { "disabled": null, "aria-disabled": "true" } }
+          }
+        }
+      ],
+      "notes": "Disabled switch exposes aria-disabled, not the native disabled attribute."
+    },
+    {
+      "id": "switch.base-ui.disabled-ignores-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L355",
+      "upstreamTest": "prop: disabled > should not change its state when clicked",
+      "apg": "states",
+      "config": { "part": "switch", "disabled": true },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Click is ignored while disabled."
+    },
+    {
+      "id": "switch.base-ui.readonly-aria",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L370",
+      "upstreamTest": "prop: readOnly > should have the aria-readonly attribute",
+      "apg": "states",
+      "config": { "part": "switch", "readOnly": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "aria-readonly": "true" } } } }
+      ],
+      "notes": "Read-only switch exposes aria-readonly."
+    },
+    {
+      "id": "switch.base-ui.readonly-ignores-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L380",
+      "upstreamTest": "prop: readOnly > should not change its state when clicked",
+      "apg": "states",
+      "config": { "part": "switch", "readOnly": true },
+      "steps": [
+        { "event": "click", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Read-only blocks direct clicks."
+    },
+    {
+      "id": "switch.base-ui.readonly-ignores-label-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L393",
+      "upstreamTest": "prop: readOnly > should not change its state when its label is clicked",
+      "apg": "states",
+      "config": { "part": "switch", "readOnly": true },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } }
+      ],
+      "notes": "Read-only also blocks activation through the wrapping label."
+    },
+    {
+      "id": "switch.base-ui.required-aria",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L414",
+      "upstreamTest": "prop: required > should have the aria-required attribute",
+      "apg": "states",
+      "config": { "part": "switch", "required": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        { "expect": { "attrs": { "switch": { "aria-required": "true" } } } }
+      ],
+      "notes": "Required switch exposes aria-required."
+    },
+    {
+      "id": "switch.base-ui.wrapping-label-toggles",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L494",
+      "upstreamTest": "with native <label> > should toggle the switch when a wrapping <label> is clicked",
+      "apg": "extension",
+      "config": { "part": "switch" },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Clicking a wrapping label toggles the switch."
+    },
+    {
+      "id": "switch.base-ui.linked-label-toggles",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L509",
+      "upstreamTest": "with native <label> > should toggle the switch when a explicitly linked <label> is clicked",
+      "apg": "extension",
+      "config": { "part": "switch", "labelFor": true },
+      "steps": [
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "A label with htmlFor pointing at the switch input toggles it."
+    },
+    {
+      "id": "switch.base-ui.native-button-id-association",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L527",
+      "upstreamTest": "with native <label> > should associate id with the native button when nativeButton=true",
+      "apg": "extension",
+      "config": { "part": "switch", "nativeButton": true, "labelFor": true },
+      "steps": [
+        { "event": "prop", "set": {} },
+        {
+          "expect": {
+            "attrs": {
+              "switch": { "id": "mySwitch" },
+              "input:hidden": { "id": null }
+            }
+          }
+        },
+        { "event": "click", "target": "label" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "In native-button mode the id lives on the button, and the label still toggles it."
+    },
+    {
+      "id": "switch.base-ui.renders-native-button-keyboard-and-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/switch/root/SwitchRoot.test.tsx#L1355",
+      "upstreamTest": "can render a native button",
+      "apg": "keyboard",
+      "config": { "part": "switch", "nativeButton": true },
+      "steps": [
+        { "event": "key", "key": "Tab" },
+        {
+          "expect": {
+            "focus": "switch",
+            "attrs": { "switch": { "aria-checked": "false" } }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } },
+        { "event": "key", "key": " ", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "false" } } } },
+        { "event": "click", "target": "switch" },
+        { "expect": { "attrs": { "switch": { "aria-checked": "true" } } } }
+      ],
+      "notes": "Native button rendering preserves Enter/Space/click activation."
+    }
+  ]
+}
