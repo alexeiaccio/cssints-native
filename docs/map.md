@@ -19,7 +19,7 @@ it needs no runtime on the device.
 
 | Target            | Styles          | Layout         | Raster                         | JS at run time | Status                        |
 | ----------------- | --------------- | -------------- | ------------------------------ | -------------- | ----------------------------- |
-| Desktop (macOS)   | `cssints/clay`  | Clay           | Clay's SDL3 renderer (GPU)     | optional (Bun) | **first: in work**            |
+| Desktop (macOS)   | `cssints/clay`  | Clay           | Clay's SDL3 renderer (GPU)     | optional (Bun) | a page in a window            |
 | ESP32-S3          | `cssints/clay`  | Clay           | esp32's `render.c`, CPU bands  | none           | one element proven on board   |
 | Browser (WASM)    | `cssints/clay`  | Clay (C→WASM)  | canvas                         | the page       | exists in esp32 storybook     |
 | ESP32-P4          | `cssints/clay`  | Clay           | CPU + PPA (2D DMA)             | none           | later, needs a board          |
@@ -79,8 +79,10 @@ Each step ends in a check that fails when it breaks.
 
 1. **Done.** `cssints/clay`, `header()`, `generator/clay-header.ts`; `test.sh`: generated C gives the same render
    commands as hand-written C; the Units pill flashed and working on the board.
-2. **Desktop window.** `clay.h` (upstream, pinned) and Clay's SDL3 renderer vendored here; a window that draws a page
-   of `styles.ts` (the Sensors page's styles). Check: a headless frame to PNG, compared with a stored one.
+2. **Done: desktop window.** `vendor/clay` (clay.h and the SDL3 renderer at `e6cc369`, the same clay.h as the
+   firmware's), `desktop/host.c`: a window on Metal, or one frame headless on SDL's software renderer.
+   `examples/sensors`: the Sensors page from `styles.ts`, with a fixed sample. Check: two stored frames, before and
+   after a scripted click on Units, compared pixel for pixel.
 3. **States, tokens, fonts in `cssints/clay`.** `:hover`/`:active` as declarations of their own, colour tokens and
    themes, `fontSize` to a font table. Check: cssints test/clay.mjs and step 2's frames.
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:

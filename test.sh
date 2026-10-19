@@ -8,3 +8,8 @@ mkdir -p "$OUT"
 node --conditions=development generator/clay-header.ts examples/units/styles.ts "$OUT/styles.h"
 cc -std=c99 -I "$OUT" -I "$CLAY_H" examples/units/same.c -lm -o "$OUT/same"
 "$OUT/same"
+
+# The desktop: the Sensors page headless, against its stored frame (the software renderer; the window uses the GPU)
+sh desktop/build.sh examples/sensors >/dev/null
+./build/sensors/app --expect examples/sensors/expected.png
+./build/sensors/app --click 180 250 --expect examples/sensors/expected-g.png
