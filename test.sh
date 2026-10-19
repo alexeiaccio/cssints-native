@@ -19,3 +19,7 @@ sh desktop/build.sh examples/sensors >/dev/null
 ./build/sensors/app --expect examples/sensors/expected.png
 ./build/sensors/app --click 180 250 --expect examples/sensors/expected-g.png
 THEME=light ./build/sensors/app --expect examples/sensors/expected-light.png
+# the same page on ThorVG's software raster (brew thorvg), against its own frames
+./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg.png
+./build/sensors/app --raster thorvg --click 180 250 --expect examples/sensors/expected-thorvg-g.png
+THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
