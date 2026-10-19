@@ -11,6 +11,9 @@ const ids = new Map<string, Uint8Array>();
 // kept for good: Clay holds the id's pointer in its hash map past the frame
 const idBytes = (id: string) => ids.get(id) ?? (ids.set(id, encoder.encode(id)), ids.get(id)!);
 
+const NONE: State[] = [];
+const HOVER: State[] = [":hover"];
+const ACTIVE: State[] = [":active"];
 const NO_STYLE = new Float32Array(STYLE_FIELDS);
 const WHITE_14 = packText({ textColor: { r: 255, g: 255, b: 255, a: 255 }, fontSize: 14 });
 
@@ -31,16 +34,19 @@ function bytesOf(el: El): Uint8Array {
 export interface View {
   /** The theme of the styles (`"light"`), or none for the base. */
   theme?: string;
+  /** A press (the button going down) that no element with `onPress` was under: a click on empty space. */
+  onPressMiss?: () => void;
   /** Each frame pushes its nanoseconds: [events and Solid's flush, the tree declared, layout, draw]. */
   stats?: [number, number, number, number][];
 }
 
 /**
  * The frame function of a tree. `onClick` of an element with an `id` runs on release over it, when the press was on
- * it too; a style with `:hover` or `:active` needs an `id` as well, to ask Clay where the pointer is.
+ * it too; `onPress` runs when the button goes down over it (a browser focuses on mousedown). A style with `:hover` or
+ * `:active` needs an `id` as well, to ask Clay where the pointer is; `:focus` applies while the prop `focused` is true.
  */
 export function createFrame(root: El, view: View = {}) {
-  let clickable: El[] = []; // the elements with onClick, as the last frame declared them
+  let clickable: El[] = []; // the elements with onClick or onPress, as the last frame declared them
   let seen: El[] = [];
   let pressed = new Set<El>();
   let wasDown = false;
@@ -55,20 +61,28 @@ export function createFrame(root: El, view: View = {}) {
       return;
     }
     const id = el.props.id ? idBytes(el.props.id) : undefined;
-    let state: State | undefined;
-    if (id && style && hasStates(style) && ui.over(id)) state = down ? ":active" : ":hover";
-    if (id && el.props.onClick) seen.push(el);
-    ui.open(id, (style && variant(style, view.theme, state).box) || NO_STYLE);
+    let states = NONE;
+    if (id && style && hasStates(style)) {
+      states = ui.over(id) ? (down ? ACTIVE : HOVER) : NONE;
+      if (el.props.focused) states = [...states, ":focus"];
+    }
+    if (id && (el.props.onClick || el.props.onPress)) seen.push(el);
+    ui.open(id, (style && variant(style, view.theme, states).box) || NO_STYLE);
     for (const c of el.children) if (c instanceof El) emit(c, down);
     ui.close();
   }
 
   function events(down: boolean) {
-    if (down && !wasDown) pressed = new Set(clickable.filter(over));
-    else if (!down && wasDown) {
+    if (down && !wasDown) {
+      const hit = clickable.filter(over);
+      pressed = new Set(hit);
+      let handled = false;
+      for (const el of hit) if (el.props.onPress) (handled = true), el.props.onPress();
+      if (!handled) view.onPressMiss?.();
+    } else if (!down && wasDown) {
       const hit = clickable.filter((el) => pressed.has(el) && over(el));
       pressed.clear();
-      for (const el of hit) el.props.onClick();
+      for (const el of hit) el.props.onClick?.();
     }
     wasDown = down;
   }

@@ -212,14 +212,44 @@ float ui_window_open(const char *title)
     return texture ? scale : 0;
 }
 
+// key events of the polls, in order: [down (1) or up (0), SDL keycode, SDL_Keymod, repeat]
+#define KEY_QUEUE 64
+static int keys[KEY_QUEUE][4];
+static int keys_head, keys_len;
+
+/** Pops the oldest key event into out[4] (down or up, SDL keycode, SDL_Keymod, repeat); 0 when there is none. */
+int ui_key_pop(int *out)
+{
+    if (!keys_len) return 0;
+    memcpy(out, keys[keys_head], sizeof keys[0]);
+    keys_head = (keys_head + 1) % KEY_QUEUE, keys_len--;
+    return 1;
+}
+
+/** Writes the box of the element with that id, in the layout of the last frame, into out[4] (x, y, w, h); 0 when
+ *  there is no such element. */
+int ui_bounds(const char *id, int len, float *out)
+{
+    const Clay_ElementData d = Clay_GetElementData(Clay__HashString(slice(id, len), 0));
+    if (!d.found) return 0;
+    out[0] = d.boundingBox.x, out[1] = d.boundingBox.y, out[2] = d.boundingBox.width, out[3] = d.boundingBox.height;
+    return 1;
+}
+
 /** Drains the window's events into out[5]: pointer x, y, button down, quit, and the last key pressed (its
- *  character; 0 for none). The pointer and the button keep their last values between polls. */
+ *  character; 0 for none). The pointer and the button keep their last values between polls. Every key down and up
+ *  (a repeat too) is also queued for ui_key_pop (the oldest are dropped past 64). */
 void ui_window_poll(float *out)
 {
     SDL_Event e;
     out[3] = 0, out[4] = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_EVENT_QUIT) out[3] = 1;
+        if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
+            if (keys_len == KEY_QUEUE) keys_head = (keys_head + 1) % KEY_QUEUE, keys_len--;
+            int *k = keys[(keys_head + keys_len++) % KEY_QUEUE];
+            k[0] = e.type == SDL_EVENT_KEY_DOWN, k[1] = (int)e.key.key, k[2] = (int)e.key.mod, k[3] = e.key.repeat;
+        }
         if (e.type == SDL_EVENT_KEY_DOWN) out[4] = (float)e.key.key;
         if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
             e.type == SDL_EVENT_MOUSE_BUTTON_UP) {

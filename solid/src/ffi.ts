@@ -19,6 +19,8 @@ const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.me
   ui_window_open: { args: [T.cstring], returns: T.f32 },
   ui_window_poll: { args: [T.ptr], returns: T.void },
   ui_window_present: { args: [], returns: T.void },
+  ui_key_pop: { args: [T.ptr], returns: T.i32 },
+  ui_bounds: { args: [T.ptr, T.i32, T.ptr], returns: T.i32 },
 });
 
 const cstr = (x: string) => Buffer.from(`${x}\0`);
@@ -46,4 +48,11 @@ export const ui = {
   windowOpen: (title: string) => s.ui_window_open(cstr(title)),
   windowPoll: (out: Float32Array) => s.ui_window_poll(ptr(out)),
   windowPresent: s.ui_window_present,
+  /** The oldest key event the window polled and nobody popped: down or up, SDL keycode, SDL_Keymod, repeat. */
+  keyPop: (out: Int32Array) => s.ui_key_pop(ptr(out)) !== 0,
+  /** x, y, width, height of the element in the last layout, or undefined. */
+  bounds: (id: Uint8Array) => {
+    const out = new Float32Array(4);
+    return s.ui_bounds(ptr(id), id.length, ptr(out)) ? out : undefined;
+  },
 };

@@ -24,15 +24,21 @@ const merge = (a: Shape, b: Shape): Shape => {
   return out;
 };
 
-export type State = ":hover" | ":active";
-const STATES = [":hover", ":focus", ":active"];
+export type State = ":hover" | ":focus" | ":active";
+// the order the states are laid over the base, so the last wins where two set one field: active > focus > hover
+const STATES: State[] = [":hover", ":focus", ":active"];
 
-/** What header() prints as `<name>[_<state>][_<theme>]`: the base, the theme over it, the state over that. */
-export function resolve(shape: ClayShape, theme?: string, state?: State): Shape {
+/**
+ * What header() prints as `<name>[_<state>][_<theme>]`: the base, the theme over it, the states over that. header()
+ * prints one state a declaration; at run time an element can be hovered, focused and pressed at once, so the states
+ * that hold are laid over each other in STATES' order.
+ */
+export function resolve(shape: ClayShape, theme?: string, states: State[] = []): Shape {
   const all: Shape = theme ? merge(shape, (shape.themes as Shape | undefined)?.[theme] ?? {}) : shape;
   const { themes: _, ...v } = all;
-  const base = Object.fromEntries(Object.entries(v).filter(([k]) => !STATES.includes(k)));
-  return state && v[state] ? merge(base, v[state]) : base;
+  let out: Shape = Object.fromEntries(Object.entries(v).filter(([k]) => !STATES.includes(k as State)));
+  for (const s of STATES) if (states.includes(s) && v[s]) out = merge(out, v[s]);
+  return out;
 }
 
 const put = (f: Float32Array, at: number, ...values: (number | undefined)[]) => values.forEach((x, i) => (f[at + i] = x ?? 0));
@@ -67,18 +73,18 @@ export interface Variant {
 
 const cache = new WeakMap<object, Map<string, Variant>>();
 
-/** The packed form of a style under a theme and a state, kept per style object. */
-export function variant(shape: ClayShape, theme?: string, state?: State): Variant {
+/** The packed form of a style under a theme and the states that hold, kept per style object. */
+export function variant(shape: ClayShape, theme?: string, states: State[] = []): Variant {
   let byKey = cache.get(shape);
   if (!byKey) cache.set(shape, (byKey = new Map()));
-  const key = `${theme}|${state}`;
+  const key = `${theme}|${states.join("")}`;
   let v = byKey.get(key);
   if (!v) {
-    const { text, ...decl } = resolve(shape, theme, state);
+    const { text, ...decl } = resolve(shape, theme, states);
     byKey.set(key, (v = { box: Object.keys(decl).length ? packBox(decl) : undefined, text: text && packText(text) }));
   }
   return v;
 }
 
 /** Does the style have a look for a state (so the element must ask where the pointer is)? */
-export const hasStates = (shape: ClayShape) => ":hover" in shape || ":active" in shape;
+export const hasStates = (shape: ClayShape) => STATES.some((s) => s in shape);

@@ -107,7 +107,7 @@ Each step ends in a check that fails when it breaks.
    plugin, theme and `:active` picked at run time. Check: `solid/test.sh` renders the Solid page headless and compares
    it with the C page's three ThorVG frames, pixel for pixel (identical), plus the pressed look and click rules. Cost:
    about 0.4 ms a frame on an Apple-silicon Mac, 0.006 ms of it the JS walk and FFI, the rest ThorVG's raster. Left: reload on save,
-   `:focus`, text input, JSX types, the window checked by eye.
+   text input, JSX types, the window checked by eye.
    **Headless widgets** (`headless/`, between Solid and JSX to C). The first widgets of effects-of-atmosphere's
    `@eoa/headless` (button, switch, checkbox, disclosure) with no DOM: Solid 2 signals for state and, instead of aria-*
    attributes, parts of plain fields (`id`, `role`, `checked`, `expanded`, `controls`, `hidden`, `disabled`, `focused`)
@@ -115,6 +115,13 @@ Each step ends in a check that fails when it breaks.
    Check: the ported APG scenarios and a seeded random walk, replayed on the parts and on the generated Quint model,
    must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 29 tests. Left:
    focus groups and roving focus (`focus/`), overlays, text input.
+   **Done: the Widgets page** (`solid/app/Widgets.tsx`, `bun solid/main.ts widgets`): the headless widgets and the focus
+   manager wired to one live page. SDL key events reach JS through a queue in the FFI; a key goes to the focus manager
+   (Tab, Shift+Tab, arrows), then the focused part (Space fires on key up), then the page; a press focuses a part as a
+   browser does and a press on empty space blurs; `:focus` is a style state like `:active` (a 2px ring, laid over the
+   pressed look). Check: six stored frames (initial, Tab Tab, switch on, mixed, disclosure open, light) and
+   `solid/widgets.test.ts` (Tab order, key timing, clicks and focus, the disabled box). Seen by eye: the frames; the live window
+   was started, its keys and mouse not tried by hand.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:
