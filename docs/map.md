@@ -94,8 +94,11 @@ Each step ends in a check that fails when it breaks.
    their own (`units_active`); `createTokens` and `createGlobalTheme(tokens, "light", ...)` print every style again
    per theme (`units_light`, `units_active_light`, `title_text_light`), so a page switches at run time by a suffix;
    `fonts("Roboto")` sets `fontId` and prints the font order as an enum. `examples/sensors`: colours as tokens, the
-   pressed pill as `css.active` (page.c picks `units_active` when pressed over it), `THEME=light` for the light theme.
-   Check: cssints test/clay.mjs; step 2's two frames unchanged pixel for pixel, a third, `expected-light.png`; and
+   the pill as `css.hover` and `css.active` (page.c picks `units_hover` over it, `units_active` when held), `THEME=light` for the light theme.
+   The pressed look lifts the surface instead of the firmware's `ACCENT_DOWN` orange, which left the ink at 1.28:1; the
+   ink on the base, hover and pressed fills is asserted at 4.5:1 and up in `solid/test.ts` (dark 15.8/10.3/7.9, light
+   15.8/14.4/12.6). The firmware still draws `ACCENT_DOWN` and needs the same change.
+   Check: cssints test/clay.mjs; `expected-light.png`; and
    `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. In the window,
    the `t` key toggles the theme; `expected-pressed.png` stores the pressed frame (`--press`, held down). Seen in the live window (2026-10-19): `t` switches the theme, the pill presses and toggles the unit.
 

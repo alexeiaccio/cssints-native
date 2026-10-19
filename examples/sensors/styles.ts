@@ -12,7 +12,9 @@ export const t = css.createTokens({
     ink: { $value: "rgb(235 235 240)" },
     accent: { $value: "rgb(240 140 50)" },
     surface: { $value: "rgb(36 40 52)" },
-    pressed: { $value: "rgb(255 200 120)" },
+    // hover and pressed lift the surface a step each, so the ink keeps its contrast (dark 10.3:1 and 7.9:1)
+    hover: { $value: "rgb(48 53 68)" },
+    active: { $value: "rgb(64 70 90)" },
   },
 });
 css.createGlobalTheme(t, "light", {
@@ -23,7 +25,8 @@ css.createGlobalTheme(t, "light", {
     ink: "rgb(25 27 34)",
     accent: "rgb(190 90 10)",
     surface: "rgb(255 255 255)",
-    pressed: "rgb(255 210 150)",
+    hover: "rgb(232 235 241)",
+    active: "rgb(216 221 231)",
   },
 });
 // the order of host.c's font array
@@ -50,6 +53,7 @@ export const units = css.cn(
   css.bg(t.color.surface),
   css.borderRadius(19),
   css.border(1, t.color.muted),
-  css.active(css.bg(t.color.pressed)),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
 );
 export const unitsLabel = css.cn(font.Roboto, css.color(t.color.ink), css.fontSize(14));

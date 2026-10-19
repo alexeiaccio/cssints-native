@@ -174,7 +174,8 @@ int main(int argc, char **argv)
         }
         // a scripted click: frame 0 lays out (Clay hit-tests against the last frame's boxes), pressed in frame 1,
         // released in frame 2, and frame 3 is written; --press holds it from frame 1 and writes frame 2, still pressed
-        if (headless && click_x >= 0 && frame < 3) px = click_x, py = click_y, down = hold ? frame >= 1 : frame == 1;
+        // the pointer stays at X,Y for the written frame too (so a click frame is hovered, as a browser's is)
+        if (headless && click_x >= 0 && frame <= 3) px = click_x, py = click_y, down = hold ? frame >= 1 : frame == 1;
         const Uint64 now = SDL_GetTicks();
         const float dt = (now - last) / 1000.0f;
         last = now;

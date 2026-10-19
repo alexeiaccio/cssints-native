@@ -51,9 +51,10 @@ void app_frame(bool down)
         CLAY_TEXT(CLAY_STRING("gyro \u00b0/s"), T(caption_text));
         CLAY_TEXT(str(gyro), T(value_text));
         CLAY_TEXT(str(mag), T(magnitude_text));
-        // Clay has no states: the pressed look is units_active, picked here
-        const bool pressed = down && Clay_PointerOver(CLAY_ID("Units"));
-        CLAY(CLAY_ID("Units"), pressed ? T(units_active) : T(units)) {
+        // Clay has no states: hover and the pressed look are units_hover and units_active, picked here
+        const bool over = Clay_PointerOver(CLAY_ID("Units"));
+        const bool pressed = down && over;
+        CLAY(CLAY_ID("Units"), pressed ? T(units_active) : over ? T(units_hover) : T(units)) {
             Clay_OnHover(on_units, NULL);
             CLAY_TEXT(str(use_g ? "switch to m/s\u00b2" : "switch to g"), T(unitsLabel_text));
         }
