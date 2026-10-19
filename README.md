@@ -1,0 +1,32 @@
+# cssints-native
+
+A native UI framework on [cssints](../css-in-ts-compiler) styles and [Clay](https://github.com/nicbarker/clay)
+layout: the desktop on the GPU first, then an ESP32 with no JS on the chip. The plan and the targets are in
+[docs/map.md](docs/map.md).
+
+```ts
+import * as css from "cssints/clay" with { type: "cssints" };
+
+export const units = css.cn(css.width(200), css.height(38), css.bg("rgb(36 40 52)"), css.borderRadius(19));
+```
+
+```sh
+node --conditions=development generator/clay-header.ts styles.ts styles.h   # C for CLAY(CLAY_ID("Units"), units)
+```
+
+## Layout
+
+```
+generator/clay-header.ts   styles.ts -> styles.h through the cssints plugin
+examples/units/            the pill proven on the board, and same.c: generated vs hand-written, same render commands
+docs/map.md                targets, layers, order of work
+```
+
+## Test
+
+```sh
+bun install
+bun run test     # generator + same.c against esp32's clay.h (CLAY_H to point elsewhere)
+```
+
+`cssints` is linked from the `clay-target` worktree of css-in-ts-compiler until `cssints/clay` is released.

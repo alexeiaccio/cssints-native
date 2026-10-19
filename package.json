@@ -1,0 +1,12 @@
+{
+  "name": "cssints-native",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "sh test.sh"
+  },
+  "devDependencies": {
+    "cssints": "link:cssints",
+    "vite": "^8.3.0"
+  }
+}
