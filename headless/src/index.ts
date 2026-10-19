@@ -19,3 +19,40 @@ export type {
   DisclosurePanelPart,
   DisclosureTriggerPart,
 } from './disclosure';
+export { createRadioGroup } from './radio';
+export type {
+  RadioGroup,
+  RadioGroupOptions,
+  RadioGroupPart,
+  RadioPart,
+} from './radio';
+export { createTabs } from './tabs';
+export type {
+  Tabs,
+  TabsActivation,
+  TabsOptions,
+  TabsOrientation,
+  TabPart,
+  TabpanelPart,
+  TablistPart,
+} from './tabs';
+export { createToolbar } from './toolbar';
+export type {
+  Toolbar,
+  ToolbarItemInput,
+  ToolbarItemKind,
+  ToolbarItemPart,
+  ToolbarOptions,
+  ToolbarOrientation,
+  ToolbarPart,
+} from './toolbar';
+export { createSlider } from './slider';
+export type {
+  Slider,
+  SliderDirection,
+  SliderOptions,
+  SliderOrientation,
+  SliderThumbPart,
+} from './slider';
+export { createFocusHost } from './focus-host';
+export type { FocusHost } from './focus-host';

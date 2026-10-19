@@ -19,11 +19,21 @@ export interface NeutralPart {
   readonly checked?: boolean | 'mixed';
   readonly pressed?: boolean | undefined;
   readonly expanded?: boolean;
-  readonly disabled?: boolean;
-  readonly readOnly?: boolean;
-  readonly controls?: string;
-  readonly hidden?: boolean;
-  readonly focused?: boolean;
+  readonly selected?: boolean | undefined;
+  readonly disabled?: boolean | undefined;
+  readonly readOnly?: boolean | undefined;
+  readonly controls?: string | undefined;
+  readonly labelledBy?: string | undefined;
+  readonly describedBy?: string | undefined;
+  readonly hidden?: boolean | undefined;
+  readonly focused?: boolean | undefined;
+  /** `tabindex`: 0 in the tab order, -1 out of it; absent when the part has none. */
+  readonly tabIndex?: number | undefined;
+  readonly orientation?: 'horizontal' | 'vertical' | undefined;
+  readonly valueNow?: number | undefined;
+  readonly valueMin?: number | undefined;
+  readonly valueMax?: number | undefined;
+  readonly valueText?: string | undefined;
   readonly press?: () => void;
   readonly keyDown?: (key: string, repeat?: boolean) => boolean;
   readonly keyUp?: (key: string) => boolean;
@@ -50,11 +60,23 @@ export interface NeutralDriverOptions {
    * for the disclosure trigger.
    */
   readonly disabledAttr: 'aria-disabled' | 'disabled';
+  /**
+   * `flag` (default): the attribute is `true` or absent. `token`: it is `true` or `false`, as eoa's radio wrote it.
+   */
+  readonly disabledReads?: 'flag' | 'token';
+  /**
+   * Where a `key` step goes. `target` (default): the target part, focused first, as a user's press on it would.
+   * `focused`: to whichever part holds focus, the target only when none does; the tabs spec routes keys through
+   * its own focus cursor, so a key step's target names nothing it acts on (as eoa's tabs driver does).
+   */
+  readonly keys?: 'target' | 'focused';
 }
 
 const flag = (value: boolean | undefined): string | null =>
   value === true ? 'true' : null;
 const token = (value: boolean | 'mixed' | undefined): string | null =>
+  value === undefined ? null : String(value);
+const number = (value: number | undefined): string | null =>
   value === undefined ? null : String(value);
 
 export const neutralDriver = (
@@ -115,8 +137,17 @@ export const neutralDriver = (
         case 'unhover':
           break;
         case 'key': {
-          const part = partOf(step.target);
           const key = step.key ?? '';
+          if (options.keys === 'focused') {
+            const holder = Object.keys(mounted.parts)
+              .map((name) => mounted.parts[name])
+              .find((part) => part?.focused === true);
+            const part = holder ?? partOf(step.target);
+            call(() => part.keyDown?.(key));
+            call(() => part.keyUp?.(key));
+            break;
+          }
+          const part = partOf(step.target);
           if (part.focused !== true) {
             focus(part);
           }
@@ -150,6 +181,16 @@ export const neutralDriver = (
           throw new Unsupported(`styling hook ${name}`);
         }
         const part = partOf(target);
+        // an id reference reads back as the part it names, `name:index`
+        const ref = (id: string | undefined): string | null => {
+          const named = Object.keys(mounted.parts).find(
+            (key) => mounted.parts[key]?.id === id,
+          );
+          if (named === undefined) {
+            return id ?? null;
+          }
+          return named.includes(':') ? named : `${named}:0`;
+        };
         switch (name) {
           case 'role':
             return part.role ?? null;
@@ -159,23 +200,34 @@ export const neutralDriver = (
             return token(part.pressed);
           case 'aria-expanded':
             return token(part.expanded);
+          case 'aria-selected':
+            return token(part.selected);
           case options.disabledAttr:
-            return flag(part.disabled);
+            return options.disabledReads === 'token'
+              ? token(part.disabled)
+              : flag(part.disabled);
           case 'aria-readonly':
             return flag(part.readOnly);
           case 'hidden':
             return flag(part.hidden);
-          case 'aria-controls': {
-            const controlled = Object.keys(mounted.parts).find(
-              (key) => mounted.parts[key]?.id === part.controls,
-            );
-            // a reference reads back as the part it names, `name:index`
-            return controlled === undefined
-              ? (part.controls ?? null)
-              : controlled.includes(':')
-                ? controlled
-                : `${controlled}:0`;
-          }
+          case 'tabindex':
+            return number(part.tabIndex);
+          case 'aria-orientation':
+            return part.orientation ?? null;
+          case 'aria-valuenow':
+            return number(part.valueNow);
+          case 'aria-valuemin':
+            return number(part.valueMin);
+          case 'aria-valuemax':
+            return number(part.valueMax);
+          case 'aria-valuetext':
+            return part.valueText ?? null;
+          case 'aria-controls':
+            return ref(part.controls);
+          case 'aria-labelledby':
+            return ref(part.labelledBy);
+          case 'aria-describedby':
+            return part.describedBy ?? null;
           default:
             return null;
         }

@@ -3,9 +3,10 @@
 Headless APG widgets for cssints-native: **state plus a neutral parts description**, with no DOM, no events and no JSX.
 Ported from `@eoa/headless` (effects-of-atmosphere, commit `8b72109`, `packages/headless`) and checked against the
 same Quint specs and ported scenarios. State is Solid 2 signals (`solid-js@2.0.0-rc.13`), which the Solid → Clay
-renderer will read.
+renderer will read. Focus is the focus manager of `focus/`, which the groups register with.
 
-Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `checkbox` (with `mixed`), `disclosure`.
+Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `checkbox` (with `mixed`), `disclosure`,
+`radio` (a group), `tabs`, `toolbar`, `slider`.
 
 ```sh
 bun run test        # bun test --conditions browser: scenarios, Quint walks, unit tests
@@ -22,15 +23,20 @@ A primitive returns its state as accessors and its parts as plain objects. Every
 so reading it inside a Solid computation tracks it, and reading it outside gives the current value. A part carries what
 the aria-* attributes carried, as fields, plus handlers.
 
-| Primitive    | Parts                       | Fields                                                                                       |
-| ------------ | --------------------------- | -------------------------------------------------------------------------------------------- |
-| `createButton`     | `part`                | `id`, `role: "button"`, `pressed` (`undefined` on a command button), `disabled`, `focused`   |
-| `createSwitch`     | `part`                | `id`, `role: "switch"`, `checked`, `disabled`, `readOnly`, `focused`                         |
-| `createCheckbox`   | `part`                | `id`, `role: "checkbox"`, `checked: boolean \| "mixed"`, `disabled`, `readOnly`, `focused`   |
-| `createDisclosure` | `trigger`, `panel`    | trigger: `id`, `role: "button"`, `expanded`, `controls` (the panel's id), `disabled`, `focused`; panel: `id`, `hidden` |
+| Primitive          | Parts                                  | Fields                                                                                                 |
+| ------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `createButton`     | `part`                                 | `id`, `role: "button"`, `pressed` (`undefined` on a command button), `disabled`, `focused`             |
+| `createSwitch`     | `part`                                 | `id`, `role: "switch"`, `checked`, `disabled`, `readOnly`, `focused`                                   |
+| `createCheckbox`   | `part`                                 | `id`, `role: "checkbox"`, `checked: boolean \| "mixed"`, `disabled`, `readOnly`, `focused`             |
+| `createDisclosure` | `trigger`, `panel`                     | trigger: `id`, `role: "button"`, `expanded`, `controls` (the panel's id), `disabled`, `focused`; panel: `id`, `hidden` |
+| `createRadioGroup` | `group`, `radios[]`                    | group: `id`, `role: "radiogroup"`, `orientation`; radio: `id`, `role: "radio"`, `checked`, `disabled`, `focused`, `tabIndex`, `describedBy` |
+| `createTabs`       | `tablist`, `tabs[]`, `panels[]`        | tablist: `id`, `role: "tablist"`, `orientation`; tab: `id`, `role: "tab"`, `selected`, `disabled`, `focused`, `tabIndex`, `controls`; panel: `id`, `role: "tabpanel"`, `labelledBy`, `hidden`, `focused`, `tabIndex` |
+| `createToolbar`    | `toolbar`, `items[]`                   | toolbar: `id`, `role: "toolbar"`, `orientation`; item: `id`, `role: "button"`, `label`, `kind`, `disabled`, `focused`, `tabIndex` |
+| `createSlider`     | `thumb`                                | `id`, `role: "slider"`, `valueNow`, `valueMin`, `valueMax`, `valueText`, `orientation`, `tabIndex: 0`, `focused` |
 
 `id` is a stable string, `<id>-trigger` / `<id>-panel` from the `id` option, or `<kind>-<n>` in creation order when it
-is not given; Clay hashes it, so pass `id` where the order can change. `controls` is an id, as `aria-controls` was.
+is not given; Clay hashes it, so pass `id` where the order can change. `controls` and `labelledBy` are ids, as
+`aria-controls` and `aria-labelledby` were; `describedBy` is the string as given.
 
 Handlers on every interactive part (`PartHandlers`):
 
@@ -47,6 +53,9 @@ armed Space (the native `<button>` behaviour, which the DOM version got for free
 check its own `focused`. `focus()` on a disabled disclosure trigger does nothing (a native disabled button cannot
 focus); button, switch and checkbox use aria-disabled semantics and stay focusable.
 
+Three parts that hold no focus are containers, `group` (radio), `tablist` and `toolbar`. Their `keyDown` takes Tab from
+outside: it enters the group at its tab stop. A group's items are the only focus stops of the group.
+
 Pressed *look* (`:active`) is not part state: it is pointer-down-over-the-part, which Clay already answers
 (`Clay_PointerOver`); the primitive only reacts to the release (`press()`).
 
@@ -55,6 +64,31 @@ Pressed *look* (`:active`) is not part state: it is pointer-down-over-the-part, 
 As in eoa: `value` + `onValueChange` is controlled (the host owns the state; the callback is a request it may ignore),
 `defaultValue` is uncontrolled, and `setX`/`toggle`/`expand`… are requests too. Options are read lazily; pass an object
 with getters, never destructured values.
+
+## Focus
+
+The four groups use the focus manager (`focus/`) where eoa used `document.activeElement`, `element.focus()` and the
+browser's roving tabindex. `createFocusHost(manager?)` (`src/focus-host.ts`) is the seam: a primitive takes a `focus`
+option or makes its own manager; reads go to the manager fresh (`focused()`, `tabOrder()`), and a Solid `version`
+signal tells readers to read again, since the manager is plain TypeScript. Items are registered in registration order
+(the manager's document order), and their owner's disposal unregisters them.
+
+To share one manager across widgets, so that Tab crosses from one to the next, pass the same `focus` to each. The tests
+do this (`test/roving.test.ts`).
+
+| Primitive | Group in the manager                                                                                              | Tab in / out                                                 |
+| --------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| radio     | `orientation: both`, `wrap`, no memory, `entry` = the checked radio (read lazily, so it follows the check); disabled radios skipped | in: the checked radio, else the first enabled; out: the next stop |
+| tabs      | `orientation` as the option (arrows of that axis), `wrap`, no memory, `entry` = the selected tab (or the first enabled, if it is disabled); disabled tabs skipped | in: the selected tab; out: the selected panel (it is a stop after the tablist unless it holds focusable content of its own), then the next |
+| toolbar   | `orientation`, `wrap` (optional), `memory`, `focusDisabled` (a disabled item stays reachable, as `aria-disabled` items do in APG) | in: the item focused last, else the first; out: the next stop. A `text` item keeps the arrows of its axis, a `spin` item Up, Down, Home and End; a Tab from a `text` item steps to its neighbour |
+| slider    | not a group: one entry. Arrows, Page keys, Home and End are the slider's own, not the manager's                    | the host's Tab reaches the thumb like any entry             |
+
+Selection follows focus only where APG says so: radio checks on the arrow keys and on Space; tabs select on the arrow
+or Home/End only with automatic activation (manual waits for Enter or Space), and a click selects. Tab itself moves
+focus through the manager, so a part that has focus hands Tab to it.
+
+`focus/` changed for types only, to take an explicit `undefined` for `group` under `exactOptionalPropertyTypes`; its
+tests are unchanged and still pass (`node focus/test/focus.test.ts`).
 
 ## A Clay page
 
@@ -78,8 +112,9 @@ if (focusedId === part.id) consumed = part.keyDown(key);   // part.keyUp(key) on
 // whoever owns focus calls part.focus() / part.blur()
 ```
 
-The accessibility tree (AccessKit later) reads the same fields: `role`, `checked`, `disabled`, `expanded`, `controls`,
-`hidden`. This renderer does not exist yet (`solid/` builds it); the snippet is the contract it will use, not running code.
+The accessibility tree (AccessKit later) reads the same fields: `role`, `checked`, `selected`, `disabled`, `expanded`,
+`controls`, `hidden`, `tabIndex`, `orientation`, `valueNow`. This renderer does not exist yet (`solid/` builds it); the
+snippet is the contract it will use, not running code.
 
 ## How it is checked
 
@@ -88,55 +123,95 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
 - `test/neutral-driver.ts` is eoa's `dom-driver` on neutral parts. It turns scenario steps into handler calls
   (`click` = `focus()` then `press()`, `key` = `focus()` if needed, `keyDown`, `keyUp`, `prop` = the mount's host) and reads
   the probe back from part fields (`aria-checked` ← `checked`, `aria-pressed` ← `pressed`, `aria-expanded` ← `expanded`,
-  `hidden`, `aria-controls` ← `controls` as the part it names, `aria-readonly`, `role`, focus ← `focused`, visible ← `hidden === false`).
-  An attribute no part field carries reads as absent, as an unset attribute did; `data-*` is `Unsupported`.
-  Solid's `flush()` runs after every handler call, as every input event of a real host is its own tick.
+  `aria-selected` ← `selected`, `tabindex` ← `tabIndex`, `aria-orientation` ← `orientation`, `aria-valuenow` ← `valueNow`,
+  `aria-valuetext` ← `valueText`, `aria-labelledby` / `aria-controls` ← the part an id names, `hidden`, `aria-readonly`,
+  `role`, focus ← `focused`, visible ← `hidden === false`). An attribute no part field carries reads as absent, as an
+  unset attribute did; `data-*` is `Unsupported`. Solid's `flush()` runs after every handler call, as every input event of
+  a real host is its own tick.
+  - Two options it takes for the eoa behaviour the primitives share: `disabledReads: 'token'` reads `aria-disabled` as
+    `true` or `false` (radio wrote it so); `keys: 'focused'` sends a key step to whichever part holds focus, falling
+    back to its target (the tabs spec routes keys through its own focus cursor, and eoa's tabs driver did the same).
 - `test/mounts.ts` is eoa's fixtures without JSX: it creates the primitive and acts as the host (a signal passed as
-  `value`, written back only when the host `accepts`).
+  `value`, written back only when the host `accepts`). A config the port does not implement throws `Unsupported` in the
+  mount (the toolbar's `menutrigger`, which a scenario reaches; the tabs' `deletable` and the radio's `flavor:
+  activedescendant`, which no scenario uses); `conformance` counts that as unsupported, as it counts a bridge gate.
 - `test/conformance.ts` runs, per primitive, the two checks of eoa's browser test: `replayScenario` over every ported
   scenario, and `differentialWalk` (15 runs × 25 steps, seed 7) between `specDriver` over the generated model and the
   neutral driver. The count of passed and unsupported scenarios is pinned, so a bridge or scenario change that skips more
   shows up.
+- `test/roving.test.ts` is what the walks and scenarios do not reach: activation on Enter and Space, a text item's keys,
+  wrap only when asked, a disabled item that stays focusable, memory on re-entry, slider steps and page keys, valueText,
+  and one manager shared by tabs and toolbar with disposal.
 
-| Primitive  | Scenarios | Passed | Unsupported (bridge gate) | Divergences (still failing) | Walk configs |
-| ---------- | --------- | ------ | ------------------------- | --------------------------- | ------------ |
-| button     | 55        | 7      | 41                        | 7                           | 10           |
-| switch     | 42        | 8      | 28                        | 6                           | 9            |
-| checkbox   | 89        | 12     | 72                        | 5                           | 11           |
-| disclosure | 65        | 31     | 26                        | 8                           | 7            |
+| Primitive  | Scenarios | Passed | Unsupported (a gate) | Divergences (still failing) | Walk configs |
+| ---------- | --------- | ------ | -------------------- | --------------------------- | ------------ |
+| button     | 55        | 7      | 41                   | 7                           | 10           |
+| switch     | 42        | 8      | 28                   | 6                           | 9            |
+| checkbox   | 89        | 12     | 72                   | 5                           | 11           |
+| disclosure | 65        | 31     | 26                   | 8                           | 7            |
+| radio      | 56        | 18     | 36                   | 2                           | 5            |
+| tabs       | 56        | 36     | 17                   | 3                           | 6            |
+| toolbar    | 84        | 10     | 63                   | 11                          | 2            |
+| slider     | 52        | 1      | 51                   | 0                           | 7            |
 
-The walk configs are eoa's: uncontrolled, controlled accepting, controlled holding, plus disabled, `enterToggles`, `mixed`.
+**Unsupported (a gate)** is what the bridge refuses (a config key or step it does not translate, or a step field the
+replay does not know), plus, for one scenario, the mount's refusal (the toolbar's menu-button item). The bridge gates most of the 52 slider
+scenarios: the spec fixes one configuration (range 0..10, step 1, value 5) and models no drag, so only one passes.
+A scenario the mount refuses is the port's own gate, not a divergence.
+
+The walk configs are eoa's, with three changes, each for a reason the port has:
+
+- **radio:** no `flavor` steps (the port has the roving flavour only) and the `activedescendant` config is gone with it.
+  Controlled walks keep eoa's filter (no `preselect` or `disabled` steps). Five walks: uncontrolled, checked, disabled,
+  controlled accepting, controlled pinned.
+- **toolbar:** the spec's item 0 is a menu-button, and the menu is not ported. The walk runs with a plain button there,
+  and the alphabet leaves out the steps that would open the spec's menu on it: `activate`, `click 0`, `flipOrientation`
+  (it would turn the other arrow into the open key), and the arrow of the other axis (a menu-button takes it as its open
+  key). Item 0's `aria-haspopup` and `aria-expanded` are the menu's, so the probe does not read them. The walk's
+  activation coverage is the unit test's, since an activation has no observable effect but the menu.
+- **tabs:** the eoa configs as they are; the port reads `keys: 'focused'`.
+
 **Divergences** are eoa's maps with their reasons, all carried over, none added, none dropped: each scenario still fails,
-and the test requires it to (a closed gap forces removing the entry). They are about attributes and callbacks a library
-test expects and this primitive does not provide (native `checked`/`disabled` attributes, ancestor `onClick`, an unmounted
-closed panel, consumer attributes, hover state). None is a browser focus quirk. `disabledAttr` in each test says which
-attribute spells `disabled` (aria-disabled for button, switch and checkbox; native `disabled` for the disclosure trigger),
-because a neutral part has one flag and the probe has to read it the way eoa's did.
+and the test requires it to (a closed gap forces removing the entry). For radio: the native `<input type=radio>` attribute
+and the per-radio focus callbacks. For tabs: the axis of the arrows in a vertical stack, the disabled-tab skip (base-ui
+moves onto a disabled tab), and one panel-tabindex convention. For toolbar: the disabled-item skip, the Composite
+initial tab stop and role, and the toggle group: each is a base-ui or ariakit behaviour the spec does not model. None is a browser focus quirk.
+`disabledAttr` in each test says which attribute spells `disabled`.
 
-What differs from eoa's primitives: no `*Props` objects and no `onClick`/`onKeyDown` DOM handlers; the part has its own
-`focused` and key handling for button and disclosure (the DOM got both from `<button>`); `checkbox` uses `boolean | "mixed"`
-instead of `"true" | "false" | "mixed"`; ids come from a counter, not `createUniqueId`; the click-sets-focus workaround of
-switch and checkbox is gone (the driver's `click` focuses first, as a pointer press does).
+### Mutation checks
 
-### Mutation check
+Each run breaks one behaviour, runs the tests, and reverts (the file compared with its backup afterwards).
 
-Dropping the change callback of a controlled request (`if (options.value() === undefined) options.onChange()?.(…)` in
-`controllable.ts`) fails 29 tests: 19 controlled walks across the four primitives, 6 controlled scenarios, the 3 pinned-count checks that
-follow them and the unit test. Reverted. Dropping the blur-disarm of Space fails only the unit test in `controllable.test.ts`, **not the
-walk**: the walk's `key` step is a whole press, so an armed Space never lingers. Making Enter always toggle a switch fails
-the walk. Specs and bridges are eoa's, so that blind spot is eoa's too.
+| Widget     | Break                                                                 | Result                                                                                                       |
+| ---------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| tabs       | `wrap: false` in the group                                            | 11 fail: 5 of 6 walks (not the vertical one: its alphabet has no Up/Down), 4 scenarios, the pinned count, 1 unit test |
+| radio      | an arrow moves focus without checking the radio                       | 9 fail: 5 walks, 1 scenario, the pinned count, 2 unit tests                                                  |
+| slider     | arrows ignore `step` (move by 1)                                      | **1 fails: the unit test.** The walks and the scenarios all have step 1, so they cannot see it               |
+| slider     | `Math.sign` on the change (ignores `step` and `largeStep`)            | 9 fail: 7 walks, 2 unit tests                                                                                |
+| toolbar    | a `text` item does not keep its arrows                                | 3 fail: 2 walks, 1 unit test                                                                                 |
+| controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 34 fail (was 29 before the four patterns: more controlled walks and scenarios)                  |
+
+The slider row is the blind spot that matters: eoa's slider spec fixes `step`, so its tests cannot tell a slider that
+ignores it. The unit test `test/roving.test.ts` is the only check of `step`.
 
 ## Vendored
 
-`vendor/` holds the spec side, copied read-only from effects-of-atmosphere at `8b72109`; see
-[vendor/README.md](vendor/README.md). `effect@4.0.0` is the one dependency it needs.
+`vendor/` holds the spec side, copied **read-only** from effects-of-atmosphere at `8b72109` (`EOA_COMMIT`); see
+[vendor/README.md](vendor/README.md). `sync.sh` reads the files from git at that commit, so the eoa checkout may be on
+another one. `effect@4.0.0` is the one dependency it needs.
 
 ## Left
 
-- **Focus groups and roving focus** (toolbar, tabs, radio group, menus): `focus/` builds the focus manager; these
-  primitives only take `focus()`/`blur()` and key events routed to them.
-- Overlays (dialog, tooltip, menu button), text input and the caret, the rest of eoa's patterns (they port the same way:
-  a bridge, a mount, a `conformance` call).
-- The Solid → Clay renderer that consumes the parts (`solid/`), and an accessibility tree from them.
-- Pointer arming (`pointer_down` … `pointer_cancel`) is not a primitive state: `press()` is the release. The spec models it,
-  eoa's DOM primitive did not either, and its scenarios on it are `data-pressed` ones, skipped.
+- **Menu, menu button, menubar** (eoa's `menu.ts`): the toolbar's menu-button item and the scenarios that use it are the
+  gate; the walk leaves the menu out, as above.
+- **Radio `flavor: activedescendant`**: the group takes focus and names the radio by id, which is not a focus entry.
+- **Tabs `deletable`** (the Delete key removes a tab) and RTL in the tabs bridge (gated).
+- **Slider** dragging (pointer capture and move) beyond a press: `pointer(ratio)` is the press; a host that drags calls
+  it per position. Multi-thumb is eoa's `slider-multithumb`, not ported.
+- **Overlays** (dialog, tooltip, menu button), **text input** and the caret, and the rest of eoa's patterns (they port the
+  same way: a bridge, a mount, a `conformance` call).
+- **The Solid → Clay renderer** that consumes the parts (`solid/`), and an accessibility tree from them.
+- Pointer arming (`pointer_down` … `pointer_cancel`) is not a primitive state: `press()` is the release. The spec models
+  it, eoa's DOM primitive did not either, and its scenarios on it are `data-pressed` ones, skipped.
+- **Walk coverage the eoa alphabets do not have:** tabs' walk has no Up/Down, so the vertical wrap is covered by the
+  scenarios only; the slider walk has step 1 throughout.
