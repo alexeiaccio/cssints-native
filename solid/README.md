@@ -32,15 +32,25 @@ src/renderer.ts    createRenderer: El (tag, props, children) and Txt nodes; <box
 src/pack.ts        a ClayShape + theme + state -> Float32Array, once per variant
 src/frame.ts       one frame: pointer in, events, flush(), the tree declared, layout, draw
 src/ffi.ts         bun:ffi bindings
-plugin.ts          Bun plugin: JSX through @solidjs/compiler, `styles.ts` through the cssints Vite plugin, solid-js client build
-compile-styles.ts  Node child of the plugin: Vite + cssints, prints the style module as JS
+plugin.ts          Bun plugin: JSX through @solidjs/compiler, `styles.ts` and a page's own styles through cssints, solid-js client build
+compile-styles.ts  Node child of the plugin: Vite + cssints, prints a style module as JS
+compile.tsx.ts     Node child of a `.tsx` whose styles live in it: Solid's JSX first, then cssints on the JS
+stub-bun.mjs       `bun:ffi` for that child: cssints runs the page to read its tokens, and the dylib has no meaning in Node
 src/input.ts       SDL keys to names, and where a key goes: the focus manager, the focused part, the page
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
-app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar; its styles are app/widgets.styles.ts
+app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, and its styles, in the same file
 frames/            the Widgets page's stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
 test.ts, widgets.test.ts   the checks the stored frames cannot make
 ```
+
+**Styles live where the markup does.** A page may declare its tokens and styles in its own `.tsx`
+(`import * as css from "cssints/clay" with { type: "cssints" }`) — `app/Widgets.tsx` does. The child spawns only when the
+source mentions cssints, costs about 0.9 s once per page at load (the same as a `styles.ts` module: it is Node and
+cssints' evaluation, not the extra stage), and reports a cssints error at the line the user wrote. A styles module
+still has its place when the C side generates from the same file (`examples/sensors/styles.ts` feeds `styles.h`).
+`app/inline-demo`/`InlineDemo.tsx` and `InlineDemoSplit.tsx` are the same page both ways, and `inline.test.ts` holds
+their frames to each other.
 
 A style is the `ClayShape` literal of `cssints/clay`. A theme (`THEME=light`, `t`) and a state are picked at run time
 by `resolve()` in `pack.ts`, the merge `header()` does for C (`units_active_light`). `:hover`/`:active` apply to a box

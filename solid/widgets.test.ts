@@ -10,7 +10,7 @@ const { createFrame } = await import("./src/frame.ts");
 const { createInput, keyName } = await import("./src/input.ts");
 const { El, render, Txt } = await import("./src/renderer.ts");
 const { Widgets, size } = await import("./app/Widgets.tsx");
-const s = await import("./app/widgets.styles.ts");
+const { s } = await import("./app/Widgets.tsx");
 
 ui.init(size.width, size.height);
 ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname);

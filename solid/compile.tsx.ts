@@ -32,7 +32,11 @@ const server = await createServer({
   configFile: false,
   logLevel: "silent",
   // cssints/clay is not in a release yet: its sources are the `development` condition
-  resolve: { conditions: ["development", "module", "browser", "default"] },
+  resolve: {
+    conditions: ["development", "module", "browser", "default"],
+    // a page's own imports are evaluated here too (tokens), and the FFI has no meaning in Node: see stub-bun.mjs
+    alias: { "bun:ffi": new URL("./stub-bun.mjs", import.meta.url).pathname },
+  },
   server: { middlewareMode: true, watch: null, ws: false },
   plugins: [
     {

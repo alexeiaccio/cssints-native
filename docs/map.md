@@ -122,7 +122,8 @@ Each step ends in a check that fails when it breaks.
    must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 34 tests. Left:
    the menu and menu button (the toolbar's menu item), overlays, text input.
    **Done: the Widgets page** (`solid/app/Widgets.tsx`, `bun solid/main.ts widgets`): the headless widgets and the focus
-   manager wired to one live page. SDL key events reach JS through a queue in the FFI; a key goes to the focus manager
+   manager wired to one live page; the page's styles sit in `Widgets.tsx` itself (the loader compiles JSX, then cssints
+   on the result, in one child: colocation without a separate `styles.ts`). SDL key events reach JS through a queue in the FFI; a key goes to the focus manager
    (Tab, Shift+Tab, arrows), then the focused part (Space fires on key up), then the page; a press focuses a part as a
    browser does and a press on empty space blurs; `:focus` is a style state like `:active` (a 2px ring, laid over the
    pressed look). Check: six stored frames (initial, Tab Tab, switch on, mixed, disclosure open, light) and
