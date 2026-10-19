@@ -83,6 +83,13 @@ Each step ends in a check that fails when it breaks.
    firmware's), `desktop/host.c`: a window on Metal, or one frame headless on SDL's software renderer.
    `examples/sensors`: the Sensors page from `styles.ts`, with a fixed sample. Check: two stored frames, before and
    after a scripted click on Units, compared pixel for pixel.
+
+   **Done: the ThorVG raster.** `desktop/clay_renderer_thorvg.c`: Clay's commands as a ThorVG scene on its software
+   canvas (brew thorvg 1.1.3, CPU engine only), `host --raster thorvg`; text measured by ThorVG too. Check: two
+   stored frames of its own (`expected-thorvg*.png`). Headless on an M2, the same 360x360 frame, one thread: ThorVG
+   0.30 ms, SDL's software renderer 1.2 ms (2026-10-19; it does not transfer to the board). GL/WebGPU engines need a
+   ThorVG built with them; then the ESP32-S3: ThorVG SW against `render.c`'s 17.8 ms, measured on the board.
+
 3. **States, tokens, fonts in `cssints/clay`.** `:hover`/`:active` as declarations of their own, colour tokens and
    themes, `fontSize` to a font table. Check: cssints test/clay.mjs and step 2's frames.
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:

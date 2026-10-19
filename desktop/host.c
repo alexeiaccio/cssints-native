@@ -1,11 +1,14 @@
-// The desktop host: an SDL3 window, Clay's layout, Clay's SDL3 renderer (Metal on a Mac). The page is linked in:
-// it defines app_frame(), which declares the Clay tree of one frame.
+// The desktop host: an SDL3 window, Clay's layout, Clay's SDL3 renderer (Metal on a Mac) or ThorVG's software
+// raster. The page is linked in: it defines app_frame(), which declares the Clay tree of one frame.
 //
 //   host                    a window; the mouse is the pointer
 //   host --png out.png      one frame headless (the software renderer on a surface), written to out.png
 //   host --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                           ref.png.actual.png on a difference
 //   --click X Y             headless: a press and a release at X,Y before the frame that is written
+//   --raster sdl|thorvg     Clay's SDL3 renderer (the default), or clay_renderer_thorvg.c into a buffer that is
+//                           the frame headless and a texture in the window
+//   --bench N               headless: draw the last frame N more times and print the raster's ms a frame
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
 
@@ -17,6 +20,7 @@
 #include <string.h>
 
 #include "clay_renderer_SDL3.c"
+#include "clay_renderer_thorvg.c"
 
 #ifndef APP_W
 #define APP_W 360
@@ -62,9 +66,24 @@ static long differ(SDL_Surface *a, SDL_Surface *b)
     return n;
 }
 
+/** One frame on a black ground, by the chosen raster. */
+static void draw(bool thorvg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int n, Clay_SDL3RendererData *sdl,
+                 Clay_RenderCommandArray *cmds)
+{
+    if (thorvg) {
+        for (int i = 0; i < n; i++) pixels[i] = 0xff000000;
+        Clay_ThorVG_RenderClayCommands(tvg, cmds);
+        return;
+    }
+    SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 255);
+    SDL_RenderClear(sdl->renderer);
+    SDL_Clay_RenderClayCommands(sdl, cmds);
+}
+
 int main(int argc, char **argv)
 {
-    const char *png = NULL, *expect = NULL;
+    const char *png = NULL, *expect = NULL, *raster = "sdl";
+    int bench = 0;
     float click_x = -1, click_y = -1;
     for (int i = 1; i + 1 < argc; i++) {
         if (!strcmp(argv[i], "--click") && i + 2 < argc) {
@@ -73,6 +92,13 @@ int main(int argc, char **argv)
         }
         if (!strcmp(argv[i], "--png")) png = argv[++i];
         else if (!strcmp(argv[i], "--expect")) expect = argv[++i];
+        else if (!strcmp(argv[i], "--raster")) raster = argv[++i];
+        else if (!strcmp(argv[i], "--bench")) bench = atoi(argv[++i]);
+    }
+    const bool thorvg = !strcmp(raster, "thorvg");
+    if (!thorvg && strcmp(raster, "sdl")) {
+        fprintf(stderr, "--raster %s: sdl or thorvg\n", raster);
+        return 2;
     }
     const bool headless = png || expect;
     if (!SDL_Init(SDL_INIT_VIDEO) || !TTF_Init()) {
@@ -103,7 +129,26 @@ int main(int argc, char **argv)
                     (Clay_ErrorHandler){on_error});
     Clay_SetMeasureTextFunction(measure, fonts);
 
-    if (window) printf("renderer: %s\n", SDL_GetRendererName(renderer));
+    // ThorVG: a canvas on a buffer of the window's pixels (APP_W x APP_H headless), measuring its own text
+    const char *tvg_fonts[1] = {"Roboto-Regular"};
+    Clay_ThorVGRendererData tvg = {.scale = window ? SDL_GetWindowPixelDensity(window) : 1, .fonts = tvg_fonts};
+    const int tw = (int)(APP_W * tvg.scale), th = (int)(APP_H * tvg.scale);
+    Uint32 *tvg_pixels = NULL;
+    SDL_Texture *tvg_texture = NULL;
+    if (thorvg) {
+        tvg_pixels = malloc((size_t)tw * th * 4);
+        if (tvg_engine_init(0) || !(tvg.canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_DEFAULT)) ||
+            tvg_swcanvas_set_target(tvg.canvas, tvg_pixels, tw, tw, th, TVG_COLORSPACE_ABGR8888) ||
+            tvg_font_load(FONT_PATH)) {
+            fprintf(stderr, "thorvg: no software canvas or no font %s\n", FONT_PATH);
+            return 1;
+        }
+        tvg.measurer = tvg_text_new();
+        Clay_SetMeasureTextFunction(Clay_ThorVG_MeasureText, &tvg);
+        if (window) tvg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, tw, th);
+    }
+
+    if (window) printf("renderer: %s, raster: %s\n", SDL_GetRendererName(renderer), raster);
 
     bool running = true, down = false;
     float px = -1, py = -1;
@@ -134,13 +179,27 @@ int main(int argc, char **argv)
         app_frame(down);
         Clay_RenderCommandArray cmds = Clay_EndLayout(dt);
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        SDL_Clay_RenderClayCommands(&data, &cmds);
+        draw(thorvg, &tvg, tvg_pixels, tw * th, &data, &cmds);
+        if (tvg_texture) {
+            SDL_UpdateTexture(tvg_texture, NULL, tvg_pixels, tw * 4);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+            SDL_RenderTexture(renderer, tvg_texture, NULL, NULL);
+        }
 
         if (headless && click_x >= 0 && frame++ < 3) continue;
+        if (headless && bench > 0) {
+            const Uint64 t0 = SDL_GetTicksNS();
+            for (int i = 0; i < bench; i++) {
+                draw(thorvg, &tvg, tvg_pixels, tw * th, &data, &cmds);
+                if (!thorvg) SDL_FlushRenderer(renderer);
+            }
+            printf("%s: %.3f ms a frame (%d frames, %dx%d)\n", raster,
+                   (SDL_GetTicksNS() - t0) / 1e6 / bench, bench, APP_W, APP_H);
+        }
         if (headless) {
-            SDL_Surface *got = frame_pixels(renderer);
+            SDL_Surface *got = thorvg ? SDL_CreateSurfaceFrom(tw, th, SDL_PIXELFORMAT_RGBA32, tvg_pixels, tw * 4)
+                                      : frame_pixels(renderer);
             int status = errors ? 1 : 0;
             if (png) IMG_SavePNG(got, png);
             if (expect) {
