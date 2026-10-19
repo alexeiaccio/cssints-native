@@ -98,7 +98,8 @@ Each step ends in a check that fails when it breaks.
    The pressed look lifts the surface instead of the firmware's `ACCENT_DOWN` orange, which left the ink at 1.28:1; the
    ink on the base, hover and pressed fills is asserted at 4.5:1 and up in `solid/test.ts` (dark 15.8/10.3/7.9, light
    15.8/14.4/12.6). The firmware's `ACCENT_DOWN` is gone the same day: a pressed control sinks to `PRESSED` (28,31,40), since its rows
-   carry DIM and ACCENT text too (TEXT 13.9, DIM 5.9, ACCENT 6.7).
+   carry DIM and ACCENT text too (TEXT 13.9, DIM 5.9, ACCENT 6.7). Flashed and seen on the board (2026-10-19):
+   the pill and a settings row sink while held, no Clay errors, 55 commands, 22.8 ms a frame.
    Check: cssints test/clay.mjs; `expected-light.png`; and
    `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. In the window,
    the `t` key toggles the theme; `expected-pressed.png` stores the pressed frame (`--press`, held down). Seen in the live window (2026-10-19): `t` switches the theme, the pill presses and toggles the unit.
