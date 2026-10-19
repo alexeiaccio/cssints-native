@@ -42,7 +42,8 @@ export interface View {
 
 /**
  * The frame function of a tree. `onClick` of an element with an `id` runs on release over it, when the press was on
- * it too; `onPress` runs when the button goes down over it (a browser focuses on mousedown). A style with `:hover` or
+ * it too; `onPress` runs when the button goes down over it (a browser focuses on mousedown); both are called with the
+ * pointer's x and y (a slider's rail reads where on it the press was). A style with `:hover` or
  * `:active` needs an `id` as well, to ask Clay where the pointer is; `:focus` applies while the prop `focused` is true.
  */
 export function createFrame(root: El, view: View = {}) {
@@ -72,17 +73,17 @@ export function createFrame(root: El, view: View = {}) {
     ui.close();
   }
 
-  function events(down: boolean) {
+  function events(down: boolean, px: number, py: number) {
     if (down && !wasDown) {
       const hit = clickable.filter(over);
       pressed = new Set(hit);
       let handled = false;
-      for (const el of hit) if (el.props.onPress) (handled = true), el.props.onPress();
+      for (const el of hit) if (el.props.onPress) (handled = true), el.props.onPress(px, py);
       if (!handled) view.onPressMiss?.();
     } else if (!down && wasDown) {
       const hit = clickable.filter((el) => pressed.has(el) && over(el));
       pressed.clear();
-      for (const el of hit) el.props.onClick?.();
+      for (const el of hit) el.props.onClick?.(px, py);
     }
     wasDown = down;
   }
@@ -91,7 +92,7 @@ export function createFrame(root: El, view: View = {}) {
   return (px: number, py: number, down: boolean, dt: number, render = true): number => {
     const t0 = Bun.nanoseconds();
     ui.begin(px, py, down ? 1 : 0);
-    events(down);
+    events(down, px, py);
     flush();
     const t1 = Bun.nanoseconds();
     seen = [];
