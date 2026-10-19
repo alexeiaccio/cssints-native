@@ -83,8 +83,14 @@ Each step ends in a check that fails when it breaks.
    firmware's), `desktop/host.c`: a window on Metal, or one frame headless on SDL's software renderer.
    `examples/sensors`: the Sensors page from `styles.ts`, with a fixed sample. Check: two stored frames, before and
    after a scripted click on Units, compared pixel for pixel.
-3. **States, tokens, fonts in `cssints/clay`.** `:hover`/`:active` as declarations of their own, colour tokens and
-   themes, `fontSize` to a font table. Check: cssints test/clay.mjs and step 2's frames.
+3. **Done: states, tokens, fonts in `cssints/clay`.** `css.hover`/`focus`/`active` print as whole declarations of
+   their own (`units_active`); `createTokens` and `createGlobalTheme(tokens, "light", ...)` print every style again
+   per theme (`units_light`, `units_active_light`, `title_text_light`), so a page switches at run time by a suffix;
+   `fonts("Roboto")` sets `fontId` and prints the font order as an enum. `examples/sensors`: colours as tokens, the
+   pressed pill as `css.active` (page.c picks `units_active` when pressed over it), `THEME=light` for the light theme.
+   Check: cssints test/clay.mjs; step 2's two frames unchanged pixel for pixel, a third, `expected-light.png`; and
+   `examples/sensors/header.c`, the header's states and theme asserted in C99 against esp32's clay.h. Left: a theme
+   key in the window, the pressed frame stored (the scripted click releases before the frame it writes).
 4. **Solid on the desktop.** A universal renderer over Clay through `bun:ffi`, live state, reload on save. Check:
    a click changes a signal and the next frame.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render

@@ -1,12 +1,16 @@
 // The Sensors page, styled by styles.ts (styles.h is generated) and fed a fixed sample, so a frame is reproducible.
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "styles.h"
 
 static const float ACCEL[3] = {1.159f, -0.718f, 10.044f}, GYRO[3] = {2.23f, 4.82f, 0.02f};
 static bool use_g;
+// THEME=light picks the light theme: styles.h has every style again as <name>_light
+static int light = -1;
+#define T(name) (light ? name##_light : name)
 
 static Clay_String str(const char *s) { return (Clay_String){.length = (int32_t)strlen(s), .chars = s}; }
 
@@ -18,6 +22,7 @@ static void on_units(Clay_ElementId id, Clay_PointerData p, void *user)
 
 void app_frame(bool down)
 {
+    if (light < 0) light = getenv("THEME") && !strcmp(getenv("THEME"), "light");
     const float scale = use_g ? 1.0f / 9.80665f : 1.0f;
     const char *unit = use_g ? "g" : "m/s\u00b2";
     // static: Clay reads the strings at the render pass, after this function returns
@@ -28,19 +33,18 @@ void app_frame(bool down)
     const float a = sqrtf(ACCEL[0] * ACCEL[0] + ACCEL[1] * ACCEL[1] + ACCEL[2] * ACCEL[2]);
     snprintf(mag, sizeof mag, "|a| %.2f %s", a * scale, unit);
 
-    CLAY(CLAY_ID("Root"), root) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), title_text);
-        CLAY_TEXT(str(label), caption_text);
-        CLAY_TEXT(str(accel), value_text);
-        CLAY_TEXT(CLAY_STRING("gyro \u00b0/s"), caption_text);
-        CLAY_TEXT(str(gyro), value_text);
-        CLAY_TEXT(str(mag), magnitude_text);
-        // the pressed look is a style of its own; the frame picks it
-        Clay_ElementDeclaration pill = units;
-        if (down && Clay_PointerOver(CLAY_ID("Units"))) pill.backgroundColor = unitsDown.backgroundColor;
-        CLAY(CLAY_ID("Units"), pill) {
+    CLAY(CLAY_ID("Root"), T(root)) {
+        CLAY_TEXT(CLAY_STRING("Sensors"), T(title_text));
+        CLAY_TEXT(str(label), T(caption_text));
+        CLAY_TEXT(str(accel), T(value_text));
+        CLAY_TEXT(CLAY_STRING("gyro \u00b0/s"), T(caption_text));
+        CLAY_TEXT(str(gyro), T(value_text));
+        CLAY_TEXT(str(mag), T(magnitude_text));
+        // Clay has no states: the pressed look is units_active, picked here
+        const bool pressed = down && Clay_PointerOver(CLAY_ID("Units"));
+        CLAY(CLAY_ID("Units"), pressed ? T(units_active) : T(units)) {
             Clay_OnHover(on_units, NULL);
-            CLAY_TEXT(str(use_g ? "switch to m/s\u00b2" : "switch to g"), unitsLabel_text);
+            CLAY_TEXT(str(use_g ? "switch to m/s\u00b2" : "switch to g"), T(unitsLabel_text));
         }
     }
 }
