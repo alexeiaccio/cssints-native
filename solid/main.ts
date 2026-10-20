@@ -1,8 +1,10 @@
 // The Solid host, the counterpart of desktop/host.c. Run with Bun:
 //
-//   bun solid/main.ts [sensors|widgets|dialog]  a window; the mouse is the pointer, `t` flips the theme; on widgets Tab,
-//                                        Shift+Tab, Space and Enter drive the widgets; on dialog Enter opens the settings
-//                                        dialog and Space opens the menu
+//   bun solid/main.ts [sensors|widgets|dialog|form]  a window; the mouse is the pointer, `t` flips the theme; on widgets
+//                                        Tab, Shift+Tab, Space and Enter drive the widgets; on dialog Enter opens the
+//                                        settings dialog and Space opens the menu; on form Tab reaches the text field,
+//                                        typing fills it, Enter submits, Escape blurs (and `t` flips the theme again
+//                                        once no field has focus)
 //   bun solid/main.ts --png out.png      one frame headless, written to out.png
 //   bun solid/main.ts --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                                        ref.png.actual.png on a difference
@@ -10,7 +12,8 @@
 //                                        (frame 0 lays out, pressed in 1, released in 2, frame 3 is written)
 //   --keys Tab,Tab,Space                 headless: a frame, then each key pressed and released with a frame after it
 //                                        (names as the focus manager and the parts take them: Shift+Tab, Enter, ArrowLeft,
-//                                        Space for " "); the last frame is written
+//                                        Space for " "); the last frame is written. A step `text:Ada` is typed text
+//                                        (`Input.textInput`), not a key: --keys Tab,text:Ada,Shift+ArrowLeft
 //   --bench N                            headless: N more frames, the ms a frame by phase
 //   --frames N                           window: close after N frames (a smoke test)
 //   THEME=light                          the light theme
@@ -18,8 +21,8 @@ import "./plugin.ts";
 import type { Drag } from "./app/Widgets.tsx";
 
 const page = process.argv[2]?.startsWith("--") ? "sensors" : (process.argv[2] ?? "sensors");
-if (page !== "sensors" && page !== "widgets" && page !== "dialog") {
-  console.error(`unknown page "${page}": sensors, widgets or dialog`);
+if (page !== "sensors" && page !== "widgets" && page !== "dialog" && page !== "form") {
+  console.error(`unknown page "${page}": sensors, widgets, dialog or form`);
   process.exit(1);
 }
 const arg = (name: string, n = 1) => {
@@ -38,14 +41,15 @@ let theme = process.env.THEME === "light" ? "light" : undefined;
 
 const { ui } = await import("./src/ffi.ts");
 const { createFrame } = await import("./src/frame.ts");
-const { createInput, keyName } = await import("./src/input.ts");
+const { createInput, selectionName } = await import("./src/input.ts");
 const { El, render } = await import("./src/renderer.ts");
 const { Sensors } = await import("./app/Sensors.tsx");
 const { Widgets, size } = await import("./app/Widgets.tsx");
 const { Dialog, size: dialogSize } = await import("./app/Dialog.tsx");
+const { Field, size: fieldSize } = await import("./app/Field.tsx");
 
 const W = 360;
-const H = page === "widgets" ? size.height : page === "dialog" ? dialogSize.height : 360;
+const H = page === "widgets" ? size.height : page === "dialog" ? dialogSize.height : page === "form" ? fieldSize.height : 360;
 
 if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
@@ -53,10 +57,17 @@ if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", impor
 }
 const root = new El("root");
 const input = createInput();
-input.fallback = (name) => (name === "t" ? ((theme = theme ? undefined : "light"), true) : false);
+// `t` is the page's shortcut only while no text field has focus: a letter typed into one is a character, not a key
+input.fallback = (name) => (name === "t" && !input.editing() ? ((theme = theme ? undefined : "light"), true) : false);
 const dragState: Drag = {};
 const dispose = render(
-  page === "widgets" ? () => Widgets({ input, drag: dragState }) : page === "dialog" ? () => Dialog({ input }) : Sensors,
+  page === "widgets"
+    ? () => Widgets({ input, drag: dragState })
+    : page === "dialog"
+      ? () => Dialog({ input })
+      : page === "form"
+        ? () => Field({ input })
+        : Sensors,
   root,
 );
 const stats: [number, number, number, number][] = [];
@@ -88,9 +99,13 @@ if (headless) {
     for (let n = 0; n < (click ? 4 : 1); n++) frame(click?.[0] ?? -1, click?.[1] ?? -1, n === 1, 1 / 60);
   }
   for (const key of keys ?? []) {
-    const name = key === "Space" ? " " : key;
-    input.down(name);
-    input.up(name);
+    // `text:Ada` is typed text, not a key: the same call SDL's TEXT_INPUT events make in the window
+    if (key.startsWith("text:")) input.textInput(key.slice(5));
+    else {
+      const name = key === "Space" ? " " : key;
+      input.down(name);
+      input.up(name);
+    }
     frame(-1, -1, false, 1 / 60);
   }
   let status = ui.errors() ? 1 : 0;
@@ -133,14 +148,32 @@ if (!scale) {
 console.log(`window: pixel density ${scale}`);
 const pointer = new Float32Array([-1, -1, 0, 0, 0]);
 const event = new Int32Array(4);
+const typed = new Uint8Array(256);
+let got = 0;
+const clip = new Uint8Array(4096);
+const decoder = new TextDecoder();
+// SDL's text input runs only while a text field has focus; these are the chords it takes (Cmd or Ctrl + C/X/V)
+const CHORD = { 99: "copy", 120: "cut", 118: "paste" } as const;
+const CTRL_GUI = 0x40 | 0x80 | 0x400 | 0x800;
+let textOn = false;
 let last = performance.now();
 for (let n = 0; n < maxFrames; n++) {
   ui.windowPoll(pointer);
   if (pointer[3]) break;
+  while ((got = ui.textPop(typed)) > 0) input.textInput(decoder.decode(typed.subarray(0, got)));
   while (ui.keyPop(event)) {
-    const name = keyName(event[1]!, event[2]!);
-    if (name) event[0] ? input.down(name, event[3] !== 0) : input.up(name);
+    const [down, code, mod, repeat] = [event[0] !== 0, event[1]!, event[2]!, event[3] !== 0];
+    const chord = down && mod & CTRL_GUI ? CHORD[code as keyof typeof CHORD] : undefined;
+    if (chord !== undefined) {
+      const out = input.clipboard(chord, chord === "paste" ? decoder.decode(clip.subarray(0, ui.clipboardGet(clip))) : "");
+      if (out != null) ui.clipboardSet(out);
+      continue;
+    }
+    const name = selectionName(code, mod);
+    if (name) (down ? input.down(name, repeat) : input.up(name));
   }
+  // SDL starts and stops the platform's text input with the field's focus (an IME needs it; so does TEXT_INPUT)
+  if (input.editing() !== textOn) ui.setTextInput((textOn = input.editing()));
   const now = performance.now();
   frame(pointer[0]!, pointer[1]!, pointer[2] !== 0, (now - last) / 1000);
   last = now;

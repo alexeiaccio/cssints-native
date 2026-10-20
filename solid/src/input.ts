@@ -4,11 +4,13 @@ import { createFocus, type Focus } from "../../focus/src/focus.ts";
 import type { PartHandlers } from "../../headless/src/index.ts";
 
 const KEYS: Record<number, string> = {
+  8: "Backspace",
   9: "Tab",
   13: "Enter",
   0x40000058: "Enter", // keypad
   27: "Escape",
   32: " ", // DOM's `key` for Space; the parts take "Space" too
+  127: "Delete",
   0x4000004a: "Home",
   0x4000004b: "PageUp",
   0x4000004d: "End",
@@ -20,6 +22,8 @@ const KEYS: Record<number, string> = {
 };
 const SHIFT = 0x3;
 const CTRL_ALT_GUI = 0x40 | 0x80 | 0x100 | 0x200 | 0x400 | 0x800;
+// the arrows and Home/End whose Shift form is a selection chord rather than a move of the focus manager's
+const SELECTION = new Set([0x4000004a, 0x4000004d, 0x4000004f, 0x40000050]);
 
 /**
  * The name of an SDL key event (keycode and SDL_Keymod), or undefined for a key the page has no name for. Shift+Tab is
@@ -36,13 +40,30 @@ export function keyName(code: number, mod = 0): string | undefined {
 }
 
 /**
+ * `keyName`, keeping Shift on the chords a text field selects with: "Shift+ArrowLeft", "Shift+Home". The focus manager
+ * is only ever given Tab and Shift+Tab, so no other part sees a name it did not have before.
+ */
+export function selectionName(code: number, mod = 0): string | undefined {
+  const name = keyName(code, mod);
+  if (name !== undefined) return name;
+  if (!(mod & SHIFT) || mod & CTRL_ALT_GUI || !SELECTION.has(code)) return undefined;
+  return `Shift+${KEYS[code]}`;
+}
+
+/**
  * What a part must have to take keys and focus here: any part of the headless widgets (a slider's thumb and a tab
- * panel have no `press`).
+ * panel have no `press`). `editsText` marks a text field: its typed characters come through `insert`, and the host
+ * runs SDL's text input only while it has focus.
  */
 export type FocusPart = Pick<PartHandlers, "focus" | "blur" | "keyDown" | "keyUp"> & {
   readonly id: string;
   readonly focused: boolean;
-  readonly press?: () => void;
+  readonly press?: (x?: number) => void;
+  /** A text field: typed characters reach it through `insert`. */
+  readonly editsText?: boolean;
+  readonly insert?: (text: string) => boolean;
+  /** copy and cut return what goes on the clipboard; paste takes it. null when there is nothing to do. */
+  readonly clipboard?: (op: "copy" | "cut" | "paste", text: string) => string | null;
 };
 
 /** The props of a `box` that make a part's row clickable and focusable: spread them on it, `<box {...input.add(part)}>`. */
@@ -50,7 +71,7 @@ export interface Bind {
   id: string;
   readonly focused: boolean;
   onPress: () => void;
-  onClick?: () => void;
+  onClick?: (x?: number) => void;
 }
 
 export interface Input {
@@ -65,6 +86,12 @@ export interface Input {
   /** A key went down. Returns whether something took it. */
   down(name: string, repeat?: boolean): boolean;
   up(name: string): boolean;
+  /** Typed characters (UTF-8 already decoded) to the focused part; false when it is no text field. */
+  textInput(text: string): boolean;
+  /** The focused part is a text field: SDL's text input should run. */
+  editing(): boolean;
+  /** Cmd+C, Cmd+X, Cmd+V on the focused part; `undefined` when it is no text field. */
+  clipboard(op: "copy" | "cut" | "paste", text: string): string | null | undefined;
   /** The host's last resort for a key nobody took (the Sensors page's theme key). */
   fallback?: (name: string) => boolean;
   /**
@@ -109,7 +136,8 @@ export function createInput(): Input {
         },
         // a disabled part refuses focus, so a press on it leaves the focus where it was
         onPress: () => void focus.focus(part.id),
-        onClick: part.press,
+        // x only: a text field places its caret from it (its own advance when the page has not measured one)
+        onClick: (x?: number) => part.press?.(x),
       };
     },
     down(name, repeat = false) {
@@ -123,6 +151,9 @@ export function createInput(): Input {
       return input.fallback?.(name) ?? false;
     },
     up: (name) => focused()?.keyUp(name) ?? false,
+    textInput: (text) => focused()?.insert?.(text) ?? false,
+    editing: () => focused()?.editsText === true,
+    clipboard: (op, text) => focused()?.clipboard?.(op, text),
     pressMiss: () => focus.blur(),
   };
   return input;

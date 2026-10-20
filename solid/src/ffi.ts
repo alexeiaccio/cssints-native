@@ -20,6 +20,10 @@ const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.me
   ui_window_poll: { args: [T.ptr], returns: T.void },
   ui_window_present: { args: [], returns: T.void },
   ui_key_pop: { args: [T.ptr], returns: T.i32 },
+  ui_text_pop: { args: [T.ptr, T.i32], returns: T.i32 },
+  ui_text_input: { args: [T.i32], returns: T.void },
+  ui_clipboard_get: { args: [T.ptr, T.i32], returns: T.i32 },
+  ui_clipboard_set: { args: [T.ptr, T.i32], returns: T.void },
   ui_bounds: { args: [T.ptr, T.i32, T.ptr], returns: T.i32 },
 });
 
@@ -50,6 +54,16 @@ export const ui = {
   windowPresent: s.ui_window_present,
   /** The oldest key event the window polled and nobody popped: down or up, SDL keycode, SDL_Keymod, repeat. */
   keyPop: (out: Int32Array) => s.ui_key_pop(ptr(out)) !== 0,
+  /** The oldest typed run the window polled (UTF-8, a composed character); its byte length, 0 when there is none. */
+  textPop: (out: Uint8Array) => s.ui_text_pop(ptr(out), out.length),
+  /** SDL's text input: only while it runs does the window poll TEXT_INPUT (it needs the window open). */
+  setTextInput: (on: boolean) => s.ui_text_input(on ? 1 : 0),
+  /** The clipboard as UTF-8 into `out`; the byte length written, 0 when it is empty. */
+  clipboardGet: (out: Uint8Array) => s.ui_clipboard_get(ptr(out), out.length),
+  clipboardSet: (text: string) => {
+    const bytes = Buffer.from(text);
+    s.ui_clipboard_set(ptr(bytes), bytes.length);
+  },
   /** x, y, width, height of the element in the last layout, or undefined. */
   bounds: (id: Uint8Array) => {
     const out = new Float32Array(4);

@@ -17,8 +17,11 @@ bun solid/main.ts                                # the window: the mouse is the 
 bun solid/main.ts widgets                        # the Widgets page (360x760): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
 bun solid/main.ts dialog                         # the Dialog page (360x480): Enter opens the settings dialog, Tab cycles it,
                                                  # Escape closes it; Tab to the menu, Enter/Down open it, arrows pick
+bun solid/main.ts form                           # the Text field page (360x450): Tab to the field and type, Shift+arrows
+                                                 # select, Enter submits, Escape blurs, Cmd/Ctrl+C/X/V copy, cut, paste
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
 bun solid/main.ts dialog --keys Tab,Enter --expect solid/frames/dialog-open.png             # keyboard, headless
+bun solid/main.ts form --keys Tab,Tab,text:Ada --expect solid/frames/field-typed.png        # typed text, not a key
 bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
@@ -43,9 +46,10 @@ src/input.ts       SDL keys to names, and where a key goes: an open modal, the f
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
 app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
 app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
-frames/            the Widgets and Dialog pages' stored frames (the Sensors page's are in examples/sensors)
+app/Field.tsx      the Text field page: the headless text field, its caret and selection drawn as runs, and its styles
+frames/            the Widgets, Dialog and Text field pages' stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
-test.ts, widgets.test.ts, dialog.test.ts   the checks the stored frames cannot make
+test.ts, widgets.test.ts, dialog.test.ts, field.test.ts   the checks the stored frames cannot make
 ```
 
 **Styles live where the markup does.** A page may declare its tokens and styles in its own `.tsx`
@@ -75,6 +79,9 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | `ui_save_png(path)`, `ui_diff_png(ref, actual)`, `ui_pixel(x, y)` | the frame out; pixels that differ from a PNG; one pixel |
 | `ui_window_open(title)`, `ui_window_poll(f32[5])`, `ui_window_present()` | SDL3 window (Metal); poll fills pointer x, y, button, quit, the last key's character |
 | `ui_key_pop(i32[4])` | the oldest key event the polls queued: down (1) or up (0), SDL keycode, `SDL_Keymod`, repeat. 0 when none; 64 are kept |
+| `ui_text_pop(bytes)` | the oldest typed run the polls queued: UTF-8, a composed character, never a keycode. Its byte length, 0 when none; 64 runs of up to 128 bytes are kept, a longer run cut at a character boundary |
+| `ui_text_input(on)` | `SDL_StartTextInput` / `SDL_StopTextInput`: only while it runs does the window poll `SDL_EVENT_TEXT_INPUT` (an IME needs it too). The host turns it on while the focused part is a text field (`Input.editing`) |
+| `ui_clipboard_get(bytes)`, `ui_clipboard_set(text, len)` | `SDL_GetClipboardText` / `SDL_SetClipboardText`: UTF-8 in and out (the get writes NUL-terminated bytes and returns their count) |
 | `ui_bounds(id, len, f32[4])` | x, y, width, height of an element in the last layout (tests click at the middle of a part) |
 | `ui_errors()` | Clay errors so far |
 
@@ -121,8 +128,8 @@ Sizing type: 0 fit, 1 grow, 2 percent, 3 fixed (Clay's order).
 **A key.** The window queues every key down and up (repeats too); the host pops them (`ui_key_pop`) after the poll and
 before the frame. `keyName` (`src/input.ts`) gives the names the manager and the parts use: `Tab`, `Shift+Tab`, `Enter`
 (keypad too), `" "` for Space (DOM's `key`; the parts take `"Space"` too), `Escape`, `ArrowLeft/Right/Up/Down`, `Home`,
-`End`, `PageUp`, `PageDown`, a letter as itself in lower case. A Ctrl, Alt or Cmd chord has no name and is dropped, and so is Shift with an
-arrow, Home or End (the manager takes plain keys only). Then `input.down(name, repeat)`:
+`End`, `PageUp`, `PageDown`, `Backspace`, `Delete`, a letter as itself in lower case. A Ctrl, Alt or Cmd chord has no name and is dropped, and so is Shift with an
+arrow, Home or End (the manager takes plain keys only; see below for how a text field still gets the selection chords). Then `input.down(name, repeat)`:
 
 1. Tab and Shift+Tab go to the focus manager. It answers true when it moved focus. Past the last Tab stop it releases
    focus and answers false (a browser would hand Tab to its chrome): the next Tab starts at the first stop again, so the
@@ -132,10 +139,26 @@ arrow, Home or End (the manager takes plain keys only). Then `input.down(name, r
    radio checks, tabs select, a toolbar only moves), a slider changes its value, and PageUp and PageDown are its large
    step. A key a pattern does not have (Home on a radio, Up on a horizontal toolbar) is nobody's. The arrows must not go
    to the manager first: it would move focus and the radio would never check.
-3. Otherwise `input.fallback(name)`, the page level: `t` toggles the theme.
+3. Otherwise `input.fallback(name)`, the page level: `t` toggles the theme — but only while no text field has focus
+   (`!input.editing()`): while one does, a letter is a character to type, and the page keeps its hands off it.
 
 `input.up(name)` goes to the focused part's `keyUp` (Space fires there). `focus.onChange` blurs the part that lost focus
 (dropping an armed Space) and focuses the one that got it, so a part's `focused` follows the manager.
+
+**Typed text** is a second path beside the keys, because a text field takes characters (and composed ones: an IME commits
+a run, an accent composes), not keycodes. While a text field has focus the host starts SDL's text input; `ui_window_poll`
+queues every `SDL_EVENT_TEXT_INPUT` next to the keys, `ui_text_pop` hands them over and `Input.textInput(text)` inserts
+them into the focused part. The key path is untouched: a letter still arrives as `keyDown("a")`, a text field's `keyDown`
+ignores it, and the same character then arrives as text. While a text field has focus, `input.editing()` is true and
+`solid/main.ts` turns SDL's text input on and off with it.
+
+Editing keys stay keys, and `src/input.ts` names them: `Backspace` (SDL 8) and `Delete` (127) are new entries in `KEYS`;
+`selectionName` (used by the host instead of `keyName`) keeps Shift on the arrows, Home and End (`Shift+ArrowLeft`,
+`Shift+Home`), which a text field selects with. `keyName` itself is unchanged — it still refuses a Shift+arrow, and the
+focus manager is only ever handed plain Tab and Shift+Tab, so no other part sees a name it did not have. Cmd/Ctrl+C, X
+and V are chords `keyName` drops, so the host reads them before the name (`CHORD` in `main.ts`) and calls
+`Input.clipboard(op, text)`: the part returns what goes on the clipboard (copy, cut) or takes what comes off it (paste),
+and the bytes go through SDL's clipboard functions in C (`ui_clipboard_get` / `ui_clipboard_set`).
 
 **A modal.** `input.modal` is a key the whole page gives to one owner while it is open: the Dialog page sets it to the
 dialog's trap (`dialog.keyDown`), so Tab and Shift+Tab cycle the dialog's controls and Escape closes it before the focus
@@ -242,6 +265,70 @@ reaching the page behind, `ui.bounds` of the backdrop (the window) and the dialo
 layout unchanged behind the backdrop, and the menu's arrows, Home/End, Escape back to the trigger, Enter and a click
 picking.
 
+## The Text field page
+
+`bun solid/main.ts form` is a form (360x450) around `headless/`'s `createTextField` — a part that is **not a port**: eoa
+has no textfield primitive (`packages/headless` has `combobox` and `spinbutton`, each with its own model) and
+`specs/apg/` has no textbox pattern, so there is no Quint model, mount, scenario or walk behind it and the conformance
+counts in `headless/README.md` are untouched.
+
+```ts
+const name = createTextField({
+  id: "name",                 // one focus entry; the field registers itself in the manager it is given
+  focus: input.focus,         // the page's manager, so Tab reaches it in creation order
+  maxLength: 24,
+  onSubmit: (text) => setSubmitted(text),
+});                           // uncontrolled: pass `value` + `onValueChange` to own the text
+input.bind(name.part);        // keys and focus; the typed characters come through input.textInput
+```
+
+| Field / handler | |
+| --- | --- |
+| `value()`, `part.value`, `part.valueText` | the text (request/commit: `value` + `onValueChange` controlled, `defaultValue` uncontrolled) |
+| `caret()`, `selection()` | the caret's index (0..length) and the run between the anchor and the caret, `{ start, end }` ordered |
+| `part.role`, `part.tabIndex`, `part.focused`, `part.readOnly`, `part.disabled` | the neutral fields (the aria-* the driver reads) |
+| `part.editsText`, `part.insert(text)` | the marker of a part that takes typed characters, and where they go |
+| `insert(text)`, `keyDown(key, repeat?)` | the edits: insert at the caret (replacing the selection, clamped to `maxLength`), Backspace, Delete, arrows, Home/End, Shift+arrows/Home/End, Enter, Escape |
+| `press(x, advance?)`, `setCaret(i)` | the caret from a press (x from the run's start, `advance` px a character), or programmatically |
+| `part.clipboard(op, text)` | copy and cut return the selected text, paste inserts what was on the clipboard |
+| `focus()`, `blur()` | the manager's (Escape blurs) |
+
+**The keys.** Tab reaches the field as one stop. Typing inserts at the caret; Backspace and Delete remove before and
+after it or the whole selection; Left and Right move and collapse a selection to the near end; Home and End go to the
+ends; Shift with Left, Right, Home or End extends from the anchor; Enter calls `onSubmit` (a key repeat does not fire it
+again) and keeps the focus; Escape blurs, and `t` flips the theme again once nothing has focus; Cmd/Ctrl+C, X and V go
+through SDL's clipboard. A press on the field focuses it, and on release its x over the row places the caret.
+
+**The caret and the selection are drawn, not measured per glyph.** Clay has no text attributes, so the value is laid out
+as up to three text runs in a row — before the selection, the selection (a box with the tinted `selection` token and the
+text inside it), after it — with a 1px caret box between them, so Clay puts each run exactly where its glyphs are. The
+caret costs 1px of layout while it is in the middle of the text (browsers overlay it): the runs after it sit 1px right.
+A press is the one place that needs an advance: the page takes the row's width from `ui.bounds` and divides it by the
+text's length (`pressAt` in `app/Field.tsx`), one advance for every character — an approximation for a proportional font,
+which can be a character off in the middle of a word and clamps at both ends.
+
+The page's styles are in `app/Field.tsx`: the page's palette (`:hover` on the field, the same 2px `ring` on `:focus`), the
+`ink` caret and the `selection` tint (`30%` of the accent in the dark theme, `22%` in the light one). The page fits its
+window in its tallest state (a submitted line under the buttons; the test asserts it).
+
+| Frame | Keys | Shows |
+| --- | --- | --- |
+| `field-empty` | Tab Tab | the empty Name field, ringed, with the 1px caret just inside its left padding |
+| `field-typed` | Tab Tab, `text:Ada` | "Ada" and the caret after the last character, `Value: "Ada" (3)` |
+| `field-selection` | Tab Tab, `text:Ada`, Shift+ArrowLeft ×2 | "A" then the caret, then "da" in the tinted run |
+| `field-submit` | Tab Tab, `text:Ada`, Enter | the field still focused and `Submitted: Ada` under the buttons |
+| `field-light` | the same as `field-typed`, light | the light theme: white field, blue ring, dark ink caret |
+
+Checked by `bun solid/field.test.ts`: typed text reaching the focused field only (the read-only one and the command
+button's count unchanged), the theme key not firing while a field is focused and firing after Escape, the caret's box at
+the end of the run and its pixel in the ink, the arrows moving it, the selection's box at the anchor's x with its pixel
+tinted over the surface, Backspace and Delete, a selection replaced by typing, `maxLength` 24, a press at either edge of
+the run, Enter and the Submit button each showing the value once, and the page fitting its window.
+
+**Mutation check.** Inserting at the start of the text instead of at the caret (`take + value()` in
+`headless/src/textfield.ts`) fails seven `headless/test/textfield.test.ts` tests and two asserts of `solid/field.test.ts`
+(the selection replace and the Submit button's text); the file is compared with its backup after the revert.
+
 ## Notes
 
 - `bun solid/main.ts` needs no flag: Bun's `node` condition would load solid-js's server build (signals that never
@@ -249,9 +336,17 @@ picking.
 - `plugin.ts` runs the cssints plugin in a Node child (Vite, and `cssints/clay` as sources with the `development`
   condition), so a `styles.ts` costs about a second at start. A file is a style module by its name: `styles.ts` or
   `*.styles.ts`.
-- Not here yet: images, scrolling, text input, reload on save, JSX types for `box` and `text`, an accessibility tree
+- Not here yet: images, scrolling, reload on save, JSX types for `box` and `text`, an accessibility tree
   (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
   keeps the last button state, so a press and a release inside one poll are lost), the toolbar's menu item on the page
   (the headless `createMenu` is ported; `createMenubar` is not), a vertical radio, tabs or toolbar on the page (the parts
   take the option; the page has the horizontal ones), the tree's multi-select (`selection: 'multiple'` is in the part;
   the page is single) and its type-ahead (not ported), and disabled tree nodes (the part has none).
+- The text field is ours, not a port, and it stops at the simple text model: an index is a UTF-16 code unit (a `selection`
+  can split a surrogate pair's halves when an arrow crosses it, as `selectionStart` does), no bidi handling and no
+  right-to-left runs, no wrapping or multiline (a newline in `insert` is kept as a character; the row is one line that
+  clips at the field's box), no undo/redo, and no IME composition *state* — SDL's text events are already committed
+  characters, so a composition in progress is not drawn as one (the platform's IME window is what shows it, because
+  `ui_text_input` starts SDL's text input). The clipboard is a single UTF-8 string up to 4 KB (the host's buffer), and
+  copy/cut/paste are Cmd or Ctrl chords only (no middle-click or context menu). The caret's 1px is layout, not an
+  overlay: the text after the caret sits 1px right.
