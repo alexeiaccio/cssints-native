@@ -229,6 +229,14 @@ float ui_window_open(const char *title)
 static int keys[KEY_QUEUE][4];
 static int keys_head, keys_len;
 
+// typed text of the polls, in order: the UTF-8 bytes of one SDL_EVENT_TEXT_INPUT (a composed character, not a keycode)
+#define TEXT_QUEUE 64
+// ponytail: 128 bytes an event is more than one IME commit could be; a longer one is cut at a character boundary
+#define TEXT_MAX 128
+static char texts[TEXT_QUEUE][TEXT_MAX];
+static int text_lens[TEXT_QUEUE];
+static int texts_head, texts_len;
+
 /** Pops the oldest key event into out[4] (down or up, SDL keycode, SDL_Keymod, repeat); 0 when there is none. */
 int ui_key_pop(int *out)
 {
@@ -236,6 +244,55 @@ int ui_key_pop(int *out)
     memcpy(out, keys[keys_head], sizeof keys[0]);
     keys_head = (keys_head + 1) % KEY_QUEUE, keys_len--;
     return 1;
+}
+
+/** Copies up to cap bytes of UTF-8 without cutting a character in two: the bytes of a lead byte and its helpers. */
+static int copy_utf8(char *to, const char *from, int len, int cap)
+{
+    if (len > cap) {
+        len = cap;
+        while (len > 0 && ((unsigned char)from[len] & 0xC0) == 0x80) len--;
+    }
+    memcpy(to, from, len);
+    return len;
+}
+
+/** Pops the oldest typed run into out[cap] as UTF-8 and returns its byte length; 0 when there is none. */
+int ui_text_pop(char *out, int cap)
+{
+    if (!texts_len || cap <= 0) return 0;
+    const int n = copy_utf8(out, texts[texts_head], text_lens[texts_head], cap);
+    texts_head = (texts_head + 1) % TEXT_QUEUE, texts_len--;
+    return n;
+}
+
+/** Turns SDL's text input on (1) or off (0) for the window: SDL_EVENT_TEXT_INPUT only arrives while it runs. */
+void ui_text_input(int on)
+{
+    if (!window) return;
+    if (on) SDL_StartTextInput(window);
+    else SDL_StopTextInput(window);
+}
+
+/** The clipboard as UTF-8 into out[cap], NUL-terminated; returns the bytes written (0 when empty or too long). */
+int ui_clipboard_get(char *out, int cap)
+{
+    char *text = SDL_GetClipboardText();
+    if (!text || cap <= 0) {
+        SDL_free(text);
+        return 0;
+    }
+    const int len = copy_utf8(out, text, (int)strlen(text), cap - 1);
+    out[len] = 0;
+    SDL_free(text);
+    return len;
+}
+
+/** Replaces the clipboard with len bytes of UTF-8. */
+void ui_clipboard_set(const char *text, int len)
+{
+    char *copy = strndup(text, len);
+    if (copy) SDL_SetClipboardText(copy), free(copy);
 }
 
 /** Writes the box of the element with that id, in the layout of the last frame, into out[4] (x, y, w, h); 0 when
@@ -250,7 +307,8 @@ int ui_bounds(const char *id, int len, float *out)
 
 /** Drains the window's events into out[5]: pointer x, y, button down, quit, and the last key pressed (its
  *  character; 0 for none). The pointer and the button keep their last values between polls. Every key down and up
- *  (a repeat too) is also queued for ui_key_pop (the oldest are dropped past 64). */
+ *  (a repeat too) is also queued for ui_key_pop (the oldest are dropped past 64), and every typed run for
+ *  ui_text_pop. */
 void ui_window_poll(float *out)
 {
     SDL_Event e;
@@ -263,6 +321,14 @@ void ui_window_poll(float *out)
             k[0] = e.type == SDL_EVENT_KEY_DOWN, k[1] = (int)e.key.key, k[2] = (int)e.key.mod, k[3] = e.key.repeat;
         }
         if (e.type == SDL_EVENT_KEY_DOWN) out[4] = (float)e.key.key;
+        if (e.type == SDL_EVENT_TEXT_INPUT) {
+            const int at = (texts_head + texts_len) % TEXT_QUEUE;
+            const int len = copy_utf8(texts[at], e.text.text, (int)strlen(e.text.text), TEXT_MAX);
+            if (len > 0) {
+                if (texts_len == TEXT_QUEUE) texts_head = (texts_head + 1) % TEXT_QUEUE, texts_len--;
+                text_lens[at] = len, texts_len++;
+            }
+        }
         if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
             e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
             SDL_ConvertEventToRenderCoordinates(renderer, &e);

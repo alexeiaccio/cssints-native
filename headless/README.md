@@ -10,6 +10,10 @@ Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `check
 `menu` (`createMenu`: the plain, checkbox, radio and mixed menus) and `menubar` (`createMenubar`: the roving bar with a
 menu per item and one more level of submenus).
 
+Ours, **not ported**: `createTextField`. eoa has no textfield primitive (`combobox` and `spinbutton` are text-like but
+model their own patterns) and `specs/apg/` has no textbox pattern, so there is no vendor file, mount, scenario or walk
+behind it, and the counts below are unchanged by it.
+
 ```sh
 bun run test        # bun test --conditions browser: scenarios, Quint walks, unit tests
 bun run typecheck   # tsc over src, test and vendor
@@ -39,6 +43,7 @@ the aria-* attributes carried, as fields, plus handlers.
 | `createDialogModal`| `trigger`, `dialog`, `backdrop`, `dismiss` | trigger: `id`, `role: "button"`, `hasPopup: "dialog"`, `expanded`, `controls`, `disabled`, `focused`; dialog: `id`, `role` (`dialog` / `alertdialog`), `modal`, `labelledBy`, `describedBy`, `tabIndex: -1`, `hidden`, `keyDown`; backdrop: `id`, `hidden`, `press`; dismiss: `id`, `role: "button"`, `focused` |
 | `createMenu`       | `trigger`, `menu`, `item(i)`           | trigger: `id`, `role: "button"`, `hasPopup: "menu"`, `expanded`, `controls`, `disabled`, `focused`, `tabIndex: 0`; menu: `id`, `role: "menu"`, `hidden`; item: `id`, `label`, `role` (`menuitem` / `menuitemcheckbox` / `menuitemradio`), `kind`, `checked` (`undefined` on a plain item), `disabled`, `focused`, `tabIndex` |
 | `createMenubar`    | `menubar`, `item(bar)`, `menu(bar)`, `menuItem(bar, item)`, `submenu(bar, item)`, `submenuItem(bar, item, sub)` | menubar: `id`, `role: "menubar"`, `orientation`; bar item: `id`, `role: "menuitem"`, `label`, `hasPopup: "menu"` (only with a menu), `expanded` (`undefined` without a menu), `tabIndex`, `disabled`, `focused`; menu: `id`, `role: "menu"`, `hidden`; menu item and submenu item: `id`, `label`, `hasPopup` (only with a submenu), `expanded`, `tabIndex`, `disabled`, `focused` |
+| `createTextField`  | `part`                                 | `id`, `role: "textbox"`, `value`, `caret`, `selection` (`{start, end}`), `valueText`, `readOnly`, `disabled`, `focused`, `tabIndex: 0`, `editsText` (a part that takes typed characters) |
 
 `id` is a stable string, `<id>-trigger` / `<id>-panel` from the `id` option, or `<kind>-<n>` in creation order when it
 is not given; Clay hashes it, so pass `id` where the order can change. `controls` and `labelledBy` are ids, as
@@ -82,7 +87,23 @@ navigation (the keys stay the spec's horizontal ones), a controlled `value`, typ
 (the spec models none; the parts carry `disabled` and the manager keeps them focusable).
 
 Handlers on every interactive part (`PartHandlers`):
+`createTextField` (`id`, `focus`, `value` + `onValueChange` controlled / `defaultValue` uncontrolled, `maxLength`,
+`readOnly`, `disabled`, `advance`, `onSubmit`) is **ours**: no vendor model, no walk, the platform's `<input type=text>`
+rules written down. It is one focus entry that registers itself in the manager it is given (as the slider does), so the
+page `input.bind(part)`s it. `insert(text)` replaces the selection with `text` at the caret (clamped to `maxLength`
+without cutting a surrogate pair) and leaves the caret after it; `keyDown` takes Backspace, Delete, the arrows, Home and
+End (`Shift+…` on the arrows/Home/End extends the selection from an anchor), Enter (`onSubmit`, once: a repeat does not
+fire it again) and Escape (blur); `press(x, advance)` focuses and puts the caret from a pointer x measured from the text
+run's start, `advance` px a character — a fixed advance, so a proportional font can be a character off, and the ends
+clamp. `clipboard(op, text)` is copy/cut (it returns the selected text) and paste (it inserts). `editsText` is false
+while the field is read-only or disabled: a host uses it to know whether to run its text input at all. An index is a
+UTF-16 code unit, as `selectionStart` is; bidi, wrapping, multiline, undo and IME composition state are not modelled.
+Checked by `test/textfield.test.ts` (26 unit tests: insert at the caret and a run at once, the change callback,
+`maxLength`, surrogate pairs, a selection replaced, Backspace and Delete, Home/End, the arrows collapsing and extending,
+ordered selections, focus/blur and Escape, Enter once, presses, copy/cut/paste, the read-only and disabled fields, a
+controlled host, and the part's fields).
 
+Handlers on every interactive part (`PartHandlers`):
 | Handler                | Meaning                                                                                              |
 | ---------------------- | ---------------------------------------------------------------------------------------------------- |
 | `press()`              | pointer activation: the pointer was released over the part                                           |
@@ -290,6 +311,7 @@ Each run breaks one behaviour, runs the tests, and reverts (the file compared wi
 | dialog     | the trap is off (Tab falls through to the manager)                    | 4 fail: 3 asserts of `solid/dialog.test.ts` (Tab and Shift+Tab leave the dialog, the page's trigger becomes a stop) and the unit test's trap check |
 | menu       | Escape closes without returning focus to the trigger                  | 12 fail: 6 ported scenarios (the ariakit/base-ui focus-restore ones), the pinned count, the walk, 4 asserts of `solid/dialog.test.ts` |
 | menubar    | Escape from a menu sets the roving item to the first bar item (no focus return to the invoker) | 2 fail: the walk (it compares the focused part after every step) and the unit test's Escape check. No scenario draws it (its Escape steps are carried divergences) |
+| textfield  | `insert` puts the text at the start instead of the caret              | 7 fail: `test/textfield.test.ts` (the caret, a run, the change callback, `maxLength`, a replaced selection, the paste, the controlled host) and 2 asserts of `solid/field.test.ts` |
 
 The slider row was the blind spot: eoa's slider spec used to fix `step`, so its tests could not tell a slider that ignores
 it. The step-2 variant in `slider.qnt` closes it; the unit test is no longer the only check. The pressable row is the
@@ -319,8 +341,10 @@ another one. `effect@4.0.0` is the one dependency it needs.
 - **Tree multi-select modifiers**: the primitive handles `Shift+ArrowDown` / `Shift+ArrowUp` and `Control+a` /
   `Meta+a`, but the scenarios that use them carry the `modifiers` extended step field, which the vendored bridge does
   not translate, so they are unsupported (as they are in eoa's browser test).
-- **Overlays** beyond the dialog (tooltip, popover), **text input** and the caret, and the rest of eoa's patterns (they
-  port the same way: a bridge, a mount, a `conformance` call).
+- **Overlays** beyond the dialog (tooltip, popover) and the rest of eoa's patterns (they port the same way: a bridge, a
+  mount, a `conformance` call). **The text field** is ours, not theirs: no textbox pattern exists in `specs/apg/`, so
+  there is nothing to port or check against, and what the model leaves out (bidi, grapheme clusters, wrapping,
+  multiline, undo, IME composition state, drag-select) is listed above.
 - **The Solid → Clay renderer** that consumes the parts (`solid/`), and an accessibility tree from them.
 - Pointer arming (`pointer_down` … `pointer_cancel`) is not a primitive state: `press()` is the release. The spec models
   it, eoa's DOM primitive did not either, and its scenarios on it are `data-pressed` ones, skipped.

@@ -41,6 +41,15 @@ $D --keys Tab,Enter --expect solid/frames/dialog-open.png
 THEME=light $D --keys Tab,Enter --expect solid/frames/dialog-light.png
 $D --keys Tab,Tab,Enter --expect solid/frames/dialog-menu.png
 bun solid/dialog.test.ts
+# the Text field page (the neutral createTextField on SDL's text input): an empty field with the caret, "Ada",
+# a selection with Shift+ArrowLeft twice, a submit, and the light theme; then the caret and selection pixels and the keys
+F="bun solid/main.ts form"
+$F --keys Tab,Tab --expect solid/frames/field-empty.png
+$F --keys Tab,Tab,text:Ada --expect solid/frames/field-typed.png
+$F --keys Tab,Tab,text:Ada,Shift+ArrowLeft,Shift+ArrowLeft --expect solid/frames/field-selection.png
+$F --keys Tab,Tab,text:Ada,Enter --expect solid/frames/field-submit.png
+THEME=light $F --keys Tab,Tab,text:Ada --expect solid/frames/field-light.png
+bun solid/field.test.ts
 # the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
 bun solid/inline.test.ts
 bun solid/main.ts --png "${TMPDIR:-/tmp}/cssints-native-solid.png" --bench 1000

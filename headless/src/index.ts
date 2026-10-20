@@ -100,3 +100,10 @@ export type {
 } from './menubar';
 export { createFocusHost } from './focus-host';
 export type { FocusHost } from './focus-host';
+export { createTextField } from './textfield';
+export type {
+  TextSelection,
+  TextField,
+  TextFieldOptions,
+  TextFieldPart,
+} from './textfield';

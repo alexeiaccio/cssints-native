@@ -112,7 +112,7 @@ Each step ends in a check that fails when it breaks.
    plugin, theme and `:active` picked at run time. Check: `solid/test.sh` renders the Solid page headless and compares
    it with the C page's three ThorVG frames, pixel for pixel (identical), plus the pressed look and click rules. Cost:
    about 0.4 ms a frame on an Apple-silicon Mac, 0.006 ms of it the JS walk and FFI, the rest ThorVG's raster. Left: reload on save,
-   text input, JSX types, the window checked by eye.
+   JSX types, the window checked by eye.
    **Headless widgets** (`headless/`, between Solid and JSX to C). The first widgets of effects-of-atmosphere's
    `@eoa/headless` (button, switch, checkbox, disclosure, radio, tabs, toolbar, slider, tree) with no DOM: Solid 2 signals for state and, instead of aria-*
    attributes, parts of plain fields (`id`, `role`, `checked`, `selected`, `expanded`, `controls`, `tabIndex`, `hidden`, `disabled`, `focused`, `valueNow`, `level`, `posInSet`, `setSize`)
@@ -125,7 +125,7 @@ Each step ends in a check that fails when it breaks.
    menu button with the checkable menus (`createMenu`; the menubar is not ported). Check: the dialog's 161 scenarios (32
    replayed, 112 gated by the bridge — `modal: false`, focus attrs — 17 carried divergences) and five walks; the plain
    menu's 114 (19 / 86 / 9) and the checkable menu's 34 (16 / 14 / 4), with their walks. Left: the menubar, other
-   overlays, text input, tree type-ahead.
+   overlays, tree type-ahead.
    **Done: the Widgets page** (`solid/app/Widgets.tsx`, `bun solid/main.ts widgets`): the headless widgets and the focus
    manager wired to one live page; the page's styles sit in `Widgets.tsx` itself (the loader compiles JSX, then cssints
    on the result, in one child: colocation without a separate `styles.ts`). SDL key events reach JS through a queue in the FFI; a key goes to the focus manager
@@ -183,6 +183,28 @@ Each step ends in a check that fails when it breaks.
    trap, Escape and Cancel, OK's write, the backdrop swallowing a press, `ui.bounds` of both floats, the page's layout
    unchanged, the menu's arrows, Escape back to the trigger, Enter and a click picking). Seen by eye: the four frames.
    The window was started for the page (`--frames 60`, exit 0); its keys and mouse were not tried by hand.
+   **Done: a text field** (`solid/app/Field.tsx`, `bun solid/main.ts form`; `headless/src/textfield.ts`). Text is a
+   second path beside the keys: while a text field has focus the host turns on SDL's text input (`ui_text_input` →
+   `SDL_StartTextInput`/`Stop`), the poll queues every `SDL_EVENT_TEXT_INPUT` next to the keys (a composed run of UTF-8,
+   never a keycode) and `ui_text_pop` hands it to `Input.textInput`, which inserts it into the focused part; the key
+   queue is untouched. Editing keys stay keys — `Backspace` and `Delete` joined the names, and `selectionName` keeps
+   Shift on the arrows/Home/End (the focus manager still only gets plain Tab, and `keyName`'s contract is unchanged) —
+   and Cmd/Ctrl+C/X/V go through SDL's clipboard in C (`ui_clipboard_get`/`set`). The neutral `createTextField` is
+   **ours, not a port**: eoa has no textfield and `specs/apg/` has no textbox, so there is no vendor file, model or walk
+   and the conformance counts did not move. Its part is `role: "textbox"` with `value`, `caret`, `selection`, `valueText`,
+   `readOnly`, `disabled`, `focused`, `tabIndex`, `editsText`; handlers `insert`, `keyDown`, `focus`/`blur`,
+   `press(x, advance)`, `clipboard`. The page draws the caret and the selection by laying the value out as up to three
+   text runs with a 1px caret box between them (Clay has no text attributes, so this needs no per-glyph measure; the
+   caret costs that 1px of layout), and only a press needs an advance: the row's `ui.bounds` width over the text's
+   length, an approximation a proportional font can be a character off. Check: five stored frames (empty with the caret,
+   "Ada", Shift+ArrowLeft×2, submitted, light) and `solid/field.test.ts` (typing reaches only the focused field, the
+   theme key after Escape blurs, the caret's and the selection run's pixels and x, the arrows, Backspace/Delete,
+   `maxLength` 24, a press placing the caret, the read-only field refusing edits, Enter and Submit showing the value
+   once, the page fitting); 26 unit tests in `headless/test/textfield.test.ts`. Inserting at the start instead of at the
+   caret fails seven of them and two asserts of the page test. Seen by eye: the five frames, zoomed; the window started
+   (`--frames 60`, exit 0) but typing in it was not tried by hand. Left: bidi, grapheme clusters (an index is a UTF-16
+   unit), wrapping and multiline, undo, IME composition state (SDL's text events are committed characters), drag-select,
+   and the caret's 1px layout cost.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:
