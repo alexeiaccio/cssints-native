@@ -5,12 +5,13 @@
 // bottom; the five groups are one stop each (radio, tabs, the tree and toolbar are groups of the manager, the slider is
 // one entry).
 import * as css from "cssints/clay" with { type: "cssints" };
-import { createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 
 import {
   createButton,
   createCheckbox,
   createDisclosure,
+  createMenu,
   createRadioGroup,
   createSlider,
   createSwitch,
@@ -184,11 +185,12 @@ const tabPanel = css.cn(
   css.focus(css.border(2, t.color.ring)),
 );
 
-// a slider: the row that takes the focus ring (the rail and the value, one control), the rail to click on, the filled
-// part, the knob, the rest of the rail. The row has no padding or border of its own, so the ring changes no layout and
-// the slider looks the same as before when it is not focused.
-const sliderRow = css.cn(css.gap(4), css.alignItems("center"), css.borderRadius(8), css.focus(css.border(2, t.color.ring)));
-const rail = css.cn(css.width(140), css.height(24), css.alignItems("center"));
+// a slider: the row holds the rail and the value, and the rail (the control) takes the focus ring, so it hugs the rail
+// and the knob and the value text stays outside it. The rail has no padding or border of its own at rest, so the ring
+// changes no layout and the slider looks the same as before when it is not focused (a Clay border draws inside the box,
+// so it moves neither the rail nor the knob).
+const sliderRow = css.cn(css.gap(4), css.alignItems("center"), css.borderRadius(8));
+const rail = css.cn(css.width(140), css.height(24), css.alignItems("center"), css.borderRadius(8), css.focus(css.border(2, t.color.ring)));
 const fill = css.cn(css.height(4), css.borderRadius(2), css.bg(t.color.accent));
 const slack = css.cn(css.width("stretch"), css.height(4), css.borderRadius(2), css.bg(t.color.off));
 const knob = css.cn(
@@ -216,6 +218,31 @@ const tool = css.cn(
 const led = css.cn(css.width("stretch"), css.height(3), css.borderRadius(2), css.bg(t.color.off));
 const ledOn = css.cn(led, css.bg(t.color.accent));
 
+// the toolbar's menu button: a float hung under the item (as the Dialog page's menu) and one row per radio item, the
+// picked one marked with the accent dot
+const formatMenu = css.cn(
+  css.width(120),
+  css.p(6),
+  css.gap(2),
+  css.flexDirection("column"),
+  css.bg(t.color.surface),
+  css.borderRadius(10),
+  css.border(1, t.color.muted),
+  // capturing: a press on the menu does not also reach the page under it
+  css.float({ parent: "format-item-2", attach: { element: "left top", parent: "left bottom" }, offset: { y: 4 }, zIndex: 10, capture: true }),
+);
+const menuItem = css.cn(
+  css.width("stretch"),
+  css.p(5, 8),
+  css.gap(8),
+  css.alignItems("center"),
+  css.borderRadius(6),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
+  css.focus(css.border(2, t.color.ring)),
+);
+const menuDot = css.cn(css.width(8), css.height(8), css.borderRadius(4), css.bg(t.color.accent));
+
 // a settings tree: a row per node, its left padding one step per level (`nodeOf`), the disclosure mark in the accent, the
 // selected row on the panel's surface in the accent too, and the same 2px ring on the roving row. A node inside a
 // collapsed subtree is not rendered at all (`item.hidden`), as the DOM would hide it.
@@ -235,7 +262,7 @@ const nodeMark = css.cn(css.width(14), css.alignItems("center"));
 const nodeMarkText = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
 const labelSelected = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
 
-export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn, tree, node, nodeSelected, nodeMark, nodeMarkText, labelSelected };
+export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn, formatMenu, menuItem, menuDot, tree, node, nodeSelected, nodeMark, nodeMarkText, labelSelected };
 
 /** The window of the page: the disclosure's panel open and the tree's Display open too still fit (5 tree rows at rest,
  * 6 with Brightness), and the panel is not shrunk. 760 is as tall as this page goes: the worst state's content ends at
@@ -248,7 +275,9 @@ const TABS = [
   { name: "Stats", lines: ["Home and End go to the first", "and to the last tab."] },
   { name: "Log", lines: ["Tab goes to the panel next,", "then on to the slider."] },
 ];
-const TOOLS = ["Bold", "Italic", "Underline"];
+// the third tool is a menu button (APG menubar/toolbar): its menu is a float under the item, one radio per size
+const TOOLS = ["Bold", "Italic", "Size"];
+const SIZES = ["Small", "Medium", "Large"];
 const KNOB = 16;
 
 // a settings tree: Network open, Display closed, so the collapsed subtree is the one a key opens. Ids are pre-order, as
@@ -359,11 +388,17 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
     focus,
   });
   const [on, setOn] = createSignal([false, false, false]);
+  // the toolbar's menu button: a radio menu whose trigger is the toolbar's third item (it stays in the toolbar's group, so
+  // the toolbar's roving focus is unchanged). The menu has a manager of its own: its trigger is not a stop of the page.
+  const size = createMenu({ id: "size", items: SIZES, variant: "radio-items", defaultChoice: 1 });
   const format = createToolbar({
     id: "format",
     items: TOOLS,
     focus,
-    onActivate: (i) => setOn((a) => a.map((v, j) => (j === i ? !v : v))),
+    onActivate: (i) => {
+      if (i === 2) size.open() ? size.closeMenu() : size.openMenu();
+      else setOn((a) => a.map((v, j) => (j === i ? !v : v)));
+    },
   });
   // the tree is the last group of the page, so its nodes come after the toolbar in the manager's document order
   const settings = createTree({
@@ -379,9 +414,35 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
     panels: tabs.panels.map((p) => input.bind(p)),
     volume: input.bind(volume.thumb),
     format: format.items.map((i) => input.bind(i)),
+    menu: SIZES.map((_label, i) => input.bind(size.item(i))),
     // the nodes registered themselves in the manager (`focus`), so the page only routes keys and focus to them
     nodes: settings.nodeIds.map((id) => input.bind(settings.item(id))),
   };
+
+  // the menu button's keys: on the toolbar's third item, Down, Up, Enter and Space open the menu (the toolbar keeps its
+  // own arrows); while the menu is open every key is the menu's (arrows, Home/End, Enter picks and closes, Escape closes
+  // and returns focus to the item), and Tab closes it and goes on through the focus manager.
+  input.modal = (name, repeat) => {
+    if (!size.open()) {
+      if (!groupBind.format[2]!.focused) return false;
+      if (name !== "ArrowDown" && name !== "ArrowUp" && name !== "Enter" && name !== " " && name !== "Space") return false;
+      size.focusTrigger();
+      return size.trigger.keyDown(name, repeat);
+    }
+    if (name === "Tab" || name === "Shift+Tab") {
+      size.leave();
+      return false;
+    }
+    size.keyDown(name);
+    return true;
+  };
+  // a click elsewhere (another Tab stop, empty space) leaves the menu behind
+  createEffect(
+    () => groupBind.format[2]!.focused,
+    (focused) => {
+      if (!focused) size.leave();
+    },
+  );
 
   // a press on the rail (or on the knob, which is inside it) sets the value from where the press was and starts a drag:
   // the rail's bounds from the last layout, the thumb's travel being the rail less the knob, so a press on the knob's
@@ -467,8 +528,8 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
         <box style={s.caption}>
           <text style={s.label}>Volume</text>
         </box>
-        <box id={groupBind.volume.id} focused={groupBind.volume.focused} style={s.sliderRow}>
-          <box id="volume-rail" onPress={onRail} style={s.rail}>
+        <box id={groupBind.volume.id} style={s.sliderRow}>
+          <box id="volume-rail" focused={groupBind.volume.focused} onPress={onRail} style={s.rail}>
             <box style={fillOf((volume.value() / 100) * (140 - KNOB))} />
             <box id="volume-knob" style={s.knob} />
             <box style={s.slack} />
@@ -480,11 +541,33 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
       </box>
       <box style={s.tools}>
         {format.items.map((item, i) => (
-          <box {...groupBind.format[i]!} style={s.tool}>
-            <text style={s.label}>{item.label}</text>
-            <box style={on()[i] ? s.ledOn : s.led} />
+          <box
+            {...groupBind.format[i]!}
+            style={s.tool}
+            focused={groupBind.format[i]!.focused && !(i === 2 && size.open())}
+            hasPopup={i === 2 ? "menu" : undefined}
+            expanded={i === 2 ? size.open() : undefined}
+          >
+            <text style={s.label}>{i === 2 ? `Size: ${SIZES[size.choice()]}` : item.label}</text>
+            <box style={(i === 2 ? size.open() : on()[i]) ? s.ledOn : s.led} />
           </box>
         ))}
+        <Show when={size.open()}>
+          <box id={size.menu.id} style={s.formatMenu}>
+            {SIZES.map((name, i) => (
+              <box
+                {...groupBind.menu[i]!}
+                style={s.menuItem}
+                onClick={() => (groupBind.menu[i]!.onClick?.(), size.closeMenu())}
+              >
+                <text style={s.label}>{name}</text>
+                <Show when={size.choice() === i}>
+                  <box style={s.menuDot} />
+                </Show>
+              </box>
+            ))}
+          </box>
+        </Show>
       </box>
       <box style={s.tree}>
         {settings.nodeIds.map((id, i) => {

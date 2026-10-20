@@ -1,0 +1,758 @@
+{
+  "pattern": "menubar",
+  "source": "ariakit",
+  "commit": "404c72257b879569feb08465da4ff9915fd873da",
+  "license": "MIT",
+  "scenarios": [
+    {
+      "id": "menubar.ariakit.click-opens-menu-and-focuses-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L4",
+      "upstreamTest": "show/hide on click",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "expect": { "hidden": ["menu:0"] } },
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "visible": ["menu:0"],
+            "focus": "menu:0",
+            "attrs": { "menuitem:0": { "aria-expanded": "true" } }
+          }
+        },
+        { "event": "click", "target": "menuitem:0/0" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ],
+      "notes": "The popup itself receives focus on pointer open (ariakit keeps focus on the menu container, not the first item)."
+    },
+    {
+      "id": "menubar.ariakit.click-trigger-twice-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L13",
+      "upstreamTest": "show/hide on click (second toggle)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.enter-opens-and-activates-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L19",
+      "upstreamTest": "show/hide on enter",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0/0" } },
+        { "event": "key", "key": "Enter", "target": "menuitem:0/0" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.shift-tab-to-trigger-then-enter-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L27",
+      "upstreamTest": "show/hide on enter (shift-tab back to trigger)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "event": "key", "key": "Shift+Tab", "target": "menu:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0" } },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.space-opens-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L36",
+      "upstreamTest": "show/hide on space",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "Space", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0/0" } },
+        { "event": "key", "key": "Space", "target": "menuitem:0/0" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-down-opens-first-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L53",
+      "upstreamTest": "show/hide on key down (ArrowDown opens)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        {
+          "expect": {
+            "visible": ["menu:0"],
+            "focus": "menuitem:0/0",
+            "attrs": { "menuitem:0": { "aria-expanded": "true" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-right-moves-to-next-menubar-item-and-opens",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L58",
+      "upstreamTest": "show/hide on key down (ArrowRight across the bar)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowRight", "target": "menu:0" },
+        {
+          "expect": {
+            "hidden": ["menu:0"],
+            "visible": ["menu:1"],
+            "focus": "menuitem:1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-up-within-open-menu-moves-to-last-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L63",
+      "upstreamTest": "show/hide on key down (ArrowUp wraps to last item)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "event": "key", "key": "ArrowUp", "target": "menu:1" },
+        { "expect": { "focus": "menuitem:1/2" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.typeahead-in-menubar-finds-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L69",
+      "upstreamTest": "show/hide on key down (typeahead finds Find, submenu not opened)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "event": "type", "text": "f", "target": "menu:1" },
+        { "expect": { "focus": "menuitem:1/2", "hidden": ["submenu:1"] } }
+      ],
+      "notes": "The matching item is a submenu trigger; typing selects it without opening the submenu."
+    },
+    {
+      "id": "menubar.ariakit.arrow-right-opens-submenu-arrow-left-returns",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L72",
+      "upstreamTest": "show/hide on key down (open and close a submenu)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "event": "type", "text": "f", "target": "menu:1" },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:1/2" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/2/0" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:1/2/0" },
+        { "expect": { "hidden": ["submenu:1"], "focus": "menuitem:1/2" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.typeahead-from-trigger-continues-in-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L91",
+      "upstreamTest": "typeahead from menu button continues after focus moves to menu",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "event": "key", "key": "Shift+Tab", "target": "menu:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0" } },
+        { "event": "type", "text": "s", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:0/3" } },
+        { "event": "type", "text": "h", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:0/4" } }
+      ],
+      "notes": "Focus is on the menubar item, but keystrokes are forwarded into the open menu's typeahead."
+    },
+    {
+      "id": "menubar.ariakit.hover-without-click-does-not-open",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L106",
+      "upstreamTest": "show/hide on hover (hover alone does not open)",
+      "apg": "mouse",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:0" },
+        { "expect": { "hidden": ["menu:0"] } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.hover-switches-open-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L109",
+      "upstreamTest": "show/hide on hover (hovering another item opens its menu)",
+      "apg": "mouse",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"] } },
+        { "event": "hover", "target": "menuitem:2" },
+        {
+          "expect": {
+            "hidden": ["menu:0"],
+            "visible": ["menu:2"],
+            "focus": "menuitem:2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.escape-closes-submenu-then-menu-and-restores-focus",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L124",
+      "upstreamTest": "hide on escape",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "event": "type", "text": "sh", "target": "menu:0" },
+        { "event": "key", "key": "Space", "target": "menuitem:0/4" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:0/4/0" } },
+        { "event": "key", "key": "Escape", "target": "menuitem:0/4/0" },
+        {
+          "expect": { "hidden": ["submenu:1", "menu:0"], "focus": "menuitem:0" }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.escape-then-arrow-right-moves-without-opening",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L136",
+      "upstreamTest": "hide on escape (arrow right after escape only moves focus)",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "menu:0" },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1", "hidden": ["menu:0", "menu:1"] } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-right-traverses-from-menu-container",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L188",
+      "upstreamTest": "ArrowRight traverses the menubar from menu",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "focus": "menu:0" } },
+        { "event": "key", "key": "ArrowRight", "target": "menu:0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "hidden": ["menu:0"],
+            "visible": ["menu:1"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-left-traverses-from-menu-container",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L188",
+      "upstreamTest": "ArrowLeft traverses the menubar from menu",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:1" },
+        { "event": "key", "key": "ArrowLeft", "target": "menu:1" },
+        {
+          "expect": {
+            "focus": "menuitem:0",
+            "hidden": ["menu:1"],
+            "visible": ["menu:0"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-right-traverses-from-focused-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L188",
+      "upstreamTest": "ArrowRight traverses the menubar from item",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "horizontal",
+        "items": ["File", "Edit", "View"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menu:0" },
+        { "expect": { "focus": "menuitem:0/0" } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0/0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "visible": ["menu:1"],
+            "hidden": ["menu:0"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-keys-keep-focus-on-input-in-vertical-menubar",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L211",
+      "upstreamTest": "ArrowUp keeps focus on Rename in a vertical menubar",
+      "apg": "extension",
+      "config": {
+        "orientation": "vertical",
+        "items": ["Tools", "Format", "Insert"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "click", "target": "menuitem:0/0" },
+        { "expect": { "focus": "menuitem:0/0", "visible": ["menu:0"] } },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:0/0" },
+        { "expect": { "focus": "menuitem:0/0", "visible": ["menu:0"] } }
+      ],
+      "notes": "The focused item is a text input; the menubar must not steal arrow keys while a textbox has focus."
+    },
+    {
+      "id": "menubar.ariakit.arrow-down-keeps-focus-on-input-in-vertical-menubar",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L211",
+      "upstreamTest": "ArrowDown keeps focus on Rename in a vertical menubar",
+      "apg": "extension",
+      "config": {
+        "orientation": "vertical",
+        "items": ["Tools", "Format", "Insert"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "click", "target": "menuitem:0/0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/0" },
+        { "expect": { "focus": "menuitem:0/0", "visible": ["menu:0"] } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.arrow-down-keeps-focus-on-control-in-vertical-menubar",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L226",
+      "upstreamTest": "ArrowDown keeps focus on Help in a vertical menubar",
+      "apg": "extension",
+      "config": {
+        "orientation": "vertical",
+        "items": ["Tools", "Format", "Insert"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "click", "target": "menuitem:0/1" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/1" },
+        { "expect": { "focus": "menuitem:0/1", "visible": ["menu:0"] } }
+      ],
+      "notes": "The focused item wraps a link/button; activating arrow keys would navigate the page, so they are left alone."
+    },
+    {
+      "id": "menubar.ariakit.vertical-arrow-down-follows-rtl-order",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L242",
+      "upstreamTest": "ArrowDown follows vertical RTL menubar order from the menu container",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "vertical",
+        "direction": "rtl",
+        "items": ["Document", "History", "Zoom"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "focus": "menu:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menu:0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "visible": ["menu:1"],
+            "hidden": ["menu:0"],
+            "attrs": { "menuitem:1": { "aria-expanded": "true" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.vertical-arrow-up-follows-rtl-order",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L242",
+      "upstreamTest": "ArrowUp follows vertical RTL menubar order from the menu container",
+      "apg": "keyboard",
+      "config": {
+        "orientation": "vertical",
+        "direction": "rtl",
+        "items": ["Document", "History", "Zoom"]
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowUp", "target": "menu:0" },
+        { "expect": { "focus": "menuitem:2", "visible": ["menu:2"] } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.vertical-arrow-right-opens-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test.ts#L5",
+      "upstreamTest": "arrow keys open and close the menus of a vertical menubar (ArrowRight opens)",
+      "apg": "keyboard",
+      "config": { "orientation": "vertical", "items": ["File", "Edit"] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0/0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/0" },
+        { "expect": { "focus": "menuitem:0/1" } },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:0/1" },
+        { "expect": { "focus": "menuitem:0/0" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:0/0" },
+        {
+          "expect": {
+            "hidden": ["menu:0"],
+            "focus": "menuitem:0",
+            "attrs": { "menuitem:0": { "aria-expanded": "false" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.vertical-arrow-down-moves-between-items-without-opening",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test.ts#L23",
+      "upstreamTest": "arrow keys open and close the menus of a vertical menubar (ArrowDown between items)",
+      "apg": "keyboard",
+      "config": { "orientation": "vertical", "items": ["File", "Edit"] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "hidden": ["menu:1"],
+            "attrs": { "menuitem:1": { "aria-expanded": "false" } }
+          }
+        },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:0", "hidden": ["menu:0"] } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.submenu-follows-parent-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test.ts#L35",
+      "upstreamTest": "submenus keep following their parent menu",
+      "apg": "keyboard",
+      "config": { "orientation": "vertical", "items": ["File", "Edit"] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/1" },
+        { "expect": { "focus": "menuitem:0/2" } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0/2" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:0/2/0" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:0/2/0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1"],
+            "visible": ["menu:0"],
+            "focus": "menuitem:0/2"
+          }
+        },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:0/2" },
+        { "expect": { "hidden": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.rtl-explicit-placement-wins",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test.ts#L59",
+      "upstreamTest": "an explicit placement wins in a right-to-left menubar",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "direction": "rtl",
+        "items": ["File", "Insert", "Format"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:1" },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:1" },
+        { "expect": { "visible": ["menu:1"], "focus": "menuitem:1/0" } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:1/0" },
+        { "expect": { "hidden": ["menu:1"], "focus": "menuitem:1" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:2", "hidden": ["menu:2"] } }
+      ],
+      "notes": "An explicit submenu placement configured by the consumer overrides the RTL mirroring of the menubar."
+    },
+    {
+      "id": "menubar.ariakit.reopen-submenu-and-shift-tab-back-to-parent",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test-browser.ts#L5",
+      "upstreamTest": "re-open submenu and shift-tab back to the parent menu",
+      "apg": "keyboard",
+      "config": { "orientation": "horizontal", "items": ["File", "Edit"] },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "event": "hover", "target": "menuitem:0/2" },
+        { "event": "hover", "target": "menuitem:0/2/0" },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:0/2/0" },
+        { "expect": { "hidden": ["submenu:1"] } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0/2" },
+        { "expect": { "focus": "menuitem:0/2/1" } },
+        { "event": "key", "key": "Shift+Tab", "target": "menuitem:0/2/1" },
+        {
+          "expect": {
+            "visible": ["menu:0", "submenu:1"],
+            "focus": "menuitem:0/2"
+          }
+        },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0/2" },
+        { "expect": { "hidden": ["submenu:1"], "focus": "menuitem:0/3" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.role-and-orientation-attributes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-composite-orientation/test-chrome.ts#L4",
+      "upstreamTest": "renders role and orientation attributes for composite menubars",
+      "apg": "aria",
+      "config": { "orientation": "horizontal", "items": ["File", "Edit"] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menubar": { "role": "menubar", "aria-orientation": "horizontal" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.vertical-menubar-aria-orientation",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-composite-orientation/test-chrome.ts#L13",
+      "upstreamTest": "renders role and orientation attributes for composite menubars (vertical)",
+      "apg": "aria",
+      "config": { "orientation": "vertical", "items": ["File", "Edit"] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menubar": { "role": "menubar", "aria-orientation": "vertical" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.menubar-omits-aria-orientation-when-not-specified",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-composite-orientation/test-chrome.ts#L19",
+      "upstreamTest": "renders role and orientation attributes for composite menubars (both)",
+      "apg": "aria",
+      "config": { "orientation": "both", "items": ["File", "Edit"] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menubar": { "role": "menubar", "aria-orientation": null }
+            }
+          }
+        }
+      ],
+      "notes": "When both orientations are allowed the menubar has no aria-orientation."
+    },
+    {
+      "id": "menubar.ariakit.non-composite-menubar-has-no-role",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-composite-orientation/test-chrome.ts#L24",
+      "upstreamTest": "omits menubar role and orientation when composite is false",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "composite": false,
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": { "menubar": { "role": null, "aria-orientation": null } }
+          }
+        }
+      ],
+      "notes": "A non-composite menubar is a plain container; items are still reachable but the bar itself carries no menubar role."
+    },
+    {
+      "id": "menubar.ariakit.navigation-hover-shows-menu-without-moving-focus",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-navigation/test-browser.ts#L16",
+      "upstreamTest": "show menus by hovering over items without moving focus",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "variant": "navigation",
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0" } },
+        { "event": "hover", "target": "menuitem:2" },
+        {
+          "expect": {
+            "visible": ["menu:2"],
+            "hidden": ["menu:0"],
+            "focus": "menuitem:0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.navigation-focus-opens-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-navigation/test-browser.ts#L69",
+      "upstreamTest": "show menus by focusing on items",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "variant": "navigation",
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu:0"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.navigation-tab-moves-between-items-and-opens",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-navigation/test-browser.ts#L85",
+      "upstreamTest": "show menus by tabbing through items",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "variant": "navigation",
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "Tab", "target": "menuitem:0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "visible": ["menu:1"],
+            "hidden": ["menu:0"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.navigation-arrow-between-items-after-hovering-subitems",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-navigation/test-browser.ts#L136",
+      "upstreamTest": "moving between menus with arrow keys after hovering over subitems",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "variant": "navigation",
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:0" },
+        { "event": "hover", "target": "menuitem:0/0" },
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "visible": ["menu:1"],
+            "hidden": ["menu:0"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menubar.ariakit.navigation-menu-item-click-follows-link",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-navigation/test-browser.ts#L148",
+      "upstreamTest": "click on menuitem links",
+      "apg": "extension",
+      "config": {
+        "orientation": "horizontal",
+        "variant": "navigation",
+        "items": ["File", "Edit"]
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:0" },
+        { "event": "click", "target": "menuitem:0/0" },
+        { "expect": { "hidden": ["menu:0"] } }
+      ],
+      "notes": "Menu items rendered as links navigate; the link target itself is out of scope."
+    },
+    {
+      "id": "menubar.ariakit.aria-expanded-reflects-open-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test.ts#L20",
+      "upstreamTest": "arrow keys open and close the menus of a vertical menubar (aria-expanded)",
+      "apg": "aria",
+      "config": { "orientation": "vertical", "items": ["File", "Edit"] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        {
+          "expect": { "attrs": { "menuitem:0": { "aria-expanded": "false" } } }
+        },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:0" },
+        {
+          "expect": { "attrs": { "menuitem:0": { "aria-expanded": "true" } } }
+        },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:0/0" },
+        {
+          "expect": { "attrs": { "menuitem:0": { "aria-expanded": "false" } } }
+        }
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/test.ts#L147",
+      "reason": "Caret position inside text inputs is an input-editing concern, not menubar semantics; ariakit #7409."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-7410/test-chrome.ts",
+      "reason": "Positioning: menus opening beside a vertical menubar item is popover placement, out of scope."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menubar-interactions/style.css",
+      "reason": "Styling and animation are out of scope."
+    }
+  ]
+}

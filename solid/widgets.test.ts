@@ -79,6 +79,8 @@ function fresh(options: { disabledSpeeds?: number[] } = {}) {
       this.release();
     },
     pixel: (x: number, y: number) => ui.pixel(x, y).join(","),
+    /** A prop of the box with this id (the part fields a page puts on it, `hasPopup`, `expanded`). */
+    prop: (id: string, name: string) => find((el) => el.props.id === id).map((el) => el.props[name])[0],
     box,
   };
 }
@@ -453,22 +455,30 @@ const ORDER = [
   check("empty space blurs it", p.focused(), null);
 }
 
-// --- the slider's focus ring is the row's (the rail and the value text), not the knob's, and moves no layout
+// --- the slider's focus ring is the rail's (the control), not the row's and not the value text's, and moves no layout
 {
   const p = fresh();
-  const row = p.box("volume-thumb");
-  const edge = () => p.pixel(row[0]! + 1, row[1]! + row[3]! / 2);
-  check("no ring on the row at rest", edge() === "90,170,255,255", false);
-  const before = JSON.stringify(p.box("volume-thumb"));
+  const rail = p.box("volume-rail") as unknown as number[];
+  const row = p.box("volume-thumb") as unknown as number[];
+  const RING = "90,170,255,255";
+  const railEdge = () => p.pixel(rail[0]! + 1, rail[1]! + rail[3]! / 2);
+  // the readout starts a gap (4) after the rail: its top edge is where the row's ring would draw, not where the rail's is
+  const readoutTop = () => p.pixel(rail[0]! + rail[2]! + 4 + 22, rail[1]! + 1);
+  const rowRight = () => p.pixel(row[0]! + row[2]! - 1, row[1]! + 1);
+  check("no ring on the rail at rest", railEdge() === RING, false);
+  const before = JSON.stringify(p.box("volume-rail"));
   for (let n = 0; n < 10; n++) p.tap("Tab");
   check("the slider is focused", p.focused(), "volume-thumb");
-  check("the ring is on the row's edge", edge(), "90,170,255,255");
-  check("the focused row has the same box", JSON.stringify(p.box("volume-thumb")), before);
+  check("the ring is on the rail's edge", railEdge(), RING);
+  check("the rail has the same box when focused", JSON.stringify(p.box("volume-rail")), before);
+  check("the readout has no ring (the ring does not enclose the value)", readoutTop() === RING, false);
+  check("the row has no ring of its own", rowRight() === RING, false);
   const knob = p.box("volume-knob");
   check("no ring on the knob", p.pixel(knob[0]! + 1, knob[1]! + knob[3]! / 2), "150,155,170,255");
 }
 
-// --- the toolbar: arrows and Home/End move (no wrap), Tab back in lands on the item left last; Enter and Space toggle
+// --- the toolbar: arrows and Home/End move (no wrap), Tab back in lands on the item left last; Enter and Space toggle a
+// plain item. The third item is a menu button (the next block): the roving focus treats it as one more item.
 {
   const p = fresh();
   for (let n = 0; n < 11; n++) p.tap("Tab");
@@ -478,13 +488,11 @@ const ORDER = [
   p.tap("ArrowRight");
   check("ArrowRight: the next item", p.focused(), "format-item-1");
   p.tap("ArrowRight"), p.tap("ArrowRight");
-  check("no wrap at the end", p.focused(), "format-item-2");
+  check("no wrap at the end, the menu button included", p.focused(), "format-item-2");
   p.tap("Home");
   check("Home", p.focused(), "format-item-0");
   p.tap("End");
   check("End", p.focused(), "format-item-2");
-  p.tap("ArrowDown");
-  check("ArrowDown is not a key of a horizontal toolbar", [p.focused(), p.unhandled.includes("ArrowDown")], ["format-item-2", true]);
   p.tap("ArrowLeft");
   check("the toolbar is one stop", p.input.focus.tabOrder().filter((id) => id.startsWith("format-")), ["format-item-1"]);
   p.tap("Shift+Tab");
@@ -499,15 +507,83 @@ const ORDER = [
   check("Shift+Tab comes back to the tree", p.focused(), "settings-item-1");
   p.tap("Shift+Tab");
   check("memory the other way too", p.focused(), "format-item-1");
+  p.tap("Home");
   check("nothing is on", p.styled(s.ledOn), 0);
   p.tap("Enter");
-  check("Enter toggles the item (on key down)", p.styled(s.ledOn), 1);
+  check("Enter toggles a plain item (on key down)", p.styled(s.ledOn), 1);
   p.tap(" ");
   check("Space toggles it back", p.styled(s.ledOn), 0);
-  p.click("format-item-2");
-  check("a click focuses and toggles", [p.focused(), p.styled(s.ledOn)], ["format-item-2", 1]);
+  p.click("format-item-0");
+  check("a click focuses and toggles", [p.focused(), p.styled(s.ledOn)], ["format-item-0", 1]);
   p.tap("Shift+Tab"), p.tap("Tab");
-  check("memory follows a click", p.focused(), "format-item-2");
+  check("memory follows a click", p.focused(), "format-item-0");
+}
+
+// --- the toolbar's menu button: it carries aria-haspopup, Down/Up/Enter/Space open its menu on the first/last radio,
+// its arrows and Home/End move and wrap, Enter picks and closes, Escape closes and returns focus to the item, Tab closes
+// and goes on, the chosen size shows in the item's label, and the menu is a float under the item
+{
+  const p = fresh();
+  const RING = "90,170,255,255";
+  const menuItemRing = (index: number) => {
+    const [x, y, , h] = p.box(`size-item-${index}`) as unknown as number[];
+    return p.pixel(x! + 1, y! + h! / 2);
+  };
+  for (let n = 0; n < 11; n++) p.tap("Tab");
+  p.tap("ArrowRight"), p.tap("ArrowRight");
+  check("on the menu button", p.focused(), "format-item-2");
+  check("the menu button carries aria-haspopup", p.prop("format-item-2", "hasPopup"), "menu");
+  check("its label shows the current value", p.texts().includes("Size: Medium"), true);
+  check("the menu is closed", [p.exists("size-menu"), p.prop("format-item-2", "expanded")], [false, false]);
+  p.tap("ArrowDown");
+  check("ArrowDown opens the menu", [p.exists("size-menu"), p.prop("format-item-2", "expanded")], [true, true]);
+  check("opened on the first radio (Small), the menu has the ring", [p.texts().includes("Small"), menuItemRing(0)], [true, RING]);
+  check("the menu button's own ring is off while the menu is open", p.pixel(p.box("format-item-2")[0]! + 1, p.box("format-item-2")[1]! + 20), "36,40,52,255");
+  const menu = p.box("size-menu") as unknown as number[];
+  const item = p.box("format-item-2") as unknown as number[];
+  check("the menu floats under its item, from the item's left edge", [menu[0]!.toFixed(1), menu[1]!.toFixed(1)], [item[0]!.toFixed(1), (item[1]! + item[3]! + 4).toFixed(1)]);
+  check(
+    "the menu is inside the window (not clipped)",
+    [menu[0]! >= 0, menu[0]! + menu[2]! <= size.width, menu[1]! + menu[3]! <= size.height],
+    [true, true, true],
+  );
+  p.tap("ArrowDown");
+  check("ArrowDown moves to the second", menuItemRing(1), RING);
+  p.tap("ArrowDown"), p.tap("ArrowDown");
+  check("Down wraps to the first", menuItemRing(0), RING);
+  p.tap("ArrowUp");
+  check("Up wraps to the last", menuItemRing(2), RING);
+  p.tap("Home");
+  check("Home", menuItemRing(0), RING);
+  p.tap("End");
+  check("End", menuItemRing(2), RING);
+  p.tap("Enter");
+  check("Enter picks the size and closes the menu", [p.exists("size-menu"), p.texts().includes("Size: Large")], [false, true]);
+  check("Escape's counterpart: focus is on the menu button again, ringed", [p.focused(), p.pixel(p.box("format-item-2")[0]! + 1, p.box("format-item-2")[1]! + 20)], ["format-item-2", RING]);
+  // Enter opens it too, and Escape closes it and returns focus to the item
+  p.tap("Enter");
+  check("Enter opens the menu", p.exists("size-menu"), true);
+  p.tap("Escape");
+  check("Escape closes it, focus back on the item", [p.exists("size-menu"), p.focused()], [false, "format-item-2"]);
+  // Up opens on the last radio
+  p.tap("ArrowUp");
+  check("Up opens on the last radio", menuItemRing(2), RING);
+  p.tap("Escape");
+  // Tab closes the menu and goes on through the focus manager
+  p.tap("ArrowDown"), p.tap("Tab");
+  check("Tab closes the menu and moves on", [p.exists("size-menu"), p.focused()], [false, "settings-item-1"]);
+  p.tap("Shift+Tab");
+  // a click on the item toggles the menu; a click on a radio picks it and closes
+  p.click("format-item-2");
+  check("a click opens the menu", p.exists("size-menu"), true);
+  p.click("size-item-1");
+  check("a click picks Medium and closes", [p.exists("size-menu"), p.texts().includes("Size: Medium")], [false, true]);
+  check("the menu takes the press: focus stays on the item, not on the tree under the float", p.focused(), "format-item-2");
+  // a click elsewhere closes it
+  p.click("format-item-2");
+  p.click("wifi");
+  check("a click on another widget leaves the menu behind", p.exists("size-menu"), false);
+  check("the toolbar is still one stop with the menu button in it", p.input.focus.tabOrder().filter((id) => id.startsWith("format-")), ["format-item-2"]);
 }
 
 // --- the tree: one Tab stop, entered at the first visible node; the arrows walk the visible rows only (a collapsed

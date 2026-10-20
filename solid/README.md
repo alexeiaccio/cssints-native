@@ -14,7 +14,8 @@ solid-js 2.0.0-rc.13, @solidjs/universal 2.0.0-rc.13 (createRenderer), @solidjs/
 ```sh
 sh solid/native/build.sh                         # build/solid/libui.dylib (brew sdl3 sdl3_image thorvg)
 bun solid/main.ts                                # the window: the mouse is the pointer, `t` flips the theme
-bun solid/main.ts widgets                        # the Widgets page (360x760): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
+bun solid/main.ts widgets                        # the Widgets page (360x760): Tab, Shift+Tab, arrows, Space, Enter, and on the
+                                                 # toolbar's Size item Down/Up/Enter open the size menu; the mouse (below)
 bun solid/main.ts dialog                         # the Dialog page (360x480): Enter opens the settings dialog, Tab cycles it,
                                                  # Escape closes it; Tab to the menu, Enter/Down open it, arrows pick
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
@@ -140,7 +141,8 @@ arrow, Home or End (the manager takes plain keys only). Then `input.down(name, r
 **A modal.** `input.modal` is a key the whole page gives to one owner while it is open: the Dialog page sets it to the
 dialog's trap (`dialog.keyDown`), so Tab and Shift+Tab cycle the dialog's controls and Escape closes it before the focus
 manager or any part sees them, and everything else falls through to the focused control. `up` still goes to the part
-(Space fires there).
+(Space fires there). The Widgets page uses it for the open size menu (`createMenu.keyDown`; Tab closes it and falls
+through, every other key belongs to the menu) and for opening it from the toolbar's Size item (Down, Up, Enter, Space).
 
 **The pointer.** A box with `onPress` runs it when the button goes down over it, as a browser focuses on mousedown;
 `onClick` still runs on release over the box that was pressed. `input.add(part)` registers the part in the manager
@@ -172,8 +174,8 @@ registration:
 | --- | --- | --- |
 | Speed (radio, `1x 4x 16x`; `disabledSpeeds` marks some disabled, the tests do) | a group: `orientation: both`, `wrap`, no memory, `entry` = the checked radio | Tab enters at the checked one and leaves as one stop; all four arrows move and check (wrapping, a disabled one skipped); Space checks; a click focuses and checks |
 | Tabs (Overview, Stats, Log) | a group: horizontal, `wrap`, no memory, `entry` = the selected tab; the selected panel is a stop after it | Left and Right move and select (automatic), Home and End go to the ends; a click selects; Tab goes to the panel (ring on it), then on |
-| Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail or the knob sets the value and starts a drag: each held frame's x is the ratio from the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value); the ring is the slider's row (rail and value), not the knob |
-| Format (toolbar: Bold, Italic, Underline; each toggles a lamp under its label) | a group: horizontal, no wrap, **memory**, `focusDisabled` | Left and Right, Home and End move; Enter and Space toggle on key down; Tab away and back lands on the item left last |
+| Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail or the knob sets the value and starts a drag: each held frame's x is the ratio from the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value); the ring is the rail's (the control), so it hugs the rail and the knob and the value text stays outside it |
+| Format (toolbar: Bold, Italic and a menu button, Size; the first two toggle a lamp under the label) | a group: horizontal, no wrap, **memory**, `focusDisabled`; the menu button is one more item of it | Left and Right, Home and End move; Enter and Space toggle a plain item on key down; Tab away and back lands on the item left last. On Size, Down, Up, Enter or Space open the size menu (Down and Enter on the first radio, Up on the last), the item's label shows the chosen size and its lamp is lit while the menu is open |
 | Settings (tree: Network open with Wi-Fi and Bluetooth, Display closed with Brightness, Storage a leaf: six nodes) | a group: vertical, no wrap, no memory, `entry` = the first selected visible node, else the first visible; a node in a closed subtree has `tabIndex: -1` | one Tab stop: Tab enters at Network (the first visible row); Up and Down, Home and End walk the visible rows only; Right opens the closed Display and, on an open parent, steps into its first child; Left closes an open parent, or steps to it from a child; Space selects, Enter opens and selects; a click opens, selects and focuses |
 
 The tree is the last group, made after the toolbar, so its rows are the page's last Tab stop: Tab out of the tree
@@ -185,18 +187,28 @@ both themes); a node in a closed subtree is not in the Solid tree at all (`Show 
 neither drawn nor findable. No disabled nodes: the tree part has none, so the page has no dim row look.
 
 The slider's filled part is the one style made at run time (`fillOf`: `s.fill` with a fixed width of the value, kept
-per width); Clay has no flex ratio. The focus ring is the slider row's (`s.sliderRow`: the rail and the value, no
-padding or border at rest), and a drag reuses `Slider.pointer` for each held frame's x: a press sets the value, moving
-with the button down follows the pointer, and a release ends it where it was.
+per width); Clay has no flex ratio. The focus ring is the rail's (`s.rail`: the control, 140x24, no padding or border at
+rest — a Clay border draws inside the box, so it moves neither the rail nor the knob); the row (`s.sliderRow`) holds the
+rail and the value and takes no ring, so the readout stays outside it. A drag reuses `Slider.pointer` for each held
+frame's x: a press sets the value, moving with the button down follows the pointer, and a release ends it where it was.
+
+The size menu is a float hung under the menu button (`formatMenu`: `parent: "format-item-2"`, `attach: { element: "left
+top", parent: "left bottom" }`, 4px down, `zIndex: 10`, **capturing**, so a press on it does not also reach the page under
+it), one row per radio with the accent dot on the chosen one. `createMenu` has a focus manager of its own: its trigger is
+not a stop of the page, the toolbar's item is. The page gives the open menu every key through `input.modal` (Down, Up,
+Enter and Space open it from the item; inside, the arrows and Home/End move, Enter picks and closes, Escape closes and
+returns focus to the item, Tab closes it and goes on), and an effect closes it when the item loses focus to another part.
 
 Checked by `bun solid/widgets.test.ts` (no pixels but a few ring, fill and knob positions: the full Tab order over the
 page and Shift+Tab, one Tab stop for each group, Space on key up and Enter on key down, a held Space once, a click toggling
 and focusing, the disabled box, blur on empty space, select all, the disclosure, the page fitting its window, the radio's
 arrows (wrap, Space, Tab in at the checked one, a disabled radio skipped by arrows, Tab and a click), the tabs' arrows,
-Home, End and panels, the slider's step, page keys, ends, clamping and rail presses, the toolbar's ends, memory and
-toggles, the tree's one stop, its visible-only arrows, Right and Left, Home and End, Space, the ring following the roving
-row, a hidden node skipped, contrast of the ink on every fill, key names, the drag) and by sixteen stored frames in
-`frames/`:
+Home, End and panels, the slider's step, page keys, ends, clamping and rail presses, the rail's ring and the readout
+without one, the toolbar's ends, memory and toggles, the menu button (`aria-haspopup`, Down/Up/Enter open, the menu's
+arrows and Home/End, Enter picking and closing, Escape returning focus to the item, Tab closing and moving on, its float
+under the item, a click picking), the tree's one stop, its visible-only arrows, Right and Left, Home and End, Space, the
+ring following the roving row, a hidden node skipped, contrast of the ink on every fill, key names, the drag) and by
+seventeen stored frames in `frames/`:
 
 | Frame | Keys | Shows |
 | --- | --- | --- |
@@ -207,9 +219,10 @@ row, a hidden node skipped, contrast of the ink on every fill, key names, the dr
 | `widgets-disclosure` | Tab Tab Space Tab×4 Enter | the panel open, everything below it moved down, nothing shrunk |
 | `widgets-radio` | Tab×7 ArrowRight | 4x checked and ringed, 1x cleared |
 | `widgets-tabs` | Tab×8 ArrowRight | Stats selected and ringed, its panel's text |
-| `widgets-slider` | Tab×10 ArrowRight | 45%, the filled part and the knob a step on, ring around the slider's row |
-| `widgets-slider-drag` | a press at a quarter, held, a move to three quarters | the knob near the right end, the fill grown, 80%, ring still on the row |
+| `widgets-slider` | Tab×10 ArrowRight | 45%, the filled part and the knob a step on, the ring around the rail (the `45%` outside it) |
+| `widgets-slider-drag` | a press at a quarter, held, a move to three quarters | the knob near the right end, the fill grown, 80%, the ring on the rail |
 | `widgets-toolbar` | Tab×11 Enter ArrowRight Shift+Tab Tab | Bold's lamp on; Italic ringed after leaving for the slider and coming back |
+| `widgets-toolbar-menu` | Tab×11 ArrowRight×2 ArrowDown | the size menu floating under `Size: Medium`: `Small` ringed (the first item), the accent dot on `Medium`, the item's lamp lit; the menu covers the tree's first rows and is not clipped |
 | `widgets-light` | the disclosure, then the four groups | the light theme: 4x, Stats, 50%, Bold on and ringed |
 | `widgets-tree-focus` | Tab×12 | the ring on Network, the tree's first visible row: Network open with its two children, Display closed, Storage after it |
 | `widgets-tree-down` | Tab×12 ArrowDown | the ring on Wi-Fi, the selection still empty (`ArrowDown` moves, it does not select) |
@@ -251,7 +264,8 @@ picking.
   `*.styles.ts`.
 - Not here yet: images, scrolling, text input, reload on save, JSX types for `box` and `text`, an accessibility tree
   (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
-  keeps the last button state, so a press and a release inside one poll are lost), the toolbar's menu item on the page
-  (the headless `createMenu` is ported; `createMenubar` is not), a vertical radio, tabs or toolbar on the page (the parts
-  take the option; the page has the horizontal ones), the tree's multi-select (`selection: 'multiple'` is in the part;
-  the page is single) and its type-ahead (not ported), and disabled tree nodes (the part has none).
+  keeps the last button state, so a press and a release inside one poll are lost), a menubar on a page (the headless
+  `createMenubar` is ported and checked, but no page uses it: the toolbar's menu button is `createMenu`), a vertical
+  radio, tabs or toolbar on the page (the parts take the option; the page has the horizontal ones), the tree's
+  multi-select (`selection: 'multiple'` is in the part; the page is single) and its type-ahead (not ported), and disabled
+  tree nodes (the part has none).

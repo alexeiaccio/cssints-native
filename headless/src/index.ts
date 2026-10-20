@@ -85,5 +85,18 @@ export type {
   MenuTriggerPart,
   MenuVariant,
 } from './menu';
+export { createMenubar } from './menubar';
+export type {
+  Menubar,
+  MenubarBarItemPart,
+  MenubarItem,
+  MenubarItemInput,
+  MenubarMenuItem,
+  MenubarMenuItemInput,
+  MenubarMenuItemPart,
+  MenubarMenuPart,
+  MenubarOptions,
+  MenubarPart,
+} from './menubar';
 export { createFocusHost } from './focus-host';
 export type { FocusHost } from './focus-host';

@@ -17,7 +17,9 @@ checkout may be on another one.
 
 for `button`, `switch`, `checkbox`, `disclosure`, `radio`, `tabs`, `toolbar`, `slider`, `treeview`, `dialog-modal`,
 `menu-button`, `menu-checkable` (the checkable menus' scenarios are the `menu-button.*.json` files whose config carries a
-`variant`; `menu-menubar` is not vendored, as the menubar is not ported). `@eoa/quint-machine` resolves here through `paths` in `../tsconfig.json`
+`variant`) and `menu-menubar` (its spec is `menu-menubar.qnt`, its scenarios `menubar.ariakit.json` and
+`menubar.base-ui.json`: eoa names them without the `menu-` prefix, and `sync.sh` copies them under that name).
+`@eoa/quint-machine` resolves here through `paths` in `../tsconfig.json`
 (bun reads it); the only dependency is `effect@4.0.0`, the version eoa pins (its `Schema` decodes the scenario files and
 the model).
 

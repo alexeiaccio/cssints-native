@@ -7,7 +7,7 @@ set -e
 EOA="${1:-$HOME/github/effects-of-atmosphere}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 COMMIT="$(cat "$HERE/EOA_COMMIT")"
-P="button switch checkbox disclosure radio tabs toolbar slider treeview dialog-modal menu-button menu-checkable"
+P="button switch checkbox disclosure radio tabs toolbar slider treeview dialog-modal menu-button menu-checkable menu-menubar"
 git -C "$EOA" cat-file -e "$COMMIT^{commit}"
 
 # copy <path under packages/> <destination>: the blob at the pinned commit, byte for byte
@@ -37,4 +37,8 @@ for p in $P; do
   for file in $(scenarios "$p"); do
     copy "${file#packages/}" "$HERE/specs/scenarios/apg/$(basename "$file")"
   done
+done
+# the menubar's scenarios are named `menubar.*.json`, not `menu-menubar.*.json`
+for file in $(scenarios menubar); do
+  copy "${file#packages/}" "$HERE/specs/scenarios/apg/$(basename "$file")"
 done

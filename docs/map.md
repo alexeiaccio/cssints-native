@@ -136,12 +136,12 @@ Each step ends in a check that fails when it breaks.
    was started, its keys and mouse not tried by hand.
    **Done: radio, tabs, slider, toolbar on the page.** The four groups of `headless/` on the same page (360x608), in the one
    shared focus manager: radio, tabs and toolbar are its groups (roving focus, one Tab stop each; the checked radio and
-   the selected tab are the entry, the toolbar remembers its last item), the slider is one entry whose row takes the
-   focus ring and whose rail (or knob) takes a press (`ui_bounds` gives the ratio). A held press drags: each frame's
+   the selected tab are the entry, the toolbar remembers its last item), the slider is one entry whose rail takes the
+   focus ring (the value text stays outside it) and whose rail (or knob) takes a press (`ui_bounds` gives the ratio). A held press drags: each frame's
    pointer x is the ratio, so the knob follows and the value changes continuously; a release ends it. A key goes to the manager only for Tab; an arrow is the focused part's, which moves
    focus and checks or selects. Check: eleven stored frames (the old six regenerated at the new height, their old layout
    unchanged above the new widgets; radio, tabs, slider, slider dragged, toolbar re-entered) and asserts for the full Tab
-   order, one stop a group, arrows, clamping, memory, a disabled radio, the rail, the drag, the ring's row. Not done: the toolbar's menu. Seen by
+   order, one stop a group, arrows, clamping, memory, a disabled radio, the rail, the drag, the rail's ring. Seen by
    eye: the eleven frames; the window was started (`--frames 60`), its keys and mouse not tried by hand.
    **Done: the tree on the page.** The sixth group is `headless/`'s settings tree (360x760 now): Network open with
    Wi-Fi and Bluetooth, Display closed with Brightness, Storage a leaf — six nodes, one level of nesting. It shares the
@@ -156,6 +156,22 @@ Each step ends in a check that fails when it breaks.
    the entry, the visible-only arrows, Right and Left, Home and End, Space, the ring following the roving row, a hidden
    node skipped, the indent, and the page fitting. Seen by eye: all sixteen frames; the window started with
    `--frames 60`, exit 0, its keys and mouse not tried by hand.
+   **Done: the toolbar's menu button, and the menubar in `headless/`.** The toolbar's third item is now a menu button
+   (`createMenu`, radio items Small/Medium/Large, Medium checked): the item's label shows the chosen size, it carries
+   `aria-haspopup`, and Down, Up, Enter or Space open the menu as a capturing float under the item (`css.float({ parent:
+   "format-item-2", ... })`), so the page under it is unreachable by that press. Inside, the arrows and Home/End move,
+   Enter picks and closes, Escape closes and returns focus to the item, Tab closes and goes on; the page routes it through
+   `input.modal`. The toolbar's roving focus treats it as one more item (Left/Right/Home/End, one Tab stop, memory), and
+   the ring is now the slider's rail only, so the value text sits outside it. `headless/` also gained eoa's
+   `createMenubar` (the roving bar, a menu per item, one more level of submenus, the focus manager in place of
+   `document.activeElement`), its `menu-menubar.qnt` bridge, model and both scenario files vendored byte for byte from
+   `09f2185`. Check: 74 menubar scenarios (26 replayed, 30 gated by the bridge, 18 carried divergences) and one walk;
+   breaking Escape's focus return fails the walk and the unit test. The page: a new `widgets-toolbar-menu` frame and
+   asserts for the ring on the rail only (and none on the readout), opening by Down/Up/Enter, the menu's arrows, Home/End,
+   Enter picking, Escape returning focus, Tab closing, the float's `ui.bounds` under the item, a click picking, and the
+   toolbar's roving with the menu button in it. Seen by eye: all seventeen Widgets frames; every frame that shows the
+   toolbar changed with the third item's label (the change is confined to that item), and the two slider frames also with
+   the ring. The window was started (`--frames 60`, exit 0); its keys and mouse were not tried by hand.
    **Done: floating overlays on a page** (`solid/app/Dialog.tsx`, `bun solid/main.ts dialog`). `css.float` is carried
    through `pack.ts` and `ui_open` (the style grew from 32 to 45 floats: what to attach to, the attach points, offset,
    expand, z-index, pointer capture, clip, and the parent id as two 16-bit halves, since a float32 cannot hold Clay's

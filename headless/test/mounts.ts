@@ -8,6 +8,7 @@ import type { Json } from '../vendor/specs/src/scenario';
 import { Unsupported } from '../vendor/specs/src/scenario';
 import type { MenuButtonConfig } from '../vendor/specs/src/apg/menu-button.bridge';
 import type { MenuCheckableConfig } from '../vendor/specs/src/apg/menu-checkable.bridge';
+import type { MenuMenubarConfig } from '../vendor/specs/src/apg/menu-menubar.bridge';
 import type { Mounted, NeutralPart } from './neutral-driver';
 import type { RadioConfig } from '../vendor/specs/src/apg/radio.bridge';
 import type { SliderConfig } from '../vendor/specs/src/apg/slider.bridge';
@@ -22,6 +23,7 @@ import { createCheckbox } from '../src/checkbox';
 import { createDialogModal } from '../src/dialog';
 import { createDisclosure } from '../src/disclosure';
 import { createMenu } from '../src/menu';
+import { createMenubar } from '../src/menubar';
 import { createRadioGroup } from '../src/radio';
 import { createSlider } from '../src/slider';
 import { createSwitch } from '../src/switch';
@@ -1025,6 +1027,84 @@ export const mountCheckableMenu = (config: MenuCheckableConfig): Mounted => {
           case 'hostToggle':
             setHost((packed) => (packed >= 5 ? packed - 5 : packed + 5));
             break;
+          default:
+            throw new Error(`mount has no prop ${name}`);
+        }
+      },
+      dispose,
+    };
+  });
+};
+
+/**
+ * The menubar, the analogue of eoa's `menu.fixture.tsx`: the spec's fixed tree
+ * (File: New, More with a submenu of One and Two, Close; Edit: Undo, Redo;
+ * About with no menu). Targets are full paths (`menuitem:0/1/0`, `submenu:1`),
+ * as eoa's fixture labelled them. The menubar has a private focus manager.
+ */
+export const mountMenubar = (config: MenuMenubarConfig): Mounted => {
+  const events = new Map<string, Json[]>();
+  const labels = config.items;
+  const tree = [
+    {
+      label: labels[0] ?? 'File',
+      menu: [
+        { label: 'New' },
+        { label: 'More', submenu: [{ label: 'One' }, { label: 'Two' }] },
+        { label: 'Close' },
+      ],
+    },
+    {
+      label: labels[1] ?? 'Edit',
+      menu: [{ label: 'Undo' }, { label: 'Redo' }],
+    },
+    { label: labels[2] ?? 'About' },
+  ];
+
+  return createRoot((dispose) => {
+    const menubar = createMenubar({
+      id: 'menubar',
+      items: tree,
+      orientation: config.orientation,
+      onActivate: (path) => {
+        record(events, 'onActivate', path);
+      },
+      onOpenChange: (openTop) => {
+        record(events, 'onOpenChange', openTop);
+      },
+    });
+    const parts: Record<string, NeutralPart> = { menubar: menubar.menubar };
+    menubar.items.forEach((item, bar) => {
+      parts[`menuitem:${bar}`] = menubar.item(bar);
+      parts[`menu:${bar}`] = menubar.menu(bar);
+      item.menu.forEach((menuItem, index) => {
+        parts[`menuitem:${bar}/${index}`] = menubar.menuItem(bar, index);
+        if (menuItem.submenu.length > 0) {
+          parts[`submenu:${bar + 1}`] = menubar.submenu(bar, index);
+          menuItem.submenu.forEach((_sub, sub) => {
+            parts[`menuitem:${bar}/${index}/${sub}`] = menubar.submenuItem(bar, index, sub);
+          });
+        }
+      });
+    });
+    return {
+      parts,
+      events,
+      setProp: (name, value) => {
+        switch (name) {
+          case 'focus':
+            menubar.focusIn();
+            break;
+          case 'leave':
+          case 'blur':
+            menubar.leave();
+            break;
+          case 'key':
+            menubar.keyDown(keyField(value, 'key'));
+            break;
+          case 'typeahead':
+          case 'type':
+            throw new Unsupported('menubar type-ahead is not ported');
           default:
             throw new Error(`mount has no prop ${name}`);
         }
