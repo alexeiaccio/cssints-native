@@ -96,7 +96,7 @@ export function createFrame(root: El, view: View = {}) {
   /** Returns the number of render commands. `render: false` stops after the layout. */
   return (px: number, py: number, down: boolean, dt: number, render = true): number => {
     const t0 = Bun.nanoseconds();
-    ui.begin(px, py, down ? 1 : 0);
+    ui.begin(px, py, down ? 1 : 0, dt);
     events(down, px, py);
     view.onPointer?.(px, py, down);
     flush();

@@ -1,10 +1,11 @@
 // The Solid host, the counterpart of desktop/host.c. Run with Bun:
 //
-//   bun solid/main.ts [sensors|widgets|dialog|form]  a window; the mouse is the pointer, `t` flips the theme; on widgets
-//                                        Tab, Shift+Tab, Space and Enter drive the widgets; on dialog Enter opens the
-//                                        settings dialog and Space opens the menu; on form Tab reaches the text field,
-//                                        typing fills it, Enter submits, Escape blurs (and `t` flips the theme again
-//                                        once no field has focus)
+//   bun solid/main.ts [sensors|widgets|dialog|form|list]  a window; the mouse is the pointer, `t` flips the theme; on
+//                                        widgets Tab, Shift+Tab, Space and Enter drive the widgets; on dialog Enter opens
+//                                        the settings dialog and Space opens the menu; on form Tab reaches the text
+//                                        field, typing fills it, Enter submits, Escape blurs (and `t` flips the theme
+//                                        again once no field has focus); on list Tab reaches the list, Up/Down,
+//                                        PageUp/PageDown and Home/End move the selection and the wheel scrolls it
 //   bun solid/main.ts --png out.png      one frame headless, written to out.png
 //   bun solid/main.ts --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                                        ref.png.actual.png on a difference
@@ -14,6 +15,8 @@
 //                                        (names as the focus manager and the parts take them: Shift+Tab, Enter, ArrowLeft,
 //                                        Space for " "); the last frame is written. A step `text:Ada` is typed text
 //                                        (`Input.textInput`), not a key: --keys Tab,text:Ada,Shift+ArrowLeft
+//   --wheel N                            headless, before --keys: the pointer onto the list's viewport, then N wheel
+//                                        notches down, a frame each (one notch is 10px of Clay's scroll)
 //   --bench N                            headless: N more frames, the ms a frame by phase
 //   --frames N                           window: close after N frames (a smoke test)
 //   THEME=light                          the light theme
@@ -21,8 +24,8 @@ import "./plugin.ts";
 import type { Drag } from "./app/Widgets.tsx";
 
 const page = process.argv[2]?.startsWith("--") ? "sensors" : (process.argv[2] ?? "sensors");
-if (page !== "sensors" && page !== "widgets" && page !== "dialog" && page !== "form") {
-  console.error(`unknown page "${page}": sensors, widgets, dialog or form`);
+if (page !== "sensors" && page !== "widgets" && page !== "dialog" && page !== "form" && page !== "list") {
+  console.error(`unknown page "${page}": sensors, widgets, dialog, form or list`);
   process.exit(1);
 }
 const arg = (name: string, n = 1) => {
@@ -35,6 +38,8 @@ const click = arg("--click", 2)?.map(Number);
 // headless: a drag on the widgets slider: two fractions of the rail (press at the first, held, then move to the second)
 const drag = arg("--drag", 2)?.map(Number);
 const keys = arg("--keys")?.[0]?.split(",");
+// headless: wheel notches down over the list's viewport, a frame each
+const wheel = Number(arg("--wheel")?.[0] ?? 0);
 const bench = Number(arg("--bench")?.[0] ?? 0);
 const maxFrames = Number(arg("--frames")?.[0] ?? Infinity);
 let theme = process.env.THEME === "light" ? "light" : undefined;
@@ -47,9 +52,19 @@ const { Sensors } = await import("./app/Sensors.tsx");
 const { Widgets, size } = await import("./app/Widgets.tsx");
 const { Dialog, size: dialogSize } = await import("./app/Dialog.tsx");
 const { Field, size: fieldSize } = await import("./app/Field.tsx");
+const { List, size: listSize } = await import("./app/List.tsx");
 
 const W = 360;
-const H = page === "widgets" ? size.height : page === "dialog" ? dialogSize.height : page === "form" ? fieldSize.height : 360;
+const H =
+  page === "widgets"
+    ? size.height
+    : page === "dialog"
+      ? dialogSize.height
+      : page === "form"
+        ? fieldSize.height
+        : page === "list"
+          ? listSize.height
+          : 360;
 
 if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
@@ -67,7 +82,9 @@ const dispose = render(
       ? () => Dialog({ input })
       : page === "form"
         ? () => Field({ input })
-        : Sensors,
+        : page === "list"
+          ? () => List({ input })
+          : Sensors,
   root,
 );
 const stats: [number, number, number, number][] = [];
@@ -97,6 +114,16 @@ if (headless) {
   } else {
     // as host.c: a scripted click is frames 0 to 2 at the point, pressed in frame 1, and frame 3 is written
     for (let n = 0; n < (click ? 4 : 1); n++) frame(click?.[0] ?? -1, click?.[1] ?? -1, n === 1, 1 / 60);
+  }
+  // the wheel: Clay scrolls the container under the pointer, so the pointer goes onto the viewport for a frame first
+  if (wheel) {
+    const [left, top, width, height] = ui.bounds(Buffer.from("list")) ?? [W / 2, H / 2, 0, 0];
+    const [px, py] = [left + width / 2, top + height / 2];
+    frame(px, py, false, 1 / 60);
+    for (let n = 0; n < wheel; n++) {
+      ui.wheel(0, -1); // one notch down
+      frame(px, py, false, 1 / 60);
+    }
   }
   for (const key of keys ?? []) {
     // `text:Ada` is typed text, not a key: the same call SDL's TEXT_INPUT events make in the window

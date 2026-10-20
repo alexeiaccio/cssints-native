@@ -20,9 +20,13 @@ bun solid/main.ts dialog                         # the Dialog page (360x480): En
                                                  # Escape closes it; Tab to the menu, Enter/Down open it, arrows pick
 bun solid/main.ts form                           # the Text field page (360x450): Tab to the field and type, Shift+arrows
                                                  # select, Enter submits, Escape blurs, Cmd/Ctrl+C/X/V copy, cut, paste
+bun solid/main.ts list                           # the List page (360x400): the wheel scrolls Clay's own container under
+                                                 # the pointer, Tab then Up/Down, PageUp/PageDown, Home/End move the
+                                                 # selection and scroll it into view
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
 bun solid/main.ts dialog --keys Tab,Enter --expect solid/frames/dialog-open.png             # keyboard, headless
 bun solid/main.ts form --keys Tab,Tab,text:Ada --expect solid/frames/field-typed.png        # typed text, not a key
+bun solid/main.ts list --wheel 32 --expect solid/frames/list-wheel.png      # headless: the pointer onto the list, 32 notches down
 bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
@@ -48,9 +52,10 @@ app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the 
 app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
 app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
 app/Field.tsx      the Text field page: the headless text field, its caret and selection drawn as runs, and its styles
+app/List.tsx       the List page: thirty rows in a viewport Clay clips and scrolls, the wheel and the keys, and its styles
 frames/            the Widgets, Dialog and Text field pages' stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
-test.ts, widgets.test.ts, dialog.test.ts, field.test.ts   the checks the stored frames cannot make
+test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, list.test.ts   the checks the stored frames cannot make
 ```
 
 **Styles live where the markup does.** A page may declare its tokens and styles in its own `.tsx`
@@ -71,7 +76,7 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | Function | |
 | --- | --- |
 | `ui_init(w, h)`, `ui_font(path)` | Clay and a ThorVG canvas; a font by file path, its id is the order of calls. 0 / id on success |
-| `ui_begin(px, py, down)` | pointer for this frame, `Clay_BeginLayout` |
+| `ui_begin(px, py, down, dt)` | pointer for this frame, then Clay's scroll containers move by the wheel this frame took (`Clay_UpdateScrollContainers(false, delta, dt)`, before the layout), then `Clay_BeginLayout` |
 | `ui_open(id, len, f32[45])` | open an element; `id` NULL for none; the style as below |
 | `ui_text(bytes, len, f32[10])` | a text element; the bytes are copied for the frame |
 | `ui_close()` | close the element |
@@ -83,7 +88,10 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | `ui_text_pop(bytes)` | the oldest typed run the polls queued: UTF-8, a composed character, never a keycode. Its byte length, 0 when none; 64 runs of up to 128 bytes are kept, a longer run cut at a character boundary |
 | `ui_text_input(on)` | `SDL_StartTextInput` / `SDL_StopTextInput`: only while it runs does the window poll `SDL_EVENT_TEXT_INPUT` (an IME needs it too). The host turns it on while the focused part is a text field (`Input.editing`) |
 | `ui_clipboard_get(bytes)`, `ui_clipboard_set(text, len)` | `SDL_GetClipboardText` / `SDL_SetClipboardText`: UTF-8 in and out (the get writes NUL-terminated bytes and returns their count) |
-| `ui_bounds(id, len, f32[4])` | x, y, width, height of an element in the last layout (tests click at the middle of a part) |
+| `ui_bounds(id, len, f32[4])` | x, y, width, height of an element in the last layout (tests click at the middle of a part). A scroll container's children are outside its box and their bounds are not clipped |
+| `ui_wheel(dx, dy)` | adds a wheel delta for the next frame, in Clay's units and SDL's sign: positive is away from the user (the content moves down). `ui_window_poll` calls it for every `SDL_EVENT_MOUSE_WHEEL`, and Clay moves the container the pointer is over by 10px a notch |
+| `ui_scroll_offset(id, len)` | the scroll offset of a clip element, in pixels (negative is scrolled down); 0 when there is none |
+| `ui_scroll_to(id, len, y)` | scrolls a clip element to `y`, clamped to its content (the same range Clay clamps to); returns the offset it took |
 | `ui_errors()` | Clay errors so far |
 
 Text is measured by ThorVG, as in `host.c`.
@@ -342,6 +350,39 @@ the run, Enter and the Submit button each showing the value once, and the page f
 `headless/src/textfield.ts`) fails seven `headless/test/textfield.test.ts` tests and two asserts of `solid/field.test.ts`
 (the selection replace and the Submit button's text); the file is compared with its backup after the revert.
 
+## The List page
+
+`bun solid/main.ts list` is thirty rows in a fixed 240px viewport (360x400) that **Clay scrolls itself**. The viewport is
+one clip element (a `Clay_ClipElementConfig` — to Clay any clip element is a scroll container), its header (`Room A3 — 13
+of 30`) and its footer are the viewport's siblings, so they do not move, and the rows beyond the box are clipped by the
+renderer's `SCISSOR_START`, not drawn outside.
+
+| | |
+| --- | --- |
+| The wheel | `ui_window_poll` adds every `SDL_EVENT_MOUSE_WHEEL` to the next frame (`ui_wheel`; SDL's y is positive away from the user, and so is Clay's delta, so no sign is flipped) and `ui_begin` calls `Clay_UpdateScrollContainers(false, delta, dt)` before `Clay_BeginLayout`: Clay moves the container the pointer is over and clamps it to the content's height. `ui_open` hands each clip element its own offset before the declaration is configured (`d.clip.childOffset = Clay_GetScrollOffset()`, as Clay's debug view does), so the layout shifts the rows and the scissor cuts them. Drag scrolling is off: a press belongs to the page's parts. |
+| The keys | one Tab stop. Up and Down move the selection a row, PageUp and PageDown eight (the viewport holds eight), Home and End to the ends, clamped: no wrap, never out of 0..29. Each move calls `ui_scroll_to` with the least it takes to show the row, measured from the row's and the viewport's `ui.bounds` of the last frame (a row above the top or below the bottom pulls the view just enough; one already in view moves nothing). The active row also comes into view when the list takes the focus, as a browser's does. |
+| The selection | a signal: the selected row is the panel's `surface` with its label in the `accent` (the tree's selected node) and takes the same 2px `ring` while the list has the focus. The wheel does not touch it, so scrolling and the selection only agree when a key moves it. |
+
+| Frame | Keys | Shows |
+| --- | --- | --- |
+| `list-top` | | the page at rest: `Room A1 — 1 of 30`, rows 1..8 of 30, no ring |
+| `list-wheel` | `--wheel 32` | rows 12..19 at offset -320: the row above cut to its last 8px and row 19 cut at the viewport's bottom (its glyphs stop at the border), the header still `1 of 30` |
+| `list-select` | Tab, ArrowDown ×12 | `Room A3 — 13 of 30`, the view scrolled by 148px so that row 13 is the last in view, the ring on it |
+| `list-light` | the same, light | the light theme: the white selected row, the blue ring |
+
+Checked by `bun solid/list.test.ts`: the viewport 240 and its rows 28 on a 30px pitch (898 of content), the wheel moving
+Clay's offset 10px a notch with the rows moving by exactly that, the offset stopping at 0 and at -658 (both clamps), the
+clip (a selected row 10px above the viewport: its bounds are not clipped, the pixel just above the viewport is the page
+and the one 5px inside it the row's fill; past the bottom the page again), the keyboard selection scrolling into view
+(12 Downs scroll by 148, PageDown to 21, End to 30 at -658, Home back to 0 and never past the ends), the wheel leaving the
+selection alone and a key bringing it back, the header and footer unmoved by the scroll, the ring's pixels (the row's
+edge is its fill before Tab and the ring after), the wheel only reaching the container under the pointer, and the page
+fitting its window.
+
+**Mutation check.** Dropping `reveal(i)` from `select` (never scroll the selection into view) fails eleven asserts of
+`solid/list.test.ts` (the arrows, PageDown, End and the wheel-then-key move); the file is compared with its backup after
+the revert.
+
 ## Notes
 
 - `bun solid/main.ts` needs no flag: Bun's `node` condition would load solid-js's server build (signals that never
@@ -349,13 +390,16 @@ the run, Enter and the Submit button each showing the value once, and the page f
 - `plugin.ts` runs the cssints plugin in a Node child (Vite, and `cssints/clay` as sources with the `development`
   condition), so a `styles.ts` costs about a second at start. A file is a style module by its name: `styles.ts` or
   `*.styles.ts`.
-- Not here yet: images, scrolling, reload on save, JSX types for `box` and `text`, an accessibility tree
+- Not here yet: images, reload on save, JSX types for `box` and `text`, an accessibility tree
   (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
   keeps the last button state, so a press and a release inside one poll are lost), a menubar on a page (the headless
   `createMenubar` is ported and checked, but no page uses it: the toolbar's menu button is `createMenu`), a vertical
   radio, tabs or toolbar on the page (the parts take the option; the page has the horizontal ones), the tree's
   multi-select (`selection: 'multiple'` is in the part; the page is single) and its type-ahead (not ported), and disabled
-  tree nodes (the part has none).
+  tree nodes (the part has none). The list scrolls one axis and one way: no horizontal scrolling, no momentum (Clay's
+  wheel step is instant; momentum comes from dragging, which the page leaves off), no pointer drag of its contents, no
+  scrollbar to drag (the `n of 30` readout stands in for it), and the wheel reaches the viewport only while the pointer is
+  over it: Clay scrolls the container under the pointer, and the window is not itself a scroll container.
 - The text field is ours, not a port, and it stops at the simple text model: an index is a UTF-16 code unit (a `selection`
   can split a surrogate pair's halves when an arrow crosses it, as `selectionStart` does), no bidi handling and no
   right-to-left runs, no wrapping or multiline (a newline in `insert` is kept as a character; the row is one line that

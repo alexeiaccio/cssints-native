@@ -6,7 +6,8 @@ const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.me
   ui_init: { args: [T.i32, T.i32], returns: T.i32 },
   ui_font: { args: [T.cstring], returns: T.i32 },
   ui_errors: { args: [], returns: T.i32 },
-  ui_begin: { args: [T.f32, T.f32, T.i32], returns: T.void },
+  ui_begin: { args: [T.f32, T.f32, T.i32, T.f32], returns: T.void },
+  ui_wheel: { args: [T.f32, T.f32], returns: T.void },
   ui_pointer_over: { args: [T.ptr, T.i32], returns: T.i32 },
   ui_open: { args: [T.ptr, T.i32, T.ptr], returns: T.void },
   ui_close: { args: [], returns: T.void },
@@ -25,6 +26,8 @@ const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.me
   ui_clipboard_get: { args: [T.ptr, T.i32], returns: T.i32 },
   ui_clipboard_set: { args: [T.ptr, T.i32], returns: T.void },
   ui_bounds: { args: [T.ptr, T.i32, T.ptr], returns: T.i32 },
+  ui_scroll_offset: { args: [T.ptr, T.i32], returns: T.f32 },
+  ui_scroll_to: { args: [T.ptr, T.i32, T.f32], returns: T.f32 },
 });
 
 const cstr = (x: string) => Buffer.from(`${x}\0`);
@@ -34,6 +37,9 @@ export const ui = {
   font: (path: string) => s.ui_font(cstr(path)),
   errors: () => s.ui_errors(),
   begin: s.ui_begin,
+  /** Adds a wheel delta to the next frame: positive scrolls the content down (away from the user), as SDL's wheel y.
+   *  Clay moves the scroll container the pointer is over by it at the next `begin`. */
+  wheel: s.ui_wheel,
   /** Is the pointer over the element with that id (UTF-8, no terminator) in the layout of the last frame? */
   over: (id: Uint8Array) => s.ui_pointer_over(ptr(id), id.length) !== 0,
   open: (id: Uint8Array | undefined, style: Float32Array) => s.ui_open(id ? ptr(id) : null, id?.length ?? 0, ptr(style)),
@@ -63,6 +69,16 @@ export const ui = {
   clipboardSet: (text: string) => {
     const bytes = Buffer.from(text);
     s.ui_clipboard_set(ptr(bytes), bytes.length);
+  },
+  /** The scroll offset of a clip element (negative is scrolled down), 0 when there is none. */
+  scrollOffset: (id: string) => {
+    const bytes = Buffer.from(id);
+    return s.ui_scroll_offset(ptr(bytes), bytes.length);
+  },
+  /** Scrolls a clip element to y, clamped to its content; the offset it took. */
+  scrollTo: (id: string, y: number) => {
+    const bytes = Buffer.from(id);
+    return s.ui_scroll_to(ptr(bytes), bytes.length, y);
   },
   /** x, y, width, height of the element in the last layout, or undefined. */
   bounds: (id: Uint8Array) => {

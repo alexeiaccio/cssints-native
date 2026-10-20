@@ -205,6 +205,25 @@ Each step ends in a check that fails when it breaks.
    (`--frames 60`, exit 0) but typing in it was not tried by hand. Left: bidi, grapheme clusters (an index is a UTF-16
    unit), wrapping and multiline, undo, IME composition state (SDL's text events are committed characters), drag-select,
    and the caret's 1px layout cost.
+   **Done: scrolling** (`solid/app/List.tsx`, `bun solid/main.ts list`). Clay's own scroll containers, driven by the host:
+   `ui_window_poll` adds every SDL wheel event to the frame (`ui_wheel`), `ui_begin` calls
+   `Clay_UpdateScrollContainers(false, delta, dt)` before `Clay_BeginLayout` so the container under the pointer moves by
+   the wheel and clamps itself to its content, and `ui_open` gives each clip element its offset back through
+   `Clay_GetScrollOffset()` before the declaration is configured — the two calls Clay's debug view makes, so the layout
+   shifts the rows and the renderer's scissor cuts what leaves the box. `cssints/clay` needed **no new member**:
+   `css.overflow("hidden")` was already the declaration and `pack.ts`/`ui_open` already carried the two clip flags for the
+   floats. The page is 30 rows in a 240px viewport with the readout and the footer as its siblings, so they stay put; the
+   wheel scrolls, and one Tab stop takes Up/Down, PageUp/PageDown and Home/End, which move the selection (clamped to
+   0..29) and `ui_scroll_to` the view the least it takes to show the moved row, measured from the row's and the
+   viewport's `ui.bounds` of the last frame. Check: four stored frames (the top, 32 notches down
+   with both edges cut, the selection moved to row 13 with the view scrolled to it, the light theme) and
+   `solid/list.test.ts` (10px a notch and the rows moving by exactly that, both clamps, the clip's pixels above the
+   viewport, the keyboard reveal and its bounds, the wheel not moving the selection, the header and footer unmoved, the
+   ring's pixels, the wheel only under the pointer, the page fitting). Dropping the scroll-into-view fails eleven of them.
+   Seen by eye: the four frames; the window started (`--frames 60`, exit 0) but its wheel and keys were not tried by hand
+   (the screen is not visible to me). Left: horizontal scrolling, momentum, dragging the list with the pointer, a
+   scrollbar (the page has a "n of 30" readout instead) and dragging one, and scrolling the page itself when the wheel is
+   outside the viewport (Clay scrolls the container under the pointer only).
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

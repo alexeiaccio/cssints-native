@@ -50,6 +50,15 @@ $F --keys Tab,Tab,text:Ada,Shift+ArrowLeft,Shift+ArrowLeft --expect solid/frames
 $F --keys Tab,Tab,text:Ada,Enter --expect solid/frames/field-submit.png
 THEME=light $F --keys Tab,Tab,text:Ada --expect solid/frames/field-light.png
 bun solid/field.test.ts
+# the List page (Clay's own scroll container: the wheel moves its offset, the keys move the selection and scroll it into
+# view): the top, scrolled by the wheel (both edges cut), the selection moved past the viewport, the light theme
+L="bun solid/main.ts list"
+DOWN12="Tab,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown"
+$L --expect solid/frames/list-top.png
+$L --wheel 32 --expect solid/frames/list-wheel.png
+$L --keys $DOWN12 --expect solid/frames/list-select.png
+THEME=light $L --keys $DOWN12 --expect solid/frames/list-light.png
+bun solid/list.test.ts
 # the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
 bun solid/inline.test.ts
 bun solid/main.ts --png "${TMPDIR:-/tmp}/cssints-native-solid.png" --bench 1000

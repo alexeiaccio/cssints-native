@@ -6,6 +6,7 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +28,12 @@ static int arena_used;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Texture *texture;
+
+// the wheel the polls took, in Clay's units (positive scrolls the content down, the wheel up), for the next ui_begin
+static float wheel_x, wheel_y;
+
+/** Adds a wheel delta to the next frame, in Clay's units: positive scrolls the content down, as SDL's wheel y. */
+void ui_wheel(float dx, float dy) { wheel_x += dx, wheel_y += dy; }
 
 static void on_error(Clay_ErrorData e)
 {
@@ -73,11 +80,17 @@ int ui_errors(void) { return errors; }
 
 static Clay_String slice(const char *s, int len) { return (Clay_String){.length = len, .chars = s}; }
 
-/** Pointer position and button for this frame, then Clay opens the layout. */
-void ui_begin(float px, float py, int down)
+/** Pointer position and button for this frame, then Clay opens the layout. `dt` is the frame's elapsed seconds (Clay's
+ *  scroll momentum step). */
+void ui_begin(float px, float py, int down, float dt)
 {
     arena_used = 0;
     Clay_SetPointerState((Clay_Vector2){px, py}, down);
+    // Clay's scroll containers: the wheel delta of the polls moves the container the pointer is over, before the layout
+    // reads the offsets (ui_open hands each clip element its own through Clay_GetScrollOffset). No drag scrolling: a
+    // press belongs to the page's parts.
+    Clay_UpdateScrollContainers(0, (Clay_Vector2){wheel_x, wheel_y}, dt);
+    wheel_x = 0, wheel_y = 0;
     Clay_BeginLayout();
 }
 
@@ -126,6 +139,9 @@ void ui_open(const char *id, int len, const float *f)
     }
     if (id) Clay__OpenElementWithId(Clay__HashString(slice(id, len), 0));
     else Clay__OpenElement();
+    // a clip element is a scroll container: the offset Clay kept for it across frames is what shifts its children (its
+    // debug view feeds its own the same way). Before Clay__ConfigureOpenElement, which reads this declaration.
+    if (d.clip.horizontal || d.clip.vertical) d.clip.childOffset = Clay_GetScrollOffset();
     Clay__ConfigureOpenElement(d);
 }
 
@@ -305,16 +321,36 @@ int ui_bounds(const char *id, int len, float *out)
     return 1;
 }
 
+/** The scroll offset of the clip element with that id, in pixels (negative is scrolled down); 0 when there is none. */
+float ui_scroll_offset(const char *id, int len)
+{
+    const Clay_ScrollContainerData d = Clay_GetScrollContainerData(Clay__HashString(slice(id, len), 0));
+    return d.found ? d.scrollPosition->y : 0;
+}
+
+/** Scrolls the clip element with that id to y (negative is down), clamped to its content; returns the offset it took. */
+float ui_scroll_to(const char *id, int len, float y)
+{
+    const Clay_ScrollContainerData d = Clay_GetScrollContainerData(Clay__HashString(slice(id, len), 0));
+    if (!d.found) return 0;
+    // the range Clay itself clamps to: from the top to the last screenful of the content
+    const float lowest = -fmaxf(d.contentDimensions.height - d.scrollContainerDimensions.height, 0);
+    d.scrollPosition->y = fminf(fmaxf(y, lowest), 0);
+    return d.scrollPosition->y;
+}
+
 /** Drains the window's events into out[5]: pointer x, y, button down, quit, and the last key pressed (its
  *  character; 0 for none). The pointer and the button keep their last values between polls. Every key down and up
- *  (a repeat too) is also queued for ui_key_pop (the oldest are dropped past 64), and every typed run for
- *  ui_text_pop. */
+ *  (a repeat too) is also queued for ui_key_pop (the oldest are dropped past 64), every typed run for ui_text_pop,
+ *  and every wheel event adds to the next frame's scroll (ui_wheel). */
 void ui_window_poll(float *out)
 {
     SDL_Event e;
     out[3] = 0, out[4] = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_EVENT_QUIT) out[3] = 1;
+        // SDL's wheel y is positive away from the user, and so is Clay's scroll delta: no sign to flip
+        if (e.type == SDL_EVENT_MOUSE_WHEEL) wheel_x += e.wheel.x, wheel_y += e.wheel.y;
         if (e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP) {
             if (keys_len == KEY_QUEUE) keys_head = (keys_head + 1) % KEY_QUEUE, keys_len--;
             int *k = keys[(keys_head + keys_len++) % KEY_QUEUE];
