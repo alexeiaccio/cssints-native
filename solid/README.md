@@ -48,6 +48,7 @@ compile-styles.ts  Node child of the plugin: Vite + cssints, prints a style modu
 compile.tsx.ts     Node child of a `.tsx` whose styles live in it: Solid's JSX first, then cssints on the JS
 stub-bun.mjs       `bun:ffi` for that child: cssints runs the page to read its tokens, and the dylib has no meaning in Node
 src/input.ts       SDL keys to names, and where a key goes: an open modal, the focus manager, the focused part, the page
+a11y.ts            the accessibility tree of a rendered page: snapshot(root) -> { role, name, states, bounds, children }
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
 app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
 app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
@@ -56,6 +57,7 @@ app/List.tsx       the List page: thirty rows in a viewport Clay clips and scrol
 frames/            the Widgets, Dialog and Text field pages' stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
 test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, list.test.ts   the checks the stored frames cannot make
+test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, a11y.test.ts   the checks the stored frames cannot make
 ```
 
 **Styles live where the markup does.** A page may declare its tokens and styles in its own `.tsx`
@@ -383,6 +385,26 @@ fitting its window.
 `solid/list.test.ts` (the arrows, PageDown, End and the wheel-then-key move); the file is compared with its backup after
 the revert.
 
+## The accessibility tree
+
+`solid/a11y.ts` is the tree a screen reader would walk: `snapshot(root, { parts, containers })` returns
+`{ role, name?, value?, states, hasPopup?, level?, bounds?, children }` over the boxes that carry a role, in document
+order. The fields are the box's own props first (`role`, `label`, `labelledBy`, `checked`, `expanded`, `selected`,
+`disabled`, `focused`, `hidden`, `level`, `value`/`valueText`, `hasPopup`, `modal`), then the part `options.parts` names
+by id; a page that spreads its part (`<box {...part}>`) needs no option. `options.containers` adopts a group part whose
+id is on no box at the lowest common ancestor of its items. The name is `label`, else `labelledBy` (the text of the
+element with that id, when the tree has it), else the text of the box's descendants outside nested role nodes; a `text`
+element is never a node. `hidden` prunes a box and its subtree, and so does an open modal dialog (role `dialog` /
+`alertdialog`, `modal` not false): the page behind it is left out of the snapshot, as a screen reader does not see it.
+`bounds` is `ui.bounds(id)` of the last frame, for a box with an id only.
+
+`bun solid/a11y.test.ts` asserts the Widgets, Field and Dialog pages' snapshots, the rules on a hand-built tree, and
+two mutations (no `labelledBy` resolution fails three asserts, no hidden pruning one). The pages spread only
+`input.bind(part)` (`id`, `focused`, `onPress`, `onClick`), so their roles and states come from the parts the test hands
+in: spreading the part itself is the fix. Until then the group boxes (`speed`, `tabs-tablist`, `format`, `settings`)
+carry no id, the field's label has no id and its part no `label`, the disclosure's and the tree's marks are not hidden,
+and the dialog passes no `labelledby`.
+
 ## Notes
 
 - `bun solid/main.ts` needs no flag: Bun's `node` condition would load solid-js's server build (signals that never
@@ -392,6 +414,8 @@ the revert.
   `*.styles.ts`.
 - Not here yet: images, reload on save, JSX types for `box` and `text`, an accessibility tree
   (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
+- Not here yet: images, scrolling, reload on save, JSX types for `box` and `text`,
+  a click quicker than one poll (the window's 16 ms loop
   keeps the last button state, so a press and a release inside one poll are lost), a menubar on a page (the headless
   `createMenubar` is ported and checked, but no page uses it: the toolbar's menu button is `createMenu`), a vertical
   radio, tabs or toolbar on the page (the parts take the option; the page has the horizontal ones), the tree's
