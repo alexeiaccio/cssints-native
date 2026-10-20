@@ -205,6 +205,19 @@ Each step ends in a check that fails when it breaks.
    (`--frames 60`, exit 0) but typing in it was not tried by hand. Left: bidi, grapheme clusters (an index is a UTF-16
    unit), wrapping and multiline, undo, IME composition state (SDL's text events are committed characters), drag-select,
    and the caret's 1px layout cost.
+   **Done: the accessibility tree** (`solid/a11y.ts`, `solid/a11y.test.ts`). `snapshot(root, { parts, containers })`
+   walks the rendered tree in document order and returns `{ role, name, value, states: { checked, expanded, selected,
+   disabled, focused, hidden }, hasPopup, level, bounds, children }`: the name from the part's `label` / `labelledBy`
+   (resolved to the text of the element it names) / the text of its descendants outside nested roles, `hidden` pruned
+   with its subtree, and an open modal dialog's page pruned as a screen reader sees it (not marked hidden); `bounds` is
+   `ui.bounds` of the box's id. Check: the Widgets snapshot (13 page-level roles, the radiogroup/tablist/toolbar/tree
+   groups with their items, the mixed and disabled boxes, the slider's `40%`, `hasPopup` on the menu button, the
+   Tab-focused switch's path), the Field and Dialog pages (the dialog alone while open), a hand-built tree for
+   `labelledBy`, `hidden`, nesting and absent bounds, and two mutations (no `labelledBy` resolution fails 3 asserts, no
+   hidden pruning 1). Left: the pages spread only `input.bind(part)` (`id`, `focused`), so the roles and states in the
+   test come from the parts it hands in, not from the tree — `<box {...part}>` (or `input.bind` carrying the fields) is
+   the fix; the group boxes, the field's label, the disclosure/tree marks (`+`/`-` in the names), the dialog's
+   `labelledby` and the backdrop are the gaps that fix will have to close.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

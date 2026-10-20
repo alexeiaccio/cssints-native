@@ -53,3 +53,4 @@ bun solid/field.test.ts
 # the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
 bun solid/inline.test.ts
 bun solid/main.ts --png "${TMPDIR:-/tmp}/cssints-native-solid.png" --bench 1000
+bun solid/a11y.test.ts
