@@ -1,0 +1,7580 @@
+{
+  "generatedFrom": "../../specs/apg/dialog-modal.qnt",
+  "specHash": "db1fa69011e83f41ee85115a223998acafe7b96112af2254ed80b39d4ad502aa",
+  "module": "apg_dialog_modal",
+  "vars": [
+    {
+      "name": "depth",
+      "type": "int"
+    },
+    {
+      "name": "l1",
+      "type": "int"
+    },
+    {
+      "name": "l2",
+      "type": "int"
+    },
+    {
+      "name": "l3",
+      "type": "int"
+    },
+    {
+      "name": "r1",
+      "type": "int"
+    },
+    {
+      "name": "r2",
+      "type": "int"
+    },
+    {
+      "name": "r3",
+      "type": "int"
+    },
+    {
+      "name": "focus",
+      "type": "int"
+    },
+    {
+      "name": "requests",
+      "type": "int"
+    },
+    {
+      "name": "controlled",
+      "type": "bool"
+    },
+    {
+      "name": "accepting",
+      "type": "bool"
+    },
+    {
+      "name": "valueProp",
+      "type": "bool"
+    },
+    {
+      "name": "requested",
+      "type": "bool"
+    },
+    {
+      "name": "outcome",
+      "type": "str"
+    },
+    {
+      "name": "base",
+      "type": "bool"
+    }
+  ],
+  "defs": {
+    "MAX_DEPTH": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "int",
+        "value": "3"
+      }
+    },
+    "CLOSE_ON_OUTSIDE": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "bool",
+        "value": false
+      }
+    },
+    "tabCount": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "3"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "8"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "d"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "ite",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "d"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "3"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "hasStatic": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "eq",
+        "args": [
+          {
+            "kind": "name",
+            "name": "d"
+          },
+          {
+            "kind": "int",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    "initialFocus": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "d"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "opens": {
+      "kind": "function",
+      "params": [
+        "d",
+        "pos"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "d"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "pos"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "6"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "and",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "d"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "1"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "pos"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "7"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "ite",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "and",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "eq",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "d"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "2"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "eq",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "pos"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "1"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "4"
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "ite",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "and",
+                            "args": [
+                              {
+                                "kind": "app",
+                                "opcode": "eq",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "d"
+                                  },
+                                  {
+                                    "kind": "int",
+                                    "value": "3"
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "app",
+                                "opcode": "eq",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "pos"
+                                  },
+                                  {
+                                    "kind": "int",
+                                    "value": "1"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "int",
+                            "value": "4"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "0"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "closes": {
+      "kind": "function",
+      "params": [
+        "d",
+        "pos"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "or",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "or",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "pos"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "7"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "pos"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "8"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "4"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fallbackPos": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "3"
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "dialogRole": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "str",
+        "value": "dialog"
+      }
+    },
+    "ariaModal": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "bool",
+        "value": true
+      }
+    },
+    "labelling": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "str",
+        "value": "labelledby"
+      }
+    },
+    "hasAccessibleName": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "or",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "labelling",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  }
+                ]
+              },
+              {
+                "kind": "str",
+                "value": "labelledby"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "labelling",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  }
+                ]
+              },
+              {
+                "kind": "str",
+                "value": "label"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ariaDescribedBy": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "neq",
+        "args": [
+          {
+            "kind": "name",
+            "name": "d"
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "contractOk": {
+      "kind": "function",
+      "params": [
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "dialogRole",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  }
+                ]
+              },
+              {
+                "kind": "str",
+                "value": "dialog"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "ariaModal",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "hasAccessibleName",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "isInert": {
+      "kind": "function",
+      "params": [
+        "layer"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ilt",
+        "args": [
+          {
+            "kind": "name",
+            "name": "layer"
+          },
+          {
+            "kind": "name",
+            "name": "depth"
+          }
+        ]
+      }
+    },
+    "dlgAt": {
+      "kind": "function",
+      "params": [
+        "layer"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "layer"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "l1"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "layer"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "layer"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "retAt": {
+      "kind": "function",
+      "params": [
+        "layer"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "layer"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "r1"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "layer"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "layer"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "topDialog": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "dlgAt",
+        "args": [
+          {
+            "kind": "name",
+            "name": "depth"
+          }
+        ]
+      }
+    },
+    "topRet": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "retAt",
+        "args": [
+          {
+            "kind": "name",
+            "name": "depth"
+          }
+        ]
+      }
+    },
+    "focusLayer": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "idiv",
+        "args": [
+          {
+            "kind": "name",
+            "name": "focus"
+          },
+          {
+            "kind": "int",
+            "value": "100"
+          }
+        ]
+      }
+    },
+    "focusPos": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "imod",
+        "args": [
+          {
+            "kind": "name",
+            "name": "focus"
+          },
+          {
+            "kind": "int",
+            "value": "100"
+          }
+        ]
+      }
+    },
+    "validPos": {
+      "kind": "function",
+      "params": [
+        "d",
+        "pos"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "d"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "igte",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "ilte",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "tabCount",
+                    "args": [
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilte",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "pos"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "tabCount",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "d"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "or",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igte",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "pos"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "and",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "pos"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "0"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "hasStatic",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "d"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "validTarget": {
+      "kind": "function",
+      "params": [
+        "target"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "idiv",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "target"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "100"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "validPos",
+            "args": [
+              {
+                "kind": "name",
+                "name": "topDialog"
+              },
+              {
+                "kind": "app",
+                "opcode": "imod",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "target"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "100"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "nextPos": {
+      "kind": "function",
+      "params": [
+        "pos",
+        "n"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "igte",
+            "args": [
+              {
+                "kind": "name",
+                "name": "pos"
+              },
+              {
+                "kind": "name",
+                "name": "n"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          },
+          {
+            "kind": "app",
+            "opcode": "iadd",
+            "args": [
+              {
+                "kind": "name",
+                "name": "pos"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "prevPos": {
+      "kind": "function",
+      "params": [
+        "pos",
+        "n"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "ilte",
+            "args": [
+              {
+                "kind": "name",
+                "name": "pos"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "n"
+          },
+          {
+            "kind": "app",
+            "opcode": "isub",
+            "args": [
+              {
+                "kind": "name",
+                "name": "pos"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "activateOpens": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "opens",
+        "args": [
+          {
+            "kind": "name",
+            "name": "topDialog"
+          },
+          {
+            "kind": "name",
+            "name": "focusPos"
+          }
+        ]
+      }
+    },
+    "activateCloses": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "closes",
+        "args": [
+          {
+            "kind": "name",
+            "name": "topDialog"
+          },
+          {
+            "kind": "name",
+            "name": "focusPos"
+          }
+        ]
+      }
+    },
+    "activateMode": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "activateOpens"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "activateCloses"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "3"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "activateOpens"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "ilt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "MAX_DEPTH"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "activateCloses"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "modeOf": {
+      "kind": "function",
+      "params": [
+        "ev"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "ev"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "ev"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "activateMode"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "ite",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "and",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "CLOSE_ON_OUTSIDE"
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "igt",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "depth"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "0"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "newDlg": {
+      "kind": "function",
+      "params": [
+        "ev"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "ev"
+              },
+              {
+                "kind": "int",
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "activateOpens"
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "nextDepth": {
+      "kind": "function",
+      "params": [
+        "ev"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "modeOf",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "ev"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "isub",
+            "args": [
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "modeOf",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "iadd",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "nextL": {
+      "kind": "function",
+      "params": [
+        "k",
+        "cur",
+        "ev"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "modeOf",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "k"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "modeOf",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "iadd",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "depth"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "1"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "name",
+                        "name": "k"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "newDlg",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "ev"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "and",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "modeOf",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "ev"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "int",
+                            "value": "3"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "depth"
+                          },
+                          {
+                            "kind": "name",
+                            "name": "k"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "newDlg",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "cur"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "nextR": {
+      "kind": "function",
+      "params": [
+        "k",
+        "cur",
+        "ev"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "modeOf",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "k"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "modeOf",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "iadd",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "depth"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "1"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "name",
+                        "name": "k"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "focus"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "and",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "7"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "and",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "igt",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "depth"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "0"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "eq",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "depth"
+                              },
+                              {
+                                "kind": "name",
+                                "name": "k"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "iadd",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "imul",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "isub",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "k"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "1"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "fallbackPos",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "dlgAt",
+                            "args": [
+                              {
+                                "kind": "app",
+                                "opcode": "isub",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "k"
+                                  },
+                                  {
+                                    "kind": "int",
+                                    "value": "1"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "cur"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "nextFocus": {
+      "kind": "function",
+      "params": [
+        "ev",
+        "arg"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "modeOf",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "ev"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "topRet"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "modeOf",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "ev"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "iadd",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "imul",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "iadd",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "depth"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "1"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "100"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "initialFocus",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "newDlg",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "modeOf",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "iadd",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "imul",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "depth"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "initialFocus",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "newDlg",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "ev"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "ite",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "eq",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "ev"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "4"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "iadd",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "imul",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "depth"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "100"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "nextPos",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "focusPos"
+                              },
+                              {
+                                "kind": "app",
+                                "opcode": "tabCount",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "topDialog"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "ite",
+                        "args": [
+                          {
+                            "kind": "app",
+                            "opcode": "eq",
+                            "args": [
+                              {
+                                "kind": "name",
+                                "name": "ev"
+                              },
+                              {
+                                "kind": "int",
+                                "value": "5"
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "iadd",
+                            "args": [
+                              {
+                                "kind": "app",
+                                "opcode": "imul",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "depth"
+                                  },
+                                  {
+                                    "kind": "int",
+                                    "value": "100"
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "app",
+                                "opcode": "prevPos",
+                                "args": [
+                                  {
+                                    "kind": "name",
+                                    "name": "focusPos"
+                                  },
+                                  {
+                                    "kind": "app",
+                                    "opcode": "tabCount",
+                                    "args": [
+                                      {
+                                        "kind": "name",
+                                        "name": "topDialog"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "app",
+                            "opcode": "ite",
+                            "args": [
+                              {
+                                "kind": "app",
+                                "opcode": "and",
+                                "args": [
+                                  {
+                                    "kind": "app",
+                                    "opcode": "eq",
+                                    "args": [
+                                      {
+                                        "kind": "name",
+                                        "name": "ev"
+                                      },
+                                      {
+                                        "kind": "int",
+                                        "value": "6"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "kind": "app",
+                                    "opcode": "validTarget",
+                                    "args": [
+                                      {
+                                        "kind": "name",
+                                        "name": "arg"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "name",
+                                "name": "arg"
+                              },
+                              {
+                                "kind": "name",
+                                "name": "focus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "moved": {
+      "kind": "function",
+      "params": [
+        "a",
+        "b"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "a"
+              },
+              {
+                "kind": "name",
+                "name": "b"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          },
+          {
+            "kind": "int",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "holds": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "controlled"
+          },
+          {
+            "kind": "app",
+            "opcode": "not",
+            "args": [
+              {
+                "kind": "name",
+                "name": "accepting"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "follows": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "controlled"
+          },
+          {
+            "kind": "name",
+            "name": "accepting"
+          }
+        ]
+      }
+    },
+    "verdict": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "name",
+            "name": "holds"
+          },
+          {
+            "kind": "str",
+            "value": "rejected"
+          },
+          {
+            "kind": "str",
+            "value": "accepted"
+          }
+        ]
+      }
+    },
+    "landed": {
+      "kind": "function",
+      "params": [
+        "h",
+        "v",
+        "want"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "name",
+            "name": "h"
+          },
+          {
+            "kind": "name",
+            "name": "v"
+          },
+          {
+            "kind": "name",
+            "name": "want"
+          }
+        ]
+      }
+    },
+    "propAfter": {
+      "kind": "function",
+      "params": [
+        "f",
+        "p",
+        "want"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "name",
+            "name": "f"
+          },
+          {
+            "kind": "name",
+            "name": "want"
+          },
+          {
+            "kind": "name",
+            "name": "p"
+          }
+        ]
+      }
+    },
+    "openNow": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "igt",
+        "args": [
+          {
+            "kind": "name",
+            "name": "depth"
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "wantOpenEscape": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "igt",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "wantOpenActivate": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "igt",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "wantOpenOutside": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "igt",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              }
+            ]
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "rejectEscape": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "holds"
+          },
+          {
+            "kind": "app",
+            "opcode": "neq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "wantOpenEscape"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rejectActivate": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "holds"
+          },
+          {
+            "kind": "app",
+            "opcode": "neq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "wantOpenActivate"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rejectOutside": {
+      "kind": "function",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "holds"
+          },
+          {
+            "kind": "app",
+            "opcode": "neq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "wantOpenOutside"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "setDepth": {
+      "kind": "function",
+      "params": [
+        "c",
+        "v",
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "name",
+            "name": "c"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "v"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "d"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "d"
+          }
+        ]
+      }
+    },
+    "openingSet": {
+      "kind": "function",
+      "params": [
+        "c",
+        "v",
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "c"
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "name",
+                "name": "v"
+              },
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "closingSet": {
+      "kind": "function",
+      "params": [
+        "c",
+        "v",
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "name",
+            "name": "c"
+          },
+          {
+            "kind": "app",
+            "opcode": "and",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "not",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "toggleDepth": {
+      "kind": "function",
+      "params": [
+        "c",
+        "d"
+      ],
+      "body": {
+        "kind": "app",
+        "opcode": "ite",
+        "args": [
+          {
+            "kind": "name",
+            "name": "c"
+          },
+          {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "d"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "kind": "name",
+            "name": "d"
+          }
+        ]
+      }
+    },
+    "FocusInTopLayer": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "eq",
+        "args": [
+          {
+            "kind": "name",
+            "name": "focusLayer"
+          },
+          {
+            "kind": "name",
+            "name": "depth"
+          }
+        ]
+      }
+    },
+    "NoFocusInInertLayer": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "not",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "isInert",
+            "args": [
+              {
+                "kind": "name",
+                "name": "focusLayer"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "FocusPositionValid": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "validPos",
+        "args": [
+          {
+            "kind": "name",
+            "name": "topDialog"
+          },
+          {
+            "kind": "name",
+            "name": "focusPos"
+          }
+        ]
+      }
+    },
+    "DepthBounded": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "igte",
+            "args": [
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "ilte",
+            "args": [
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "name",
+                "name": "MAX_DEPTH"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "StackContiguous": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igte",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "igt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l1"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "ilt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l1"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "r1"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igte",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "igt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l2"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "ilt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l2"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "r2"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "igte",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "igt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l3"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "ilt",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "3"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "l3"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "r3"
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "ReturnTargetsValid": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "idiv",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r1"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "0"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "validPos",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "dlgAt",
+                        "args": [
+                          {
+                            "kind": "int",
+                            "value": "0"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "imod",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r1"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "idiv",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r2"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "validPos",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "dlgAt",
+                        "args": [
+                          {
+                            "kind": "int",
+                            "value": "1"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "imod",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r2"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "and",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "eq",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "idiv",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r3"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "int",
+                        "value": "2"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "validPos",
+                    "args": [
+                      {
+                        "kind": "app",
+                        "opcode": "dlgAt",
+                        "args": [
+                          {
+                            "kind": "int",
+                            "value": "2"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "imod",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "r3"
+                          },
+                          {
+                            "kind": "int",
+                            "value": "100"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "OpenDialogsHonourContract": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "contractOk",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "contractOk",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "l2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "or",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "ilt",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "contractOk",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "l3"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "InitialFocusConfigValid": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "and",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "validPos",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "app",
+                "opcode": "initialFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "validPos",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "app",
+                "opcode": "initialFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "validPos",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "app",
+                "opcode": "initialFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "validPos",
+            "args": [
+              {
+                "kind": "int",
+                "value": "4"
+              },
+              {
+                "kind": "app",
+                "opcode": "initialFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "4"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "RequestsNonNegative": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "igte",
+        "args": [
+          {
+            "kind": "name",
+            "name": "requests"
+          },
+          {
+            "kind": "int",
+            "value": "0"
+          }
+        ]
+      }
+    },
+    "ControlledFollowsProp": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "or",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "not",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "openNow"
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "RejectedRequestUntouched": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "or",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "not",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "outcome"
+                  },
+                  {
+                    "kind": "str",
+                    "value": "rejected"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "openNow"
+              },
+              {
+                "kind": "name",
+                "name": "base"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "AcceptedRequestCommits": {
+      "kind": "invariant",
+      "params": [],
+      "body": {
+        "kind": "app",
+        "opcode": "or",
+        "args": [
+          {
+            "kind": "app",
+            "opcode": "not",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "outcome"
+                  },
+                  {
+                    "kind": "str",
+                    "value": "accepted"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "app",
+            "opcode": "eq",
+            "args": [
+              {
+                "kind": "name",
+                "name": "openNow"
+              },
+              {
+                "kind": "name",
+                "name": "requested"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "actions": [
+    {
+      "name": "init",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "int",
+            "value": "1"
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "int",
+            "value": "0"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "str",
+            "value": "none"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "bool",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "escape",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextDepth",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectEscape"
+              },
+              {
+                "kind": "name",
+                "name": "focus"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "app",
+            "opcode": "iadd",
+            "args": [
+              {
+                "kind": "name",
+                "name": "requests"
+              },
+              {
+                "kind": "app",
+                "opcode": "moved",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenEscape"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "propAfter",
+            "args": [
+              {
+                "kind": "name",
+                "name": "follows"
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenEscape"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenEscape"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "requested"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenEscape"
+              }
+            ]
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenEscape"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "outcome"
+              },
+              {
+                "kind": "name",
+                "name": "verdict"
+              }
+            ]
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenEscape"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "base"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "activate",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextDepth",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectActivate"
+              },
+              {
+                "kind": "name",
+                "name": "focus"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "app",
+            "opcode": "iadd",
+            "args": [
+              {
+                "kind": "name",
+                "name": "requests"
+              },
+              {
+                "kind": "app",
+                "opcode": "moved",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenActivate"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "propAfter",
+            "args": [
+              {
+                "kind": "name",
+                "name": "follows"
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenActivate"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenActivate"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "requested"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenActivate"
+              }
+            ]
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenActivate"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "outcome"
+              },
+              {
+                "kind": "name",
+                "name": "verdict"
+              }
+            ]
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenActivate"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "base"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "pointer_outside",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextDepth",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextL",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r1"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "2"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r2"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextR",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "rejectOutside"
+              },
+              {
+                "kind": "name",
+                "name": "focus"
+              },
+              {
+                "kind": "app",
+                "opcode": "nextFocus",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "3"
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "app",
+            "opcode": "iadd",
+            "args": [
+              {
+                "kind": "name",
+                "name": "requests"
+              },
+              {
+                "kind": "app",
+                "opcode": "moved",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenOutside"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "propAfter",
+            "args": [
+              {
+                "kind": "name",
+                "name": "follows"
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenOutside"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenOutside"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "requested"
+              },
+              {
+                "kind": "name",
+                "name": "wantOpenOutside"
+              }
+            ]
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenOutside"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "outcome"
+              },
+              {
+                "kind": "name",
+                "name": "verdict"
+              }
+            ]
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "eq",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "openNow"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "wantOpenOutside"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "base"
+              },
+              {
+                "kind": "name",
+                "name": "openNow"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "tab",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "int",
+                "value": "4"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextFocus",
+            "args": [
+              {
+                "kind": "int",
+                "value": "4"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "valueProp"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shift_tab",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "int",
+                "value": "5"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextFocus",
+            "args": [
+              {
+                "kind": "int",
+                "value": "5"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "valueProp"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "focus_attempt",
+      "nondet": {
+        "name": "target",
+        "kind": "int",
+        "pool": [
+          "0",
+          "1",
+          "3",
+          "4",
+          "100",
+          "101",
+          "102",
+          "106",
+          "108",
+          "109",
+          "200",
+          "201",
+          "202",
+          "203",
+          "300",
+          "301",
+          "302"
+        ]
+      },
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "int",
+                "value": "6"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextFocus",
+            "args": [
+              {
+                "kind": "int",
+                "value": "6"
+              },
+              {
+                "kind": "name",
+                "name": "target"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "valueProp"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "remove_invoker",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextDepth",
+            "args": [
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "l1"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextL",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "name",
+                "name": "r1"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "2"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextR",
+            "args": [
+              {
+                "kind": "int",
+                "value": "3"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              },
+              {
+                "kind": "int",
+                "value": "7"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "nextFocus",
+            "args": [
+              {
+                "kind": "int",
+                "value": "7"
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "valueProp"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "setValue",
+      "nondet": {
+        "name": "v",
+        "kind": "bool",
+        "pool": [
+          true,
+          false
+        ]
+      },
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "app",
+                "opcode": "setDepth",
+                "args": [
+                  {
+                    "kind": "bool",
+                    "value": true
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "v"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "v"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "v"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "iadd",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "100"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "initialFocus",
+                    "args": [
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "v"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "focus"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "setDepth",
+                    "args": [
+                      {
+                        "kind": "bool",
+                        "value": true
+                      },
+                      {
+                        "kind": "name",
+                        "name": "v"
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "str",
+                "value": "none"
+              },
+              {
+                "kind": "name",
+                "name": "outcome"
+              }
+            ]
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "hostToggle",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "app",
+                "opcode": "toggleDepth",
+                "args": [
+                  {
+                    "kind": "bool",
+                    "value": true
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "depth"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "not",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "openNow"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "l1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "l2"
+              }
+            ]
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "l3"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "1"
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "not",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "openNow"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "r1"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "r2"
+              }
+            ]
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "closingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "int",
+                "value": "0"
+              },
+              {
+                "kind": "name",
+                "name": "r3"
+              }
+            ]
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "app",
+                "opcode": "openingSet",
+                "args": [
+                  {
+                    "kind": "name",
+                    "name": "controlled"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "not",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "openNow"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "name",
+                    "name": "depth"
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "iadd",
+                "args": [
+                  {
+                    "kind": "int",
+                    "value": "100"
+                  },
+                  {
+                    "kind": "app",
+                    "opcode": "initialFocus",
+                    "args": [
+                      {
+                        "kind": "int",
+                        "value": "1"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "app",
+                "opcode": "ite",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "closingSet",
+                    "args": [
+                      {
+                        "kind": "name",
+                        "name": "controlled"
+                      },
+                      {
+                        "kind": "app",
+                        "opcode": "not",
+                        "args": [
+                          {
+                            "kind": "name",
+                            "name": "openNow"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "1"
+                  },
+                  {
+                    "kind": "name",
+                    "name": "focus"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "app",
+                "opcode": "igt",
+                "args": [
+                  {
+                    "kind": "app",
+                    "opcode": "toggleDepth",
+                    "args": [
+                      {
+                        "kind": "bool",
+                        "value": true
+                      },
+                      {
+                        "kind": "name",
+                        "name": "depth"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "int",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "kind": "name",
+                "name": "valueProp"
+              }
+            ]
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "app",
+            "opcode": "ite",
+            "args": [
+              {
+                "kind": "name",
+                "name": "controlled"
+              },
+              {
+                "kind": "str",
+                "value": "none"
+              },
+              {
+                "kind": "name",
+                "name": "outcome"
+              }
+            ]
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "control",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "name",
+            "name": "depth"
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "name",
+            "name": "l1"
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "name",
+            "name": "l2"
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "name",
+            "name": "l3"
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "name",
+            "name": "r1"
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "name",
+            "name": "r2"
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "name",
+            "name": "r3"
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "name",
+            "name": "focus"
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "bool",
+            "value": true
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "name",
+            "name": "accepting"
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "openNow"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    },
+    {
+      "name": "acceptRequests",
+      "assignments": [
+        {
+          "field": "depth",
+          "rhs": {
+            "kind": "name",
+            "name": "depth"
+          }
+        },
+        {
+          "field": "l1",
+          "rhs": {
+            "kind": "name",
+            "name": "l1"
+          }
+        },
+        {
+          "field": "l2",
+          "rhs": {
+            "kind": "name",
+            "name": "l2"
+          }
+        },
+        {
+          "field": "l3",
+          "rhs": {
+            "kind": "name",
+            "name": "l3"
+          }
+        },
+        {
+          "field": "r1",
+          "rhs": {
+            "kind": "name",
+            "name": "r1"
+          }
+        },
+        {
+          "field": "r2",
+          "rhs": {
+            "kind": "name",
+            "name": "r2"
+          }
+        },
+        {
+          "field": "r3",
+          "rhs": {
+            "kind": "name",
+            "name": "r3"
+          }
+        },
+        {
+          "field": "focus",
+          "rhs": {
+            "kind": "name",
+            "name": "focus"
+          }
+        },
+        {
+          "field": "requests",
+          "rhs": {
+            "kind": "name",
+            "name": "requests"
+          }
+        },
+        {
+          "field": "controlled",
+          "rhs": {
+            "kind": "name",
+            "name": "controlled"
+          }
+        },
+        {
+          "field": "accepting",
+          "rhs": {
+            "kind": "bool",
+            "value": true
+          }
+        },
+        {
+          "field": "valueProp",
+          "rhs": {
+            "kind": "name",
+            "name": "valueProp"
+          }
+        },
+        {
+          "field": "requested",
+          "rhs": {
+            "kind": "name",
+            "name": "requested"
+          }
+        },
+        {
+          "field": "outcome",
+          "rhs": {
+            "kind": "name",
+            "name": "outcome"
+          }
+        },
+        {
+          "field": "base",
+          "rhs": {
+            "kind": "name",
+            "name": "base"
+          }
+        }
+      ]
+    }
+  ],
+  "step": [
+    "init",
+    "escape",
+    "activate",
+    "pointer_outside",
+    "tab",
+    "shift_tab",
+    "focus_attempt",
+    "remove_invoker",
+    "setValue",
+    "hostToggle",
+    "control",
+    "acceptRequests"
+  ]
+}

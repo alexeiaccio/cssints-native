@@ -67,6 +67,11 @@ export interface Input {
   up(name: string): boolean;
   /** The host's last resort for a key nobody took (the Sensors page's theme key). */
   fallback?: (name: string) => boolean;
+  /**
+   * While a modal is open, every key goes here first and true means it was taken (a dialog's trap: Tab and Shift+Tab
+   * cycle its controls, Escape closes it). False lets the key through as usual.
+   */
+  modal?: (name: string, repeat?: boolean) => boolean;
   /** A press on empty space: the focus goes away, as a click on a page's background blurs a field. */
   pressMiss(): void;
 }
@@ -108,6 +113,8 @@ export function createInput(): Input {
       };
     },
     down(name, repeat = false) {
+      // a modal dialog owns the keyboard while it is open: Tab cycles inside it and Escape closes it
+      if (input.modal?.(name, repeat)) return true;
       // Tab is the manager's. An arrow, Home or End is the focused part's: a radio moves focus and checks what it moved
       // to, tabs select, the toolbar only moves, a slider changes its value; each calls the manager for the move itself
       // and takes only the keys its pattern has (Home on a radio is nobody's, not a move without a check)

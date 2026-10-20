@@ -62,5 +62,28 @@ export type {
   TreeOptions,
   TreePart,
 } from './tree';
+export { createDialogModal } from './dialog';
+export type {
+  DialogBackdropPart,
+  DialogContentPart,
+  DialogDismissPart,
+  DialogModal,
+  DialogModalOptions,
+  DialogPanelPart,
+  DialogRole,
+  DialogTriggerPart,
+} from './dialog';
+export { createMenu } from './menu';
+export type {
+  Menu,
+  MenuItem,
+  MenuItemInput,
+  MenuItemKind,
+  MenuItemPart,
+  MenuOptions,
+  MenuPanelPart,
+  MenuTriggerPart,
+  MenuVariant,
+} from './menu';
 export { createFocusHost } from './focus-host';
 export type { FocusHost } from './focus-host';

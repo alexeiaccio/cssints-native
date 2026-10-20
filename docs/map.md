@@ -119,8 +119,13 @@ Each step ends in a check that fails when it breaks.
    with handlers (`press()`, `key(name)`, `focus()`, `blur()`) that a Clay renderer and an accessibility tree both read. Radio, tabs, toolbar and the tree are groups of the focus manager
    (`focus/`) on one page: roving focus inside, Tab between them. The slider is one entry.
    Check: the ported APG scenarios and a seeded random walk, replayed on the parts and on the generated Quint model,
-   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 39 tests. Left:
-   the menu and menu button (the toolbar's menu item), overlays, text input, tree type-ahead.
+   must agree (`bun test` in `headless/`, in `test.sh`); dropping a controlled request's callback fails 39 tests.
+   **Dialog and menu** (`headless/src/dialog.ts`, `headless/src/menu.ts`): the modal dialog (a trap over the focus
+   manager: opening moves focus to the first control, Tab and Shift+Tab cycle it, Escape closes and restores) and the
+   menu button with the checkable menus (`createMenu`; the menubar is not ported). Check: the dialog's 161 scenarios (32
+   replayed, 112 gated by the bridge — `modal: false`, focus attrs — 17 carried divergences) and five walks; the plain
+   menu's 114 (19 / 86 / 9) and the checkable menu's 34 (16 / 14 / 4), with their walks. Left: the menubar, other
+   overlays, text input, tree type-ahead.
    **Done: the Widgets page** (`solid/app/Widgets.tsx`, `bun solid/main.ts widgets`): the headless widgets and the focus
    manager wired to one live page; the page's styles sit in `Widgets.tsx` itself (the loader compiles JSX, then cssints
    on the result, in one child: colocation without a separate `styles.ts`). SDL key events reach JS through a queue in the FFI; a key goes to the focus manager
@@ -138,6 +143,17 @@ Each step ends in a check that fails when it breaks.
    unchanged above the new widgets; radio, tabs, slider, slider dragged, toolbar re-entered) and asserts for the full Tab
    order, one stop a group, arrows, clamping, memory, a disabled radio, the rail, the drag, the ring's row. Not done: the toolbar's menu. Seen by
    eye: the eleven frames; the window was started (`--frames 60`), its keys and mouse not tried by hand.
+   **Done: floating overlays on a page** (`solid/app/Dialog.tsx`, `bun solid/main.ts dialog`). `css.float` is carried
+   through `pack.ts` and `ui_open` (the style grew from 32 to 45 floats: what to attach to, the attach points, offset,
+   expand, z-index, pointer capture, clip, and the parent id as two 16-bit halves, since a float32 cannot hold Clay's
+   32-bit hash). A float is a layout root of its own, so the page behind it keeps its layout, and a capturing float hides
+   what is under it from `Clay_PointerOver`: the modal's backdrop is a root float of the whole window and swallows every
+   press, the dialog is a root float centred on the root, and the menu hangs off its trigger by id. The dialog's trap is
+   the keyboard half (`input.modal`: Tab and Shift+Tab cycle its controls, Escape closes) and focus returns to the
+   trigger. Check: four stored frames (closed, open, the light theme, the menu open) and `solid/dialog.test.ts` (the
+   trap, Escape and Cancel, OK's write, the backdrop swallowing a press, `ui.bounds` of both floats, the page's layout
+   unchanged, the menu's arrows, Escape back to the trigger, Enter and a click picking). Seen by eye: the four frames.
+   The window was started for the page (`--frames 60`, exit 0); its keys and mouse were not tried by hand.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

@@ -1,7 +1,8 @@
 // The Solid host, the counterpart of desktop/host.c. Run with Bun:
 //
-//   bun solid/main.ts [sensors|widgets]  a window; the mouse is the pointer, `t` flips the theme; on widgets Tab,
-//                                        Shift+Tab, Space and Enter drive the widgets
+//   bun solid/main.ts [sensors|widgets|dialog]  a window; the mouse is the pointer, `t` flips the theme; on widgets Tab,
+//                                        Shift+Tab, Space and Enter drive the widgets; on dialog Enter opens the settings
+//                                        dialog and Space opens the menu
 //   bun solid/main.ts --png out.png      one frame headless, written to out.png
 //   bun solid/main.ts --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                                        ref.png.actual.png on a difference
@@ -17,8 +18,8 @@ import "./plugin.ts";
 import type { Drag } from "./app/Widgets.tsx";
 
 const page = process.argv[2]?.startsWith("--") ? "sensors" : (process.argv[2] ?? "sensors");
-if (page !== "sensors" && page !== "widgets") {
-  console.error(`unknown page "${page}": sensors or widgets`);
+if (page !== "sensors" && page !== "widgets" && page !== "dialog") {
+  console.error(`unknown page "${page}": sensors, widgets or dialog`);
   process.exit(1);
 }
 const arg = (name: string, n = 1) => {
@@ -41,9 +42,10 @@ const { createInput, keyName } = await import("./src/input.ts");
 const { El, render } = await import("./src/renderer.ts");
 const { Sensors } = await import("./app/Sensors.tsx");
 const { Widgets, size } = await import("./app/Widgets.tsx");
+const { Dialog, size: dialogSize } = await import("./app/Dialog.tsx");
 
 const W = 360;
-const H = page === "widgets" ? size.height : 360;
+const H = page === "widgets" ? size.height : page === "dialog" ? dialogSize.height : 360;
 
 if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
@@ -53,7 +55,10 @@ const root = new El("root");
 const input = createInput();
 input.fallback = (name) => (name === "t" ? ((theme = theme ? undefined : "light"), true) : false);
 const dragState: Drag = {};
-const dispose = render(page === "widgets" ? () => Widgets({ input, drag: dragState }) : Sensors, root);
+const dispose = render(
+  page === "widgets" ? () => Widgets({ input, drag: dragState }) : page === "dialog" ? () => Dialog({ input }) : Sensors,
+  root,
+);
 const stats: [number, number, number, number][] = [];
 const frame = createFrame(root, {
   get theme() {

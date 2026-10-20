@@ -32,6 +32,8 @@ export interface Conformance<Config> {
   readonly keys?: NeutralDriverOptions['keys'];
   /** Consumed events match eoa's DOM driver; the treeview scenarios were written for it. */
   readonly readEvents?: NeutralDriverOptions['readEvents'];
+  /** The parts whose shown/hidden state is the pattern's `visible` (eoa's `hideableParts`). */
+  readonly hideable?: NeutralDriverOptions['hideable'];
   readonly steps: ReadonlyArray<ActionStep>;
   /** The walk's steps for one config, when a config leaves some out (a controlled host cannot be reconfigured). */
   readonly alphabet?: (config: ScenarioConfig) => ReadonlyArray<ActionStep>;
@@ -62,6 +64,7 @@ export const conformance = <Config>(spec: Conformance<Config>): void => {
       ? {}
       : { disabledReads: spec.disabledReads }),
     ...(spec.keys === undefined ? {} : { keys: spec.keys }),
+    ...(spec.hideable === undefined ? {} : { hideable: spec.hideable }),
     ...(spec.bridge.eventName === undefined
       ? {}
       : { eventName: spec.bridge.eventName }),

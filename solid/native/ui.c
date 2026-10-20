@@ -95,7 +95,7 @@ static Clay_SizingAxis axis(const float *f)
 
 static Clay_Color color(const float *f) { return (Clay_Color){f[0], f[1], f[2], f[3]}; }
 
-/** Opens an element. id is NULL for an anonymous one; f is 32 floats. */
+/** Opens an element. id is NULL for an anonymous one; f is 45 floats: the box fields, then the floating ones. */
 void ui_open(const char *id, int len, const float *f)
 {
     static const Clay_LayoutAlignmentX ax[3] = {CLAY_ALIGN_X_LEFT, CLAY_ALIGN_X_CENTER, CLAY_ALIGN_X_RIGHT};
@@ -112,6 +112,18 @@ void ui_open(const char *id, int len, const float *f)
     d.border.width = (Clay_BorderWidth){f[22], f[23], f[24], f[25]};
     d.border.color = color(f + 26);
     d.clip.horizontal = f[30] != 0, d.clip.vertical = f[31] != 0;
+    if (f[32] != 0) {
+        d.floating.attachTo = (Clay_FloatingAttachToElement)(int)f[33];
+        // the id arrives as two 16-bit halves: a float32 cannot hold the 32-bit hash exactly
+        d.floating.parentId = ((uint32_t)f[34] << 16) | (uint32_t)f[35];
+        d.floating.attachPoints = (Clay_FloatingAttachPoints){
+            (Clay_FloatingAttachPointType)(int)f[36], (Clay_FloatingAttachPointType)(int)f[37]};
+        d.floating.offset = (Clay_Vector2){f[38], f[39]};
+        d.floating.expand = (Clay_Dimensions){f[40], f[41]};
+        d.floating.zIndex = (int16_t)f[42];
+        d.floating.pointerCaptureMode = (Clay_PointerCaptureMode)(int)f[43];
+        d.floating.clipTo = (Clay_FloatingClipToElement)(int)f[44];
+    }
     if (id) Clay__OpenElementWithId(Clay__HashString(slice(id, len), 0));
     else Clay__OpenElement();
     Clay__ConfigureOpenElement(d);

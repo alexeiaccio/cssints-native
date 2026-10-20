@@ -7,7 +7,7 @@ set -e
 EOA="${1:-$HOME/github/effects-of-atmosphere}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 COMMIT="$(cat "$HERE/EOA_COMMIT")"
-P="button switch checkbox disclosure radio tabs toolbar slider treeview"
+P="button switch checkbox disclosure radio tabs toolbar slider treeview dialog-modal menu-button menu-checkable"
 git -C "$EOA" cat-file -e "$COMMIT^{commit}"
 
 # copy <path under packages/> <destination>: the blob at the pinned commit, byte for byte

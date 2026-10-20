@@ -1,0 +1,924 @@
+{
+  "pattern": "menu-button",
+  "source": "ariakit",
+  "commit": "404c72257b879569feb08465da4ff9915fd873da",
+  "license": "MIT",
+  "scenarios": [
+    {
+      "id": "menu-button.ariakit.click-opens-menu-focuses-container",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L6",
+      "upstreamTest": "show/hide on click",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "expect": { "hidden": ["menu"] } },
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["menu"],
+            "focus": "menu",
+            "attrs": {
+              "trigger": { "aria-expanded": "true", "aria-haspopup": "menu" }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } }
+      ],
+      "notes": "On pointer open the popup container takes focus; the first item is not focused."
+    },
+    {
+      "id": "menu-button.ariakit.enter-opens-and-focuses-first-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L17",
+      "upstreamTest": "show/hide on enter",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.space-opens-and-focuses-first-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L29",
+      "upstreamTest": "show/hide on space",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Space", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } },
+        { "event": "key", "key": "Space", "target": "menuitem:0" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.arrow-down-opens-and-focuses-first-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L43",
+      "upstreamTest": "show on arrow down",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.arrow-up-opens-and-focuses-last-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L50",
+      "upstreamTest": "show on arrow up",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "ArrowUp", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:2" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.escape-closes-and-restores-focus",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L57",
+      "upstreamTest": "hide on escape",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "menu" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "menu" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } },
+        { "event": "key", "key": "ArrowDown", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "menu" },
+        { "expect": { "hidden": ["menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.click-outside-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L85",
+      "upstreamTest": "hide on click outside",
+      "apg": "mouse",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.tab-moves-focus-out-and-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L107",
+      "upstreamTest": "hide on tab",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Tab", "target": "menu" },
+        { "expect": { "hidden": ["menu"], "focus": "outside" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.tab-back-to-trigger-then-forward-to-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L121",
+      "upstreamTest": "tab back to menu button",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Shift+Tab", "target": "menu" },
+        { "expect": { "focus": "trigger", "visible": ["menu"] } },
+        { "event": "key", "key": "Tab", "target": "trigger" },
+        { "expect": { "focus": "menu", "visible": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.keyboard-navigation-between-items",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L139",
+      "upstreamTest": "navigate through items with keyboard",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "menu" },
+        { "expect": { "focus": "menuitem:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:2" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:2" },
+        { "expect": { "focus": "menuitem:2" } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:2" },
+        { "expect": { "focus": "menuitem:2" } },
+        { "event": "key", "key": "Home", "target": "menuitem:2" },
+        { "expect": { "focus": "menuitem:0" } },
+        { "event": "key", "key": "End", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:2" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.hover-highlights-item-and-keeps-menu-focus",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L157",
+      "upstreamTest": "navigate through items with mouse",
+      "apg": "mouse",
+      "config": { "items": ["Edit", "Share", "Delete"] },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "hover", "target": "menuitem:1" },
+        {
+          "expect": {
+            "focus": "menu",
+            "attrs": { "menuitem:1": { "data-active-item": "" } }
+          }
+        },
+        { "event": "hover", "target": "menuitem:2" },
+        {
+          "expect": {
+            "focus": "menu",
+            "attrs": { "menuitem:2": { "data-active-item": null } }
+          }
+        }
+      ],
+      "notes": "A disabled trailing item consumes hover without becoming active."
+    },
+    {
+      "id": "menu-button.ariakit.click-item-activates-and-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L169",
+      "upstreamTest": "menu item click",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "focus": "trigger",
+            "events": { "onItemClick": [["menuitem:0"]] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.enter-on-item-activates-and-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L179",
+      "upstreamTest": "menu item enter",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "focus": "trigger",
+            "events": { "onItemClick": [["menuitem:0"]] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.space-on-item-activates-and-closes",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L190",
+      "upstreamTest": "menu item space",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "key", "key": "Space", "target": "trigger" },
+        { "event": "key", "key": "Space", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "focus": "trigger",
+            "events": { "onItemClick": [["menuitem:0"]] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.hover-then-enter-activates-hovered-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L201",
+      "upstreamTest": "menu item hover enter",
+      "apg": "mouse",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "menu" },
+        { "expect": { "events": { "onItemClick": [] } } },
+        { "event": "hover", "target": "menuitem:0" },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "events": { "onItemClick": [["menuitem:0"]] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.typeahead-selects-matching-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L227",
+      "upstreamTest": "typeahead",
+      "apg": "keyboard",
+      "config": { "items": ["Edit", "Report", "Share"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "menu" } },
+        { "event": "type", "text": "d", "target": "menu" },
+        { "expect": { "focus": "menu" } },
+        { "event": "type", "text": "re", "target": "menu" },
+        { "expect": { "focus": "menuitem:1" } }
+      ],
+      "notes": "A single-key match is treated as a pending typeahead prefix and keeps focus on the menu until it resolves."
+    },
+    {
+      "id": "menu-button.ariakit.menu-is-owned-by-trigger",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-core-interactions/test.ts#L236",
+      "upstreamTest": "https://github.com/ariakit/ariakit/issues/3342",
+      "apg": "extension",
+      "config": { "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "attrs": { "trigger": { "data-owns": "menu" } } } }
+      ],
+      "notes": "The rendered popup is a sibling owned by the trigger element; a library-neutral way to assert ownership is role/aria linkage."
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-item-toggles-on-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-checkbox-interactions/test.ts#L11",
+      "upstreamTest": "check/uncheck menu item on click",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Issues", "Releases"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "true" } } } },
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-checked": "false" },
+              "menuitem:1": { "aria-checked": "false" }
+            }
+          }
+        },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "true" } } } },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "false" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-item-toggles-on-enter",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-checkbox-interactions/test.ts#L32",
+      "upstreamTest": "check/uncheck menu item on enter",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Issues", "Releases", "Discussions", "Security alerts"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:2" },
+        {
+          "expect": {
+            "focus": "menuitem:2",
+            "attrs": { "menuitem:2": { "aria-checked": "false" } }
+          }
+        },
+        { "event": "key", "key": "Enter", "target": "menuitem:2" },
+        { "expect": { "attrs": { "menuitem:2": { "aria-checked": "true" } } } },
+        { "event": "key", "key": "Enter", "target": "menuitem:2" },
+        { "expect": { "attrs": { "menuitem:2": { "aria-checked": "false" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-item-toggles-on-space-at-end",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-checkbox-interactions/test.ts#L54",
+      "upstreamTest": "check/uncheck menu item on space",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Issues", "Releases", "Discussions", "Security alerts"]
+      },
+      "steps": [
+        { "event": "key", "key": "Space", "target": "trigger" },
+        { "event": "key", "key": "End", "target": "menu" },
+        {
+          "expect": {
+            "focus": "menuitem:3",
+            "attrs": { "menuitem:3": { "aria-checked": "false" } }
+          }
+        },
+        { "event": "key", "key": "Space", "target": "menuitem:3" },
+        { "expect": { "attrs": { "menuitem:3": { "aria-checked": "true" } } } },
+        { "event": "key", "key": "Space", "target": "menuitem:3" },
+        { "expect": { "attrs": { "menuitem:3": { "aria-checked": "false" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-typeahead-focuses-item",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-checkbox-interactions/test.ts#L74",
+      "upstreamTest": "typeahead (checkbox)",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Issues", "Releases", "Discussions", "Security alerts"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "type", "text": "d", "target": "menu" },
+        { "expect": { "focus": "menuitem:2" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-item-updates-trigger-label",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-checkbox-interactions/test.ts#L4",
+      "upstreamTest": "update menu button label on menu item check",
+      "apg": "extension",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Issues", "Releases"]
+      },
+      "steps": [
+        { "expect": { "attrs": { "trigger": { "data-label": "Unwatch" } } } },
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "attrs": { "trigger": { "data-label": "Watch" } } } }
+      ],
+      "notes": "The trigger's accessible name is controlled by the consumer; asserted as a label change."
+    },
+    {
+      "id": "menu-button.ariakit.radio-item-default-checked",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-radio-interactions/test.ts#L4",
+      "upstreamTest": "default checked menu item",
+      "apg": "keyboard",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Popular", "Newest", "Oldest"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.radio-item-updates-on-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-radio-interactions/test.ts#L9",
+      "upstreamTest": "update checked menu item on click",
+      "apg": "keyboard",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Popular", "Newest", "Oldest"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.radio-item-updates-on-enter",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-radio-interactions/test.ts#L15",
+      "upstreamTest": "update checked menu item on enter",
+      "apg": "keyboard",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Popular", "Newest", "Oldest"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "event": "key", "key": "Enter", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.radio-item-updates-on-space",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-radio-interactions/test.ts#L23",
+      "upstreamTest": "update checked menu item on space",
+      "apg": "keyboard",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Popular", "Newest", "Oldest"]
+      },
+      "steps": [
+        { "event": "key", "key": "Space", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "event": "key", "key": "Space", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.submenu-opens-on-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L4",
+      "upstreamTest": "show/hide submenu on click",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Zoom"],
+        "submenu": { "at": 1, "items": ["Find", "Find Next"] }
+      },
+      "steps": [
+        { "expect": { "hidden": ["submenu:1"] } },
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/0" } },
+        { "event": "click", "target": "menuitem:1/0" },
+        { "expect": { "hidden": ["submenu:1", "menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.submenu-opens-on-enter",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L20",
+      "upstreamTest": "show/hide submenu on enter",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Find"],
+        "submenu": { "at": 1, "items": ["Search the Web...", "Find..."] }
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "type", "text": "f", "target": "menu" },
+        { "expect": { "focus": "menuitem:1", "hidden": ["submenu:1"] } },
+        { "event": "key", "key": "Enter", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/0" } },
+        { "event": "key", "key": "Enter", "target": "menuitem:1/0" },
+        { "expect": { "hidden": ["submenu:1", "menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.submenu-opens-on-space",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L35",
+      "upstreamTest": "show/hide submenu on space",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Speech"],
+        "submenu": { "at": 1, "items": ["Start Speaking", "Stop Speaking"] }
+      },
+      "steps": [
+        { "event": "key", "key": "Space", "target": "trigger" },
+        { "event": "type", "text": "s", "target": "menu" },
+        { "expect": { "focus": "menuitem:1", "hidden": ["submenu:1"] } },
+        { "event": "key", "key": "Space", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/0" } },
+        { "event": "key", "key": "Space", "target": "menuitem:1/0" },
+        { "expect": { "hidden": ["submenu:1", "menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.submenu-opens-on-arrow-right-and-closes-left",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L53",
+      "upstreamTest": "show/hide submenu on arrow keys",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Find"],
+        "submenu": {
+          "at": 1,
+          "items": ["Search the Web...", "Find...", "Find Next"]
+        }
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "type", "text": "f", "target": "menu" },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:1" },
+        { "expect": { "hidden": ["submenu:1"] } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1/0" },
+        { "expect": { "focus": "menuitem:1/1" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1/1" },
+        { "expect": { "focus": "menuitem:1/2" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:1/2" },
+        { "expect": { "focus": "menuitem:1", "hidden": ["submenu:1"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.submenu-opens-on-hover",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L78",
+      "upstreamTest": "show/hide submenu on mouse hover",
+      "apg": "mouse",
+      "config": {
+        "items": ["Open", "Find", "Speech"],
+        "submenu": { "at": 1, "items": ["Find...", "Find Next"] }
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "hover", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:1", "visible": ["submenu:1"] } },
+        { "event": "hover", "target": "menuitem:2" },
+        { "expect": { "focus": "menuitem:2", "hidden": ["submenu:1"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.escape-closes-submenu-and-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L96",
+      "upstreamTest": "hide submenu on escape",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Find"],
+        "submenu": { "at": 1, "items": ["Find...", "Find Next"] }
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:1" },
+        { "event": "hover", "target": "menuitem:1/1" },
+        { "event": "key", "key": "Escape", "target": "menuitem:1/1" },
+        { "expect": { "hidden": ["submenu:1", "menu"], "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.typeahead-in-submenu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L106",
+      "upstreamTest": "typeahead on submenu",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Find"],
+        "submenu": {
+          "at": 1,
+          "items": [
+            "Search the Web...",
+            "Find...",
+            "Find Next",
+            "Find Previous"
+          ]
+        }
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "type", "text": "f", "target": "menu" },
+        { "event": "key", "key": "Enter", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:1/0" } },
+        { "event": "type", "text": "f", "target": "menuitem:1/0" },
+        { "expect": { "focus": "menuitem:1/1" } },
+        { "event": "type", "text": "fffff", "target": "menuitem:1/1" },
+        { "expect": { "focus": "menuitem:1/3" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.disabled-submenu-item-does-not-stay-active",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-nested-interactions/test.ts#L117",
+      "upstreamTest": "blur submenu button on mouse leave after hovering over disabled submenu item",
+      "apg": "mouse",
+      "config": {
+        "items": ["Open", "Speech"],
+        "submenu": {
+          "at": 1,
+          "items": ["Disable", "Start Speaking", "Stop Speaking"]
+        }
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "hover", "target": "menuitem:1" },
+        { "event": "hover", "target": "menuitem:1/0" },
+        { "event": "hover", "target": "outside" },
+        {
+          "expect": {
+            "hidden": ["submenu:1"],
+            "attrs": { "menuitem:1": { "data-active-item": null } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-parent-values-sync",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-values-interactions/test.ts#L38",
+      "upstreamTest": "default values",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Apple", "Banana", "Grape", "Orange"]
+      },
+      "steps": [
+        { "expect": { "attrs": { "trigger": { "aria-expanded": "false" } } } }
+      ],
+      "notes": "Value aggregation of controlled/uncontrolled checkbox items is a controlled-component concern; covered by the toggle scenarios."
+    },
+    {
+      "id": "menu-button.ariakit.values-navigation-skips-disabled-hidden",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-values-interactions/test.ts#L172",
+      "upstreamTest": "navigate with keyboard ignoring disabled items",
+      "apg": "keyboard",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Apple", "Banana", "Grape", "Orange"]
+      },
+      "steps": [
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "expect": { "focus": "menuitem:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:3" } }
+      ],
+      "notes": "A hidden disabled item is skipped when moving focus with arrow keys."
+    },
+    {
+      "id": "menu-button.ariakit.syncs-boolean-items-with-menu-values",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-item-checked/test.ts#L5",
+      "upstreamTest": "syncs boolean item checked state with menu values",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Show sidebar", "Minimap"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-checked": "true" },
+              "menuitem:1": { "aria-checked": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.radio-default-checked-is-not-leaked-as-prop",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-item-checked/test.ts#L18",
+      "upstreamTest": "does not leak defaultChecked to the rendered menu item",
+      "apg": "extension",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Compact", "Comfortable"]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": {
+                "aria-checked": "true",
+                "data-default-checked-prop": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.enabled-menu-button-opens-on-hover",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-button-disabled/test.ts#L7",
+      "upstreamTest": "enabled menu button opens its menu on hover",
+      "apg": "mouse",
+      "config": { "items": ["Edit", "Share"] },
+      "steps": [
+        { "event": "hover", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.disabled-menu-button-does-not-open-on-hover",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-button-disabled/test.ts#L13",
+      "upstreamTest": "disabled menu button does not open its menu on hover",
+      "apg": "extension",
+      "config": { "triggerDisabled": true, "items": ["Edit", "Share"] },
+      "steps": [
+        { "event": "hover", "target": "trigger" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "attrs": { "trigger": { "disabled": "" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.disabled-menu-button-opens-on-hover-when-opted-in",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-button-disabled/test.ts#L37",
+      "upstreamTest": "disabled menu button opens its menu on hover when the consumer opts in",
+      "apg": "extension",
+      "config": {
+        "triggerDisabled": true,
+        "openOnHoverDisabled": true,
+        "items": ["Edit", "Share"]
+      },
+      "steps": [
+        { "event": "hover", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } }
+      ],
+      "notes": "Consumer explicitly opts a disabled trigger back into hover-open; a truly disabled native control still stays closed."
+    },
+    {
+      "id": "menu-button.ariakit.context-menu-opens-on-right-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-context-interactions/test.ts#L4",
+      "upstreamTest": "show context menu and hide it with escape",
+      "apg": "keyboard",
+      "config": {
+        "variant": "context-menu",
+        "items": ["Back", "Reload", "Inspect"]
+      },
+      "steps": [
+        { "expect": { "hidden": ["menu"] } },
+        { "event": "contextmenu", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menu" } },
+        { "event": "key", "key": "Escape", "target": "menu" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.context-menu-closes-on-outside-click",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-context-interactions/test.ts#L15",
+      "upstreamTest": "show context menu and hide it by clicking outside",
+      "apg": "mouse",
+      "config": {
+        "variant": "context-menu",
+        "items": ["Back", "Reload", "Inspect"]
+      },
+      "steps": [
+        { "event": "contextmenu", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.context-menu-keyboard-navigation",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-context-interactions/test.ts#L40",
+      "upstreamTest": "navigate through context menu with keyboard",
+      "apg": "keyboard",
+      "config": {
+        "variant": "context-menu",
+        "items": ["Back", "Reload", "Inspect"]
+      },
+      "steps": [
+        { "event": "contextmenu", "target": "trigger" },
+        { "expect": { "focus": "menu" } },
+        { "event": "key", "key": "ArrowDown", "target": "menu" },
+        { "expect": { "focus": "menuitem:0" } },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1" } },
+        { "event": "key", "key": "Home", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:0" } },
+        { "event": "key", "key": "End", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:2" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.context-menu-keeps-dismiss-button-outside-menu",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-context-interactions/test.ts#L27",
+      "upstreamTest": "context menu keeps a dismiss button outside the menu",
+      "apg": "extension",
+      "config": { "variant": "context-menu", "items": ["Back", "Reload"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["menu", "dismiss"],
+            "attrs": { "dismiss": { "role": "button" } }
+          }
+        }
+      ],
+      "notes": "ARIA forbids a button among a menu's owned elements, so the dismiss control renders as a sibling."
+    },
+    {
+      "id": "menu-button.ariakit.modal-menu-exposes-only-items",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-4270/test.ts#L5",
+      "upstreamTest": "modal menu exposes only its items to assistive technology",
+      "apg": "aria",
+      "config": { "modal": true, "items": ["Back", "Reload"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["menu"],
+            "attrs": {
+              "menuitem:0": { "role": "menuitem" },
+              "menuitem:1": { "role": "menuitem" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.modal-menu-keeps-trigger-accessible",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-4270/test.ts#L19",
+      "upstreamTest": "modal menu keeps its menu button exposed to assistive technology",
+      "apg": "aria",
+      "config": { "modal": true, "items": ["Back", "Reload"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "attrs": {
+              "trigger": { "aria-haspopup": "menu", "aria-expanded": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.disclosure-label-updates",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-7315/test.ts#L5",
+      "upstreamTest": "does not keep the previous disclosure label",
+      "apg": "extension",
+      "config": { "items": ["Edit", "Share"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "attrs": { "trigger": { "aria-label": "Open menu" } } } }
+      ],
+      "notes": "The disclosure label resets after an item is chosen instead of keeping the last action."
+    },
+    {
+      "id": "menu-button.ariakit.always-visible-menu-moves-focus-while-closed",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-always-visible/test.ts#L5",
+      "upstreamTest": "moves focus through the menu while its store is closed",
+      "apg": "extension",
+      "config": { "alwaysVisible": true, "items": ["Edit", "Share", "Report"] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1" } }
+      ]
+    },
+    {
+      "id": "menu-button.ariakit.checkbox-item-space-after-reopen-does-not-toggle-during-typeahead",
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-values-interactions/test.ts#L192",
+      "upstreamTest": "reset radioControlled externally",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "items": ["Show sidebar", "Minimap"]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "attrs": { "menuitem:1": { "aria-checked": "true" } } } }
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-values-interactions/test.ts#L13",
+      "reason": "Visual aggregation of controlled/uncontrolled checkboxes and radios is a controlled-component API concern (React-only)."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-4938/test-browser.ts",
+      "reason": "Scroll-into-view on activation is a positioning/scrolling concern."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-3214/test-chrome.ts",
+      "reason": "React update-depth regression check, not menu semantics."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-4270/test-chrome.ts",
+      "reason": "Accessible-name wiring from the trigger is covered by menu-button.ariakit.modal-menu-keeps-trigger-accessible."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-4904/test-chrome.ts",
+      "reason": "Popup-window (window.open) behaviour is environment-specific."
+    },
+    {
+      "upstream": "https://github.com/ariakit/ariakit/blob/404c72257b879569feb08465da4ff9915fd873da/app/src/sandbox/menu-7571/test-browser.ts",
+      "reason": "Scroll-position preservation with an external store is positioning/animation."
+    }
+  ]
+}

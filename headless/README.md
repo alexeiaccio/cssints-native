@@ -6,7 +6,8 @@ same Quint specs and ported scenarios. State is Solid 2 signals (`solid-js@2.0.0
 renderer will read. Focus is the focus manager of `focus/`, which the groups register with.
 
 Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `checkbox` (with `mixed`), `disclosure`,
-`radio` (a group), `tabs`, `toolbar`, `slider`, `tree` (a group with expansion).
+`radio` (a group), `tabs`, `toolbar`, `slider`, `tree` (a group with expansion), `dialog-modal` (a modal trap) and
+`menu` (`createMenu`: the plain, checkbox, radio and mixed menus; **not** `createMenubar`).
 
 ```sh
 bun run test        # bun test --conditions browser: scenarios, Quint walks, unit tests
@@ -34,6 +35,8 @@ the aria-* attributes carried, as fields, plus handlers.
 | `createToolbar`    | `toolbar`, `items[]`                   | toolbar: `id`, `role: "toolbar"`, `orientation`; item: `id`, `role: "button"`, `label`, `kind`, `disabled`, `focused`, `tabIndex` |
 | `createSlider`     | `thumb`                                | `id`, `role: "slider"`, `valueNow`, `valueMin`, `valueMax`, `valueText`, `orientation`, `tabIndex: 0`, `focused` |
 | `createTree`       | `tree`, `item(id)`                     | tree: `id`, `role: "tree"`, `label`, `multiSelectable`, `orientation` (`horizontal` only), `focused`; item: `id`, `role: "treeitem"`, `label`, `level`, `posInSet`, `setSize`, `expanded` (`undefined` on an end node), `selected`, `disabled`, `focused`, `tabIndex`, `hidden` |
+| `createDialogModal`| `trigger`, `dialog`, `backdrop`, `dismiss` | trigger: `id`, `role: "button"`, `hasPopup: "dialog"`, `expanded`, `controls`, `disabled`, `focused`; dialog: `id`, `role` (`dialog` / `alertdialog`), `modal`, `labelledBy`, `describedBy`, `tabIndex: -1`, `hidden`, `keyDown`; backdrop: `id`, `hidden`, `press`; dismiss: `id`, `role: "button"`, `focused` |
+| `createMenu`       | `trigger`, `menu`, `item(i)`           | trigger: `id`, `role: "button"`, `hasPopup: "menu"`, `expanded`, `controls`, `disabled`, `focused`, `tabIndex: 0`; menu: `id`, `role: "menu"`, `hidden`; item: `id`, `label`, `role` (`menuitem` / `menuitemcheckbox` / `menuitemradio`), `kind`, `checked` (`undefined` on a plain item), `disabled`, `focused`, `tabIndex` |
 
 `id` is a stable string, `<id>-trigger` / `<id>-panel` from the `id` option, or `<kind>-<n>` in creation order when it
 is not given; Clay hashes it, so pass `id` where the order can change. `controls` and `labelledBy` are ids, as
@@ -45,6 +48,23 @@ item and steps into an open one, Left closes an open item and steps to the paren
 `selection: 'multiple'`), Enter opens/closes and selects in single-select, `*` opens the focused item's siblings.
 Multi-select's `Shift+ArrowDown` / `Shift+ArrowUp` and `Control+a` / `Meta+a` are key names, since a part gets a key
 string, not an event. Type-ahead is not ported.
+
+`createDialogModal` is the trigger, the dialog container, the backdrop and the dismiss button; `add(part)` registers a
+content control in the focus manager and in the dialog's Tab cycle (call it once per control, not once per open — the
+controls stay known while the dialog is closed), and `keyDown` is the modal trap: Tab and Shift+Tab cycle the content
+controls and wrap, Escape closes unless `keyboardDismissDisabled`. Opening (the committed `open`, uncontrolled or
+written by a controlled host) moves focus to the first content control and remembers what held it; closing returns it
+there. The page gives every key to `keyDown` while the dialog is open (`input.modal` in `solid/src/input.ts`). The
+dialog container itself is not focusable, as the spec's `dialog-modal.qnt` says. `dismissable: false` makes the backdrop
+inert; the page passes it, since a press on a modal's backdrop does nothing.
+
+`createMenu` (`items`, `variant`: `plain` / `checkbox-items` / `radio-items` / `mixed`, `triggerMode`:
+`outside` (menu button) or `held` (checkable menu), `disabled`, `defaultChecked` / `defaultChoice` /
+`defaultValue`, controlled packed `value` + `onCheckedValueChange`) is the menu button and its flat menu. Enter, Space,
+Down and Up on the trigger open on the first/last item; in the menu the arrows move and wrap, Home and End go to the
+ends, Escape closes and returns focus to the trigger, Tab closes and lets focus leave, Enter activates and closes,
+Space activates without closing a checkable item. Disabled items stay focusable (APG note 1) and are not activatable.
+Type-ahead is `type(text)` (a 500 ms buffer) and the spec's index codes as `typeaheadCode(code)`.
 
 Handlers on every interactive part (`PartHandlers`):
 
@@ -91,6 +111,8 @@ do this (`test/roving.test.ts`).
 | toolbar   | `orientation`, `wrap` (optional), `memory`, `focusDisabled` (a disabled item stays reachable, as `aria-disabled` items do in APG) | in: the item focused last, else the first; out: the next stop. A `text` item keeps the arrows of its axis, a `spin` item Up, Down, Home and End; a Tab from a `text` item steps to its neighbour |
 | slider    | not a group: one entry. Arrows, Page keys, Home and End are the slider's own, not the manager's                    | the host's Tab reaches the thumb like any entry             |
 | tree      | `orientation: vertical`, no wrap (eoa clamps at the ends), no memory, `entry` = the first selected visible item, else the first visible; a node inside a collapsed subtree is registered with `tabIndex: -1`, so it is not in the group and is no Tab stop | in: the entry; out: the next stop. Up/Down/Home/End are the manager's; Left/Right are the tree's own. `focus()` on the tree gives focus to the roving item (the spec keeps it, see the divergences) |
+| dialog    | a trap, not a group: the contents the page `add`s are the only stops Tab may visit while it is open. Not the manager's `tab`: `dialog.keyDown('Tab')` wraps them itself, so focus can never leave | in: the first content control (`open` moves focus there); out: only by closing. Escape closes and returns focus to what held it (the trigger). The container is not a focus entry |
+| menu      | the items are a group (`orientation: vertical`, `wrap`, no memory, `focusDisabled`: a disabled item stays focusable) registered while the menu is open; the trigger is a plain entry before them. The arrows are the primitive's (the spec's transitions), which move focus through the manager | in: the trigger; while open the items are one stop. Tab closes and leaves (from the trigger the manager moves, from an item its unregistration relocates). A blur while focus is outside the widget closes the menu |
 
 Selection follows focus only where APG says so: radio checks on the arrow keys and on Space; tabs select on the arrow
 or Home/End only with automatic activation (manual waits for Enter or Space), and a click selects. Tab itself moves
@@ -171,6 +193,9 @@ Unchanged from eoa: signals at run time, the generated Quint model as the oracle
 | toolbar    | 84        | 10     | 63                   | 11                          | 2            |
 | slider     | 52        | 1      | 51                   | 0                           | 10           |
 | treeview   | 35        | 26     | 7                    | 2                           | 8            |
+| dialog-modal | 161     | 32     | 112                  | 17                          | 5            |
+| menu (button) | 114    | 19     | 86                   | 9                           | 1            |
+| menu (checkable) | 34 | 16     | 14                   | 4                           | 4            |
 
 **Unsupported (a gate)** is what the bridge refuses (a config key or step it does not translate, or a step field the
 replay does not know), plus, for one scenario, the mount's refusal (the toolbar's menu-button item). The bridge gates most of the 52 slider
@@ -201,8 +226,18 @@ The walk configs are eoa's, with four changes, each for a reason the port has:
   unsupported rather than failing. The `modifiers` on the Shift/Ctrl scenarios are an extended step field the vendored
   bridge does not opt into, so those three scenarios are gated too; multi-select is walked through Space and checked by
   the unit test's `Shift+ArrowDown` / `Control+a` key names.
+- **dialog-modal:** eoa's five configs as they are (uncontrolled, open at mount, then a controlled host that holds the
+  open state, closed and open). The walk is the bridge's: it compares role, `aria-modal`, `visible` (the dialog only —
+  `hideable: ['dialog']`, the backdrop is not the pattern's visible state) and `onOpenChange`; the bridge's `focus` is
+  an `Unsupported` (the spec encodes focus as example-specific targets). The trap is the unit test's
+  (`test/dialog.test.ts`): the bridge gates every `key Tab` step, so no scenario draws one.
+- **menu:** eoa's single plain config (four items, the third disabled) and the checkable spec's four (the mixed five-item
+  menu, then controlled hosts that accept the packed value, accept with a value, and hold it). The walk compares the
+  trigger's `aria-haspopup` / `aria-expanded`, the menu's `hidden`, the items' `role`, `aria-disabled`,
+  `aria-checked` and `tabindex`, `visible`, and the focused part. The plain and checkable runs are split by the
+  scenario's `variant` config, as eoa split them: 114 plain, 34 checkable.
 
-**Divergences** are eoa's maps with their reasons, all carried over, none added, none dropped: each scenario still fails,
+**Divergences** are eoa's maps with their reasons, carried over; each scenario still fails,
 and the test requires it to (a closed gap forces removing the entry). For radio: the native `<input type=radio>` attribute
 and the per-radio focus callbacks. For tabs: the axis of the arrows in a vertical stack, the disabled-tab skip (base-ui
 moves onto a disabled tab), and one panel-tabindex convention. For toolbar: the disabled-item skip, the Composite
@@ -226,6 +261,8 @@ Each run breaks one behaviour, runs the tests, and reverts (the file compared wi
 | treeview   | a collapsed subtree stays in the group (every item `tabIndex: 0`)     | 12 fail: 8 walks, 2 scenarios (`down-skips-collapsed-subtrees`, `up-moves-to-previous-visible`), the pinned count, 1 unit test |
 | pressable  | a blur keeps an armed Space (button, checkbox, switch share it)       | 15 fail: 6 button walks, 9 checkbox walks. The switch walks do not draw down→blur→up with seed 7             |
 | controllable | the change callback fires only when uncontrolled (eoa's mutation, all patterns) | 39 fail (was 38 before the three new slider walks)                                      |
+| dialog     | the trap is off (Tab falls through to the manager)                    | 4 fail: 3 asserts of `solid/dialog.test.ts` (Tab and Shift+Tab leave the dialog, the page's trigger becomes a stop) and the unit test's trap check |
+| menu       | Escape closes without returning focus to the trigger                  | 12 fail: 6 ported scenarios (the ariakit/base-ui focus-restore ones), the pinned count, the walk, 4 asserts of `solid/dialog.test.ts` |
 
 The slider row was the blind spot: eoa's slider spec used to fix `step`, so its tests could not tell a slider that ignores
 it. The step-2 variant in `slider.qnt` closes it; the unit test is no longer the only check. The pressable row is the
@@ -242,8 +279,9 @@ another one. `effect@4.0.0` is the one dependency it needs.
 
 ## Left
 
-- **Menu, menu button, menubar** (eoa's `menu.ts`): the toolbar's menu-button item and the scenarios that use it are the
-  gate; the walk leaves the menu out, as above.
+- **Menubar** (eoa's `createMenubar`): the roving bar, its nested submenus and hover opening are not ported; the
+  menubar scenarios are not vendored. `createMenu` is the menu button and the checkable menus. The toolbar's
+  `menutrigger` item (a menu button) is still the toolbar mount's gate: it is a toolbar item, not the menu button.
 - **Radio `flavor: activedescendant`**: the group takes focus and names the radio by id, which is not a focus entry.
 - **Tabs `deletable`** (the Delete key removes a tab) and RTL in the tabs bridge (gated).
 - **Slider** dragging (pointer capture and move) beyond a press: `pointer(ratio)` is the press; a host that drags calls
@@ -254,8 +292,8 @@ another one. `effect@4.0.0` is the one dependency it needs.
 - **Tree multi-select modifiers**: the primitive handles `Shift+ArrowDown` / `Shift+ArrowUp` and `Control+a` /
   `Meta+a`, but the scenarios that use them carry the `modifiers` extended step field, which the vendored bridge does
   not translate, so they are unsupported (as they are in eoa's browser test).
-- **Overlays** (dialog, tooltip, menu button), **text input** and the caret, and the rest of eoa's patterns (they port the
-  same way: a bridge, a mount, a `conformance` call).
+- **Overlays** beyond the dialog (tooltip, popover), **text input** and the caret, and the rest of eoa's patterns (they
+  port the same way: a bridge, a mount, a `conformance` call).
 - **The Solid → Clay renderer** that consumes the parts (`solid/`), and an accessibility tree from them.
 - Pointer arming (`pointer_down` … `pointer_cancel`) is not a primitive state: `press()` is the release. The spec models
   it, eoa's DOM primitive did not either, and its scenarios on it are `data-pressed` ones, skipped.

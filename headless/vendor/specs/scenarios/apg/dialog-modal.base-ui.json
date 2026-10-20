@@ -1,0 +1,775 @@
+{
+  "pattern": "dialog-modal",
+  "source": "base-ui",
+  "commit": "19511bb171f3b360b006c94cf6d07e53cb446505",
+  "license": "MIT",
+  "skipped": [
+    {
+      "reason": "styling / CSS-variable / style-hook assertions (--nested-dialogs, data-nested / data-nested-dialog-open, internal-backdrop DOM ordering)"
+    },
+    {
+      "reason": "enter/exit transition timing and animation callbacks (DialogRoot waits for exit transition, useDialogAnimation/onOpen/onClose animation tests)"
+    },
+    {
+      "reason": "SSR / detached-trigger hydration and store plumbing (DialogRoot.detached-triggers.test.tsx, DialogPortal Suspense tests)"
+    },
+    {
+      "reason": "React-API-only prop plumbing: refs/actions handles, unmount() method, keepMounted, isEntering/isExiting, portal containers, initialFocus/finalFocus function-returning-null/void variants that only re-assert the default"
+    },
+    {
+      "reason": "scroll-lock and body-padding mechanics (page locked until takeover / external body lock)"
+    },
+    {
+      "reason": "shadow-DOM portal plumbing (outside press portaled into shadow DOM)"
+    },
+    { "reason": "touch multi-point drag dismissal thresholds" },
+    {
+      "reason": "dialog/popup/portal/viewport conformance (describeConformance) and error-message tests"
+    },
+    {
+      "reason": "nested menu/select popup dismissal plumbing (DialogRoot nested popups, NumberField scrub pointer-lock)"
+    },
+    { "reason": "DialogBackdrop role=presentation DOM-only test" }
+  ],
+  "scenarios": [
+    {
+      "id": "dialog-modal.base-ui.initial-focus-first-focusable",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L64",
+      "upstreamTest": "should focus the first focusable element within the popup",
+      "apg": "focus",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:0" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-ref",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L92",
+      "upstreamTest": "should focus the element provided to initialFocus as a ref when open",
+      "apg": "focus",
+      "config": { "modal": false, "initialFocus": "input:1" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:1" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-function",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L127",
+      "upstreamTest": "should focus the element provided to initialFocus as a function when open",
+      "apg": "focus",
+      "config": { "modal": false, "initialFocus": "input:1" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:1" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-function-per-interaction-type",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L165",
+      "upstreamTest": "should support element-returning function and no-op via false/void for initialFocus",
+      "apg": "focus",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "trigger" } },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "expect": { "focus": "input:1" } }
+      ],
+      "notes": "initialFocus(type) returns the target only for 'keyboard'; 'pointer' falls back to leaving focus on the trigger."
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-interaction-type-after-reopen",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L207",
+      "upstreamTest": "passes the latest interaction type to initialFocus after reopening",
+      "apg": "focus",
+      "config": { "modal": false, "initialFocusReturnsFalse": true },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "expect": { "events": { "initialFocus": ["keyboard"] } } },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "event": "pointerdown", "target": "trigger", "pointerType": "touch" },
+        { "event": "click", "target": "trigger", "detail": 1 },
+        { "expect": { "events": { "initialFocus": ["touch"] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.touch-opens-focus-popup-not-inner",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L240",
+      "upstreamTest": "focuses the popup itself rather than inner content when opened by touch",
+      "apg": "extension",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "pointerdown", "target": "trigger", "pointerType": "touch" },
+        { "event": "click", "target": "trigger", "detail": 1 },
+        {
+          "expect": {
+            "focus": "dialog",
+            "attrs": { "input:0": { "focused": "false" } }
+          }
+        }
+      ],
+      "notes": "On touch the popup is focused to avoid opening the virtual keyboard; divergence from APG, which does not differentiate pointer type."
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-false-no-move",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L263",
+      "upstreamTest": "should not move focus when initialFocus is false",
+      "apg": "focus",
+      "config": { "modal": false, "initialFocus": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-true-default",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L287",
+      "upstreamTest": "should default focus when initialFocus returns true",
+      "apg": "focus",
+      "config": { "modal": false, "initialFocus": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:0" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-null-default",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L310",
+      "upstreamTest": "uses default behavior when initialFocus returns null",
+      "apg": "focus",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:0" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.initial-focus-not-called-on-close",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L333",
+      "upstreamTest": "should not call initialFocus function when closing the dialog",
+      "apg": "extension",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "input:1" } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger", "events": { "initialFocus": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.trap-focus-tab-cycles",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L410",
+      "upstreamTest": "keeps trap-focus tab cycling inside the popup when wrapped by a display: contents ancestor",
+      "apg": "keyboard",
+      "config": { "open": true, "modal": "trap-focus" },
+      "steps": [
+        { "expect": { "focus": "input:0" } },
+        { "event": "key", "key": "Tab", "target": "input:0" },
+        { "expect": { "focus": "button:0" } },
+        { "event": "key", "key": "Tab", "target": "button:0" },
+        { "expect": { "focus": "input:0" } },
+        {
+          "event": "key",
+          "key": "Tab",
+          "target": "input:0",
+          "modifiers": ["Shift"]
+        },
+        { "expect": { "focus": "button:0" } }
+      ],
+      "notes": "Upstream also asserts the outside buttons before/after never receive focus."
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-default-trigger",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L455",
+      "upstreamTest": "should focus the trigger by default when closed",
+      "apg": "focus",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-element",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L483",
+      "upstreamTest": "should focus the element provided to the prop when closed",
+      "apg": "focus",
+      "config": { "modal": true, "finalFocus": "input:1" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "input:1" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-function",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L520",
+      "upstreamTest": "should support function returning element for finalFocus when closed",
+      "apg": "focus",
+      "config": { "modal": true, "finalFocus": "input:0" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "input:0" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-false-no-move",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L548",
+      "upstreamTest": "should not move focus when finalFocus is false",
+      "apg": "focus",
+      "config": { "modal": true, "finalFocus": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": null } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-true-trigger",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L574",
+      "upstreamTest": "should move focus to the trigger when finalFocus returns true",
+      "apg": "focus",
+      "config": { "modal": true, "finalFocus": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-per-close-type",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L600",
+      "upstreamTest": "should support element-returning function and default via true + no-op via void for finalFocus based on closeType",
+      "apg": "focus",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } },
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "focus": "input:0" } }
+      ],
+      "notes": "finalFocus(closeType) returns a custom element for 'keyboard' and true (default trigger) for pointer close."
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-when-initial-focus-outside",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L648",
+      "upstreamTest": "respects finalFocus when initialFocus points outside the popup",
+      "apg": "extension",
+      "config": {
+        "modal": true,
+        "initialFocusOutside": true,
+        "finalFocusOutside": true
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "outside:0" } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "outside:1" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-default-trigger-when-initial-outside",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L684",
+      "upstreamTest": "moves final focus to trigger if initialFocus points outside the popup and finalFocus is not specified",
+      "apg": "extension",
+      "config": { "modal": true, "initialFocusOutside": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "outside:0" } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.final-focus-null-default",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/popup/DialogPopup.test.tsx#L720",
+      "upstreamTest": "uses default behavior when finalFocus returns null",
+      "apg": "focus",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.aria-labelledby-and-describedby",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L307",
+      "upstreamTest": "ARIA attributes",
+      "apg": "wai-aria",
+      "config": { "modal": false, "open": true },
+      "steps": [
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "attrs": {
+              "dialog": {
+                "aria-labelledby": "title",
+                "aria-describedby": "description"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.accessible-name-syncs-when-labels-change",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L334",
+      "upstreamTest": "keeps accessible names and descriptions in sync when label parts change",
+      "apg": "wai-aria",
+      "config": { "modal": false, "open": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "dialog": {
+                "aria-labelledby": "title-1",
+                "aria-describedby": "description-1"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "change-labels" },
+        {
+          "expect": {
+            "attrs": {
+              "dialog": {
+                "aria-labelledby": "title-2",
+                "aria-describedby": "description-2"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "change-labels" },
+        {
+          "expect": {
+            "attrs": {
+              "dialog": { "aria-labelledby": null, "aria-describedby": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.onopenchange-new-state",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L390",
+      "upstreamTest": "calls onOpenChange with the new open state",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "events": { "onOpenChange": [true] } } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "events": { "onOpenChange": [true, false] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.onopenchange-reason-trigger-and-close",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L412",
+      "upstreamTest": "calls onOpenChange with the reason for change when clicked on trigger and close button",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "events": {
+              "onOpenChange": [{ "open": true, "reason": "triggerPress" }]
+            }
+          }
+        },
+        { "event": "click", "target": "dismiss" },
+        {
+          "expect": {
+            "events": {
+              "onOpenChange": [
+                { "open": true, "reason": "triggerPress" },
+                { "open": false, "reason": "closePress" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.escape-close-reason",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L460",
+      "upstreamTest": "calls onOpenChange with the reason for change when pressed Esc while the dialog is open",
+      "apg": "keyboard",
+      "config": { "open": true },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": {
+              "onOpenChange": [{ "open": false, "reason": "escapeKey" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.backdrop-click-reason",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L473",
+      "upstreamTest": "calls onOpenChange with the reason for change when user clicks backdrop while the modal dialog is open",
+      "apg": "keyboard",
+      "config": { "open": true, "modal": true },
+      "steps": [
+        { "event": "click", "target": "backdrop" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": {
+              "onOpenChange": [{ "open": false, "reason": "outsidePress" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.outside-click-reason-non-modal",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L486",
+      "upstreamTest": "calls onOpenChange with the reason for change when user clicks outside while the non-modal dialog is open",
+      "apg": "keyboard",
+      "config": { "open": true, "modal": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": {
+              "onOpenChange": [{ "open": false, "reason": "outsidePress" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.non-main-button-outside-click-ignored",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L519",
+      "upstreamTest": "does not change open state on non-main button clicks",
+      "apg": "extension",
+      "config": { "open": true, "modal": true },
+      "steps": [
+        { "event": "click", "target": "backdrop", "button": 2 },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.cancel-prevents-open",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L536",
+      "upstreamTest": "cancel() prevents opening while uncontrolled",
+      "apg": "extension",
+      "config": { "cancelOpen": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.escape-single-internal-openchange",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L556",
+      "upstreamTest": "emits a single internal openchange when closing on Escape",
+      "apg": "extension",
+      "config": { "open": true },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        {
+          "expect": {
+            "events": {
+              "internalOnOpenChange": [{ "open": false, "reason": "escapeKey" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.escape-canceled-keeps-open-no-event",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L583",
+      "upstreamTest": "does not emit internal openchange when an Escape close is canceled",
+      "apg": "extension",
+      "config": { "open": true, "cancelClose": true },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "events": { "internalOnOpenChange": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.disable-pointer-dismissal",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L623",
+      "upstreamTest": "closes/does not close the dialog when clicking outside if disablePointerDismissal is set",
+      "apg": "extension",
+      "config": {
+        "open": true,
+        "modal": false,
+        "disablePointerDismissal": true
+      },
+      "steps": [
+        { "event": "pointerdown", "target": "outside" },
+        { "event": "click", "target": "outside" },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.outside-press-closes-on-click-not-mousedown",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L650",
+      "upstreamTest": "uses intentional outside press with user backdrop (mouse): closes on click, not on mousedown",
+      "apg": "extension",
+      "config": { "open": true, "modal": false },
+      "steps": [
+        { "event": "pointerdown", "target": "backdrop" },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        },
+        { "event": "click", "target": "backdrop" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": { "onOpenChange": [{ "open": false }] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.internal-backdrop-outside-press-closes-on-click",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L673",
+      "upstreamTest": "uses intentional outside press with internal backdrop (modal=true): closes on click, not on mousedown",
+      "apg": "extension",
+      "config": { "open": true, "modal": true },
+      "steps": [
+        { "event": "pointerdown", "target": "backdrop" },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        },
+        { "event": "click", "target": "backdrop" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": { "onOpenChange": [{ "open": false }] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.escape-rewires-dismiss-after-reopen",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L281",
+      "upstreamTest": "rewires dismiss interactions after closing and reopening",
+      "apg": "extension",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "hidden": ["dialog"] } },
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.modal-inerts-page",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L866",
+      "upstreamTest": "makes other interactive elements on the page inert when a modal dialog is open",
+      "apg": "wai-aria",
+      "config": { "open": true, "modal": true },
+      "steps": [
+        {
+          "expect": {
+            "visible": ["dialog", "backdrop"],
+            "attrs": { "dialog": { "aria-modal": "true" } }
+          }
+        }
+      ],
+      "notes": "Upstream asserts an internal backdrop with role=presentation exists; aria-modal is the behavioural takeaway."
+    },
+    {
+      "id": "dialog-modal.base-ui.non-modal-does-not-inert-page",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L872",
+      "upstreamTest": "does not make other interactive elements on the page inert when a non-modal dialog is open",
+      "apg": "wai-aria",
+      "config": { "open": true, "modal": false },
+      "steps": [
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "hidden": ["backdrop"],
+            "attrs": { "dialog": { "aria-modal": null } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.internal-backdrop-when-modal",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L878",
+      "upstreamTest": "should render an internal backdrop when true",
+      "apg": "wai-aria",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["dialog", "backdrop"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.no-internal-backdrop-when-not-modal",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L903",
+      "upstreamTest": "should not render an internal backdrop when false",
+      "apg": "wai-aria",
+      "config": { "modal": false },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["dialog"], "hidden": ["backdrop"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.sibling-modal-not-dismissed-by-new-modal",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L926",
+      "upstreamTest": "does not dismiss previous modal dialog when clicking new modal dialog",
+      "apg": "extension",
+      "config": { "nestedDismissable": false },
+      "steps": [
+        { "event": "click", "target": "open-base" },
+        { "event": "click", "target": "open-nested-1" },
+        { "event": "click", "target": "open-nested-2" },
+        { "expect": { "visible": ["final-nested"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.non-nested-dialogs-dismiss-one-by-one",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L969",
+      "upstreamTest": "dismisses non-nested dialogs one by one",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        { "event": "click", "target": "open-base" },
+        { "event": "click", "target": "open-nested-1" },
+        { "event": "click", "target": "open-nested-2" },
+        { "event": "click", "target": "backdrop:2" },
+        { "expect": { "hidden": ["level-3"] } },
+        { "event": "click", "target": "backdrop:1" },
+        { "expect": { "hidden": ["level-2"] } },
+        { "event": "click", "target": "backdrop:0" },
+        { "expect": { "hidden": ["level-1"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.escape-in-nested-dialog-not-parent-menu",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L1152",
+      "upstreamTest": "should not close the parent menu when Escape is pressed in a nested dialog",
+      "apg": "keyboard",
+      "config": { "nestedMenu": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "hidden": ["dialog"], "visible": ["menu"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.right-button-outside-press-ignored",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L1623",
+      "upstreamTest": "does not close on a right-button outside press",
+      "apg": "extension",
+      "config": { "open": true },
+      "steps": [
+        { "event": "pointerdown", "target": "outside", "button": 2 },
+        { "event": "click", "target": "outside", "button": 2 },
+        { "expect": { "visible": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.non-modal-without-backdrop-closes",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L1867",
+      "upstreamTest": "closes a non-modal dialog without a backdrop",
+      "apg": "keyboard",
+      "config": { "open": true, "modal": false, "backdrop": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.trap-focus-without-backdrop-closes",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/root/DialogRoot.test.tsx#L1871",
+      "upstreamTest": "closes a trap-focus dialog without a backdrop",
+      "apg": "keyboard",
+      "config": { "open": true, "modal": "trap-focus", "backdrop": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.close-from-undefined-onclick",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/close/DialogClose.test.tsx#L89",
+      "upstreamTest": "closes the dialog when undefined is passed to the onClick prop",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.close-prevented-does-not-close",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/close/DialogClose.test.tsx#L118",
+      "upstreamTest": "does not close the dialog when the Base UI click handler is prevented",
+      "apg": "extension",
+      "config": { "preventBaseUiClick": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "visible": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.close-after-closed-does-not-request-again",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/close/DialogClose.test.tsx#L137",
+      "upstreamTest": "does not request another close when clicked after the dialog has closed",
+      "apg": "extension",
+      "config": {},
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "events": { "onOpenChange": [{ "open": true }, { "open": false }] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.base-ui.trigger-disabled-does-not-open",
+      "upstream": "https://github.com/mui/base-ui/blob/19511bb171f3b360b006c94cf6d07e53cb446505/packages/react/src/dialog/trigger/DialogTrigger.test.tsx#L35",
+      "upstreamTest": "disables the dialog",
+      "apg": "extension",
+      "config": { "triggerDisabled": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "hidden": ["dialog"],
+            "attrs": { "trigger": { "disabled": "" } }
+          }
+        }
+      ]
+    }
+  ]
+}
