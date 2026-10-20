@@ -39,4 +39,6 @@ bun solid/main.ts widgets                                     # Solid: headless 
 ./build/sensors/app --press 180 250 --png out.png             # headless: a press held at 180,250, the frame written while pressed
 ```
 
-`cssints` is linked from the `clay-target` worktree of css-in-ts-compiler until `cssints/clay` is released.
+`cssints` is linked from the `cssints` package of css-in-ts-compiler (master, `cssints/clay` merged), until it is
+released: `cd ~/github/css-in-ts-compiler/packages/cssints && bun link`, then `bun install` here. The engine's source is
+what runs (`--conditions=development`); `bun run build` there produces the `dist` a release would carry.
