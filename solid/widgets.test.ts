@@ -1,8 +1,9 @@
 // What the stored frames of the Widgets page cannot show: the Tab order and Shift+Tab over the whole page, when each key
 // acts, what a click does to a widget and to focus, the disabled checkbox, "Select all" over its two children, the
 // disclosure, the four groups (radio, tabs, slider, toolbar: one Tab stop each, arrows, clamping, memory, a disabled
-// radio, a press on the slider's rail and a drag with the button held), and how an SDL key becomes a name. Frames are
-// driven as the window does it: pointer and keys in, then one frame.
+// radio, a press on the slider's rail and a drag with the button held), the settings tree (one stop, the visible nodes
+// only, Right and Left, Home and End, Space), and how an SDL key becomes a name. Frames are driven as the window does it:
+// pointer and keys in, then one frame.
 import "./plugin.ts";
 
 const { ui } = await import("./src/ffi.ts");
@@ -55,6 +56,8 @@ function fresh(options: { disabledSpeeds?: number[] } = {}) {
     stop: (prefix: string) => input.focus.tabOrder().find((id) => id.startsWith(prefix)),
     focused: () => input.focus.focused(),
     exists: (id: string) => find((el) => el.props.id === id).length > 0,
+    /** the texts of the boxes whose id matches, in document order: a tree's rows, the hidden ones absent */
+    labels: (re: RegExp) => find((el) => typeof el.props.id === "string" && re.test(el.props.id)).map(text),
     /** a key pressed and released with a frame after each, as an event loop delivers them */
     down: (name: string, repeat = false) => (input.down(name, repeat), step()),
     up: (name: string) => (input.up(name), step()),
@@ -81,7 +84,7 @@ function fresh(options: { disabledSpeeds?: number[] } = {}) {
 }
 
 // --- the Tab order over the whole page: button, switch, select all, wired, wireless, the trigger (the disabled box is
-// skipped), then each group once: radio (the checked one), the selected tab, its panel, the slider, the toolbar
+// skipped), then each group once: radio (the checked one), the selected tab, its panel, the slider, the toolbar, the tree
 const ORDER = [
   "press",
   "wifi",
@@ -94,31 +97,37 @@ const ORDER = [
   "tabs-tabpanel-0",
   "volume-thumb",
   "format-item-0",
+  "settings-item-1",
 ];
 {
   const p = fresh();
   const walk = (key: string, n: number) => Array.from({ length: n }, () => (p.tap(key), p.focused()));
   check("the stops the manager has, in document order", p.input.focus.tabOrder(), ORDER);
   check("Tab order", walk("Tab", ORDER.length + 2), [...ORDER, null, "press"]);
-  check("Shift+Tab reverses (after one back from the first, focus is released)", walk("Shift+Tab", 2), [null, "format-item-0"]);
+  check("Shift+Tab reverses (after one back from the first, focus is released)", walk("Shift+Tab", 2), [null, "settings-item-1"]);
   check("Shift+Tab order", walk("Shift+Tab", ORDER.length - 1), ORDER.slice(0, -1).reverse());
   check("and releases focus past the first", walk("Shift+Tab", 1), [null]);
 }
 
-// --- the page fits its window, with the disclosure open too: as wide as the window (a row too wide widens the root and
-// shifts everything), and the last widget ends above the root's bottom padding (a page too tall for the window makes
-// Clay shrink the panel)
+// --- the page fits its window, with the disclosure open and the tree's Display open too: as wide as the window (a row
+// too wide widens the root and shifts everything), and the last row ends above the root's bottom padding (a page too
+// tall for the window makes Clay shrink a box: the panel below, when it is the one that does not fit)
 {
   const p = fresh();
   const fits = (what: string) => {
-    const last = p.box("format-item-2");
+    const last = p.box("settings-item-6");
     check(`${what}: the root is the window's width`, p.box("Root")[2], size.width);
-    check(`${what}: the toolbar ends inside the page`, last[1]! + last[3]! <= size.height - 24, true);
+    check(`${what}: the last tree row ends inside the page`, last[1]! + last[3]! <= size.height - 24, true);
   };
   fits("closed");
   p.click("more-trigger");
   fits("disclosure open");
   check("the open panel is not shrunk (two lines and its padding: 52.8)", p.box("more-panel")[3]!.toFixed(1), "52.8");
+  // the tallest state: the panel open and a subtree open under it (6 tree rows)
+  p.input.focus.focus("settings-item-4"), p.tap("ArrowRight");
+  check("Display is open", p.texts().includes("Brightness"), true);
+  fits("disclosure and Display open");
+  check("the panel is still not shrunk", p.box("more-panel")[3]!.toFixed(1), "52.8");
 }
 
 // --- the focus ring is drawn on the focused row, and only there
@@ -218,6 +227,8 @@ const ORDER = [
       ["tab", s.tab],
       ["tabOn", s.tabOn],
       ["tool", s.tool],
+      ["node", s.node],
+      ["nodeSelected", s.nodeSelected],
     ] as const) {
       const base = themed(style as Shape, theme);
       for (const state of ["", ":hover", ":active"]) {
@@ -226,6 +237,10 @@ const ORDER = [
         if (r < 4.5) failed++, console.error(`FAIL contrast ${name}${state} ${theme ?? "dark"}: ${r.toFixed(2)}:1`);
       }
     }
+    // the tree's selected row writes its label in the accent: the accent on the surface it sits on
+    const accent = themed(s.labelSelected as Shape, theme).text!.textColor!;
+    const r = ratio(accent, surface);
+    if (r < 4.5) failed++, console.error(`FAIL contrast tree label selected ${theme ?? "dark"}: ${r.toFixed(2)}:1`);
   }
 }
 
@@ -477,7 +492,11 @@ const ORDER = [
   p.tap("Tab");
   check("memory: Tab back in lands on the item left last (the second), not the first", p.focused(), "format-item-1");
   p.tap("Tab");
-  check("Tab out of the last stop releases focus", p.focused(), null);
+  check("Tab out of the toolbar goes on to the tree", p.focused(), "settings-item-1");
+  p.tap("Tab");
+  check("Tab out of the tree, the last stop, releases focus", p.focused(), null);
+  p.tap("Shift+Tab");
+  check("Shift+Tab comes back to the tree", p.focused(), "settings-item-1");
   p.tap("Shift+Tab");
   check("memory the other way too", p.focused(), "format-item-1");
   check("nothing is on", p.styled(s.ledOn), 0);
@@ -489,6 +508,107 @@ const ORDER = [
   check("a click focuses and toggles", [p.focused(), p.styled(s.ledOn)], ["format-item-2", 1]);
   p.tap("Shift+Tab"), p.tap("Tab");
   check("memory follows a click", p.focused(), "format-item-2");
+}
+
+// --- the tree: one Tab stop, entered at the first visible node; the arrows walk the visible rows only (a collapsed
+// subtree's node is skipped); Right opens and steps in, Left closes and steps to the parent; Home and End; Space selects
+// and moves nothing; the ring is on the roving row
+{
+  const p = fresh();
+  const stop = () => p.input.focus.tabOrder().filter((id) => id.startsWith("settings-item"));
+  const rows = () => p.labels(/^settings-item-\d+$/);
+  // the ring on a row's left edge, as the other rows' ring is read
+  const ring = (id: string) => {
+    const [x, y, , h] = p.box(id) as unknown as number[];
+    return p.pixel(x! + 1, y! + h! / 2);
+  };
+  check("the tree is one Tab stop", stop(), ["settings-item-1"]);
+  check(
+    "at rest: Network open with its two children, Display closed, Storage after it",
+    rows(),
+    ["-Network", "Wi-Fi", "Bluetooth", "+Display", "Storage"],
+  );
+  check("a collapsed subtree's node is not rendered", p.texts().includes("Brightness"), false);
+  check("nothing is selected at first", p.styled(s.labelSelected), 0);
+
+  for (let n = 0; n < 12; n++) p.tap("Tab");
+  check("Tab enters the tree at the first visible node", p.focused(), "settings-item-1");
+  check("the ring is on the entry row", ring("settings-item-1"), "90,170,255,255");
+  p.tap("ArrowDown");
+  check("ArrowDown moves without selecting", [p.focused(), p.styled(s.labelSelected)], ["settings-item-2", 0]);
+  check("the ring follows the roving row", [ring("settings-item-2"), ring("settings-item-1")], ["90,170,255,255", "16,18,24,255"]);
+  p.tap("ArrowDown"), p.tap("ArrowDown"), p.tap("ArrowDown");
+  check("Down skips the closed subtree's Brightness and lands on Storage", p.focused(), "settings-item-6");
+  p.tap("ArrowDown");
+  check("Down clamps at the last visible node", p.focused(), "settings-item-6");
+  p.tap("ArrowUp");
+  check("Up goes back a visible node", p.focused(), "settings-item-4");
+  p.tap("Home");
+  check("Home: the first visible node", p.focused(), "settings-item-1");
+  p.tap("End");
+  check("End: the last visible node", p.focused(), "settings-item-6");
+
+  // Right on the closed Display opens it and stays on it; a second Right steps into Brightness
+  p.tap("Home"), p.tap("ArrowDown"), p.tap("ArrowDown"), p.tap("ArrowDown");
+  check("on Display", p.focused(), "settings-item-4");
+  p.tap("ArrowRight");
+  check("Right opens Display", [p.focused(), p.texts().includes("Brightness")], ["settings-item-4", true]);
+  check("its mark turns from '+' to '-' and the child row appears after it", rows(), ["-Network", "Wi-Fi", "Bluetooth", "-Display", "Brightness", "Storage"]);
+  const [display, brightness, storage] = ["settings-item-4", "settings-item-5", "settings-item-6"].map(
+    (id) => p.box(id) as unknown as number[],
+  );
+  check(
+    "Brightness is rendered between Display and Storage",
+    brightness![1]! >= display![1]! + display![3]! && brightness![1]! + brightness![3]! <= storage![1]!,
+    true,
+  );
+  check(
+    "a child's content is indented a step under its parent's, and its row still spans the page",
+    [p.box("settings-item-5-mark")[0]! - p.box("settings-item-4-mark")[0]!, p.box("settings-item-5")[2]],
+    [18, 280],
+  );
+  p.tap("ArrowRight");
+  check("a second Right steps into the first child", p.focused(), "settings-item-5");
+  p.tap("ArrowDown");
+  check("and Down goes on to Storage", p.focused(), "settings-item-6");
+  p.tap("ArrowDown");
+  check("Down stays at the end now", p.focused(), "settings-item-6");
+  p.tap("ArrowUp");
+  check("Up walks the opened child", p.focused(), "settings-item-5");
+  p.tap("ArrowLeft");
+  check("Left on a leaf steps to its parent", [p.focused(), p.texts().includes("Brightness")], ["settings-item-4", true]);
+  p.tap("ArrowLeft");
+  check("Left on the open parent closes it and stays on it", [p.focused(), p.texts().includes("Brightness")], ["settings-item-4", false]);
+
+  // Space selects the roving node; the selected row is the surface fill in the accent, and focus does not move
+  p.tap(" ");
+  check("Space selects the focused node", [p.styled(s.labelSelected), p.focused()], [1, "settings-item-4"]);
+  check(
+    "the selected row is filled and still ringed",
+    [ring("settings-item-4"), p.pixel(p.box("settings-item-4")[0]! + 200, p.box("settings-item-4")[1]! + 12)],
+    ["90,170,255,255", "36,40,52,255"],
+  );
+  p.tap("ArrowDown");
+  check("moving does not move the selection", [p.focused(), p.styled(s.labelSelected)], ["settings-item-6", 1]);
+
+  // a hidden node is neither an arrow's nor a Tab stop: select Brightness, close Display over it, then Tab out and back
+  p.tap("Home"), p.tap("ArrowDown"), p.tap("ArrowDown"), p.tap("ArrowDown"), p.tap("ArrowRight"), p.tap("ArrowRight");
+  check("on Brightness", p.focused(), "settings-item-5");
+  p.tap(" ");
+  check("Brightness is the selection", p.styled(s.labelSelected), 1);
+  p.tap("ArrowLeft"), p.tap("ArrowLeft");
+  check("Display closed again, Brightness hidden but selected", [p.focused(), p.texts().includes("Brightness")], ["settings-item-4", false]);
+  check("the group's stop is still the first visible node", stop(), ["settings-item-1"]);
+  p.tap("Tab");
+  check("the tree is the last stop: Tab releases focus", p.focused(), null);
+  p.tap("Shift+Tab");
+  check("Shift+Tab enters at the first visible node, not at the hidden selection", p.focused(), "settings-item-1");
+
+  // a click on a row focuses and selects it; a leaf has no expansion to toggle
+  p.click("settings-item-6");
+  check("a click focuses and selects a leaf", [p.focused(), p.styled(s.labelSelected), p.texts().includes("Brightness")], ["settings-item-6", 1, false]);
+  p.click("settings-item-4");
+  check("a click on Display opens it and selects it", [p.focused(), p.texts().includes("Brightness")], ["settings-item-4", true]);
 }
 
 // --- keys nobody takes go to the page
@@ -520,6 +640,6 @@ const ORDER = [
 dispose();
 if (failed) process.exit(1);
 console.log(
-  "solid/widgets.test.ts: Tab order, key timing, clicks and focus, the disabled box, select all, the disclosure, radio, tabs, slider, toolbar",
+  "solid/widgets.test.ts: Tab order, key timing, clicks and focus, the disabled box, select all, the disclosure, radio, tabs, slider, toolbar, tree",
 );
 process.exit(0);

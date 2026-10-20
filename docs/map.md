@@ -138,6 +138,19 @@ Each step ends in a check that fails when it breaks.
    unchanged above the new widgets; radio, tabs, slider, slider dragged, toolbar re-entered) and asserts for the full Tab
    order, one stop a group, arrows, clamping, memory, a disabled radio, the rail, the drag, the ring's row. Not done: the toolbar's menu. Seen by
    eye: the eleven frames; the window was started (`--frames 60`), its keys and mouse not tried by hand.
+   **Done: the tree on the page.** The sixth group is `headless/`'s settings tree (360x760 now): Network open with
+   Wi-Fi and Bluetooth, Display closed with Brightness, Storage a leaf — six nodes, one level of nesting. It shares the
+   page's focus manager, so it is one more Tab stop (the twelfth) entered at the first visible row, and its keys reach the
+   part as any focused part's do (no page-level key handling): Up and Down, Home and End walk the visible rows only (a
+   closed subtree's node has `tabIndex: -1` and is not even in the Solid tree), Right opens a closed parent and steps into
+   an open one, Left closes or steps to the parent, Space selects, Enter opens and selects, a click does both and focuses.
+   The row's left padding is 18px a level, `+`/`-` marks a parent, the selected row is the panel surface with an accent
+   label, and the roving row takes the same 2px ring as the other rows (both themes; the accent on the surface is
+   asserted at 4.5:1). The page grew to 760 so the tallest state (panel open and Display open) still fits and nothing is
+   shrunk. Check: five tree frames (Tab in, Down, Right on the closed Display, Space, light) and asserts for the stop,
+   the entry, the visible-only arrows, Right and Left, Home and End, Space, the ring following the roving row, a hidden
+   node skipped, the indent, and the page fitting. Seen by eye: all sixteen frames; the window started with
+   `--frames 60`, exit 0, its keys and mouse not tried by hand.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:

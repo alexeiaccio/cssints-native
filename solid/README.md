@@ -14,7 +14,7 @@ solid-js 2.0.0-rc.13, @solidjs/universal 2.0.0-rc.13 (createRenderer), @solidjs/
 ```sh
 sh solid/native/build.sh                         # build/solid/libui.dylib (brew sdl3 sdl3_image thorvg)
 bun solid/main.ts                                # the window: the mouse is the pointer, `t` flips the theme
-bun solid/main.ts widgets                        # the Widgets page (360x608): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
+bun solid/main.ts widgets                        # the Widgets page (360x760): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
 bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
@@ -38,7 +38,7 @@ compile.tsx.ts     Node child of a `.tsx` whose styles live in it: Solid's JSX f
 stub-bun.mjs       `bun:ffi` for that child: cssints runs the page to read its tokens, and the dylib has no meaning in Node
 src/input.ts       SDL keys to names, and where a key goes: the focus manager, the focused part, the page
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
-app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, and its styles, in the same file
+app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
 frames/            the Widgets page's stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
 test.ts, widgets.test.ts   the checks the stored frames cannot make
@@ -131,15 +131,17 @@ element with `onPress` (empty space) blurs: `createFrame`'s `onPressMiss` calls 
 they both set, and focus ring and pressed look show together (`resolve` in `pack.ts`). The Widgets styles use a 2px
 border in the `ring` token (a border does not change Clay's layout, so the ring moves nothing).
 
-**The page.** `app/Widgets.tsx` (360x608: the page is as tall as it needs to be with the disclosure open; a page taller
-than the window makes Clay shrink its boxes, a row wider than it widens the root, both are asserted): a button that counts presses, a Wi-Fi switch (the thumb is at the end of the track
+**The page.** `app/Widgets.tsx` (360x760: the page is as tall as it needs to be with the disclosure open and the tree's
+Display open, the tallest state; a page taller than the window makes Clay shrink its boxes, a row wider than it widens
+the root, both are asserted): a button that counts presses, a Wi-Fi switch (the thumb is at the end of the track
 by `trackOn` instead of `track`), "Select all" (mixed) over Wired and Wireless (`all` is controlled: its `value` is
 read from the two, its `onValueChange` sets both), a disabled checkbox, and a disclosure whose panel is in the tree
-while `!panel.hidden`. Tab order: button, switch, select all, wired, wireless, trigger, then the four groups below.
+while `!panel.hidden`. Tab order: button, switch, select all, wired, wireless, trigger, then the five groups below.
 
 The groups come after the disclosure, so the first part of the page is the old layout pixel for pixel (checked against
-the earlier six frames over their old height; the frames are regenerated at the new size). Each is made after the
-parts above it, because the manager's document order is the order of registration:
+the earlier eleven frames over their old height: the only new ink in them is the tree under the toolbar; the frames are
+regenerated at the new size). Each is made after the parts above it, because the manager's document order is the order of
+registration:
 
 | Widget | In the manager | Keys and pointer |
 | --- | --- | --- |
@@ -147,6 +149,15 @@ parts above it, because the manager's document order is the order of registratio
 | Tabs (Overview, Stats, Log) | a group: horizontal, `wrap`, no memory, `entry` = the selected tab; the selected panel is a stop after it | Left and Right move and select (automatic), Home and End go to the ends; a click selects; Tab goes to the panel (ring on it), then on |
 | Volume (slider 0..100, step 5, page 20, `valueText` "45%") | not a group: one entry (the thumb) | arrows step, PageUp and PageDown move by 20, Home and End go to the ends, clamped; a press on the rail or the knob sets the value and starts a drag: each held frame's x is the ratio from the rail's `ui_bounds` (less the knob's width, so a press on the knob's middle keeps its value); the ring is the slider's row (rail and value), not the knob |
 | Format (toolbar: Bold, Italic, Underline; each toggles a lamp under its label) | a group: horizontal, no wrap, **memory**, `focusDisabled` | Left and Right, Home and End move; Enter and Space toggle on key down; Tab away and back lands on the item left last |
+| Settings (tree: Network open with Wi-Fi and Bluetooth, Display closed with Brightness, Storage a leaf: six nodes) | a group: vertical, no wrap, no memory, `entry` = the first selected visible node, else the first visible; a node in a closed subtree has `tabIndex: -1` | one Tab stop: Tab enters at Network (the first visible row); Up and Down, Home and End walk the visible rows only; Right opens the closed Display and, on an open parent, steps into its first child; Left closes an open parent, or steps to it from a child; Space selects, Enter opens and selects; a click opens, selects and focuses |
+
+The tree is the last group, made after the toolbar, so its rows are the page's last Tab stop: Tab out of the tree
+releases focus (nothing is after it). Its styles: a row per node with the hover and pressed looks of the other rows and
+the same 2px `ring` on the roving row; the row's left padding is one step of 18px per `level` (`nodeOf`, one style made
+at run time per level and selection, as `fillOf` does for the slider); `+` on a closed parent, `-` on an open one, and
+a leaf has none; the selected row is the `surface` fill with its label in the `accent` (4.5:1 or more on the surface in
+both themes); a node in a closed subtree is not in the Solid tree at all (`Show when={!item.hidden}`), so its row is
+neither drawn nor findable. No disabled nodes: the tree part has none, so the page has no dim row look.
 
 The slider's filled part is the one style made at run time (`fillOf`: `s.fill` with a fixed width of the value, kept
 per width); Clay has no flex ratio. The focus ring is the slider row's (`s.sliderRow`: the rail and the value, no
@@ -158,11 +169,13 @@ page and Shift+Tab, one Tab stop for each group, Space on key up and Enter on ke
 and focusing, the disabled box, blur on empty space, select all, the disclosure, the page fitting its window, the radio's
 arrows (wrap, Space, Tab in at the checked one, a disabled radio skipped by arrows, Tab and a click), the tabs' arrows,
 Home, End and panels, the slider's step, page keys, ends, clamping and rail presses, the toolbar's ends, memory and
-toggles, contrast of the ink on every fill, key names, the drag) and by eleven stored frames in `frames/`:
+toggles, the tree's one stop, its visible-only arrows, Right and Left, Home and End, Space, the ring following the roving
+row, a hidden node skipped, contrast of the ink on every fill, key names, the drag) and by sixteen stored frames in
+`frames/`:
 
 | Frame | Keys | Shows |
 | --- | --- | --- |
-| `widgets-initial` | | the page at rest: 1x checked, Overview selected, Volume 40%, no lamp on |
+| `widgets-initial` | | the page at rest: 1x checked, Overview selected, Volume 40%, no lamp on; below the toolbar the tree: `- Network` with Wi-Fi and Bluetooth, `+ Display`, Storage |
 | `widgets-tab2` | Tab Tab | ring on the switch |
 | `widgets-switch-on` | Tab Tab Space | the switch on |
 | `widgets-mixed` | Tab×4 Space | Wired checked and ringed, "Select all" mixed |
@@ -173,6 +186,11 @@ toggles, contrast of the ink on every fill, key names, the drag) and by eleven s
 | `widgets-slider-drag` | a press at a quarter, held, a move to three quarters | the knob near the right end, the fill grown, 80%, ring still on the row |
 | `widgets-toolbar` | Tab×11 Enter ArrowRight Shift+Tab Tab | Bold's lamp on; Italic ringed after leaving for the slider and coming back |
 | `widgets-light` | the disclosure, then the four groups | the light theme: 4x, Stats, 50%, Bold on and ringed |
+| `widgets-tree-focus` | Tab×12 | the ring on Network, the tree's first visible row: Network open with its two children, Display closed, Storage after it |
+| `widgets-tree-down` | Tab×12 ArrowDown | the ring on Wi-Fi, the selection still empty (`ArrowDown` moves, it does not select) |
+| `widgets-tree-expanded` | Tab×12 ArrowDown×3 ArrowRight | Display opened by Right (`+` became `-`), Brightness indented under it, the ring still on Display |
+| `widgets-tree-select` | Tab×12 ArrowDown×3 ArrowRight Space | the same, and Display selected: the surface fill with its label in the accent, ring still on it |
+| `widgets-tree-light` | the same keys, light | the light theme: Wi-Fi selected (white fill, accent label) and ringed |
 
 ## Notes
 
@@ -185,4 +203,5 @@ toggles, contrast of the ink on every fill, key names, the drag) and by eleven s
   accessibility tree (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the
   window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), the
   toolbar's menu item (the headless menu is not ported), a vertical radio, tabs or toolbar on the page (the parts take the
-  option; the page has the horizontal ones).
+  option; the page has the horizontal ones), the tree's multi-select (`selection: 'multiple'` is in the part; the page is
+  single) and its type-ahead (not ported), and disabled tree nodes (the part has none).

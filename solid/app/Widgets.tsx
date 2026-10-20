@@ -1,8 +1,9 @@
 // The Widgets page: the headless button, switch, checkbox (one of them mixed, one disabled) and disclosure, then a radio
-// group, tabs, a slider and a toolbar, with their styles in this file. Each widget's style is picked from its part's fields
-// (`checked`, `selected`, `disabled`, `hidden`); the pressed look and the focus ring are the styles' `:active` and
-// `:focus`. Every part is registered in the focus manager in document order, so Tab walks them top to bottom; the four
-// groups are one stop each (radio, tabs and toolbar are groups of the manager, the slider is one entry).
+// group, tabs, a slider, a toolbar and a settings tree, with their styles in this file. Each widget's style is picked from
+// its part's fields (`checked`, `selected`, `expanded`, `hidden`); the pressed look and the focus ring are the styles'
+// `:active` and `:focus`. Every part is registered in the focus manager in document order, so Tab walks them top to
+// bottom; the five groups are one stop each (radio, tabs, the tree and toolbar are groups of the manager, the slider is
+// one entry).
 import * as css from "cssints/clay" with { type: "cssints" };
 import { createSignal, Show } from "solid-js";
 
@@ -15,7 +16,9 @@ import {
   createSwitch,
   createTabs,
   createToolbar,
+  createTree,
   type Checkbox,
+  type TreeNode,
 } from "../../headless/src/index.ts";
 import { ui } from "../src/ffi.ts";
 import type { Bind, Input } from "../src/input.ts";
@@ -213,10 +216,31 @@ const tool = css.cn(
 const led = css.cn(css.width("stretch"), css.height(3), css.borderRadius(2), css.bg(t.color.off));
 const ledOn = css.cn(led, css.bg(t.color.accent));
 
-export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn };
+// a settings tree: a row per node, its left padding one step per level (`nodeOf`), the disclosure mark in the accent, the
+// selected row on the panel's surface in the accent too, and the same 2px ring on the roving row. A node inside a
+// collapsed subtree is not rendered at all (`item.hidden`), as the DOM would hide it.
+const tree = css.cn(css.width("stretch"), css.flexDirection("column"));
+const node = css.cn(
+  css.width("stretch"),
+  css.p(3, 8),
+  css.gap(2),
+  css.alignItems("center"),
+  css.borderRadius(6),
+  css.hover(css.bg(t.color.hover)),
+  css.active(css.bg(t.color.active)),
+  css.focus(css.border(2, t.color.ring)),
+);
+const nodeSelected = css.cn(node, css.bg(t.color.surface));
+const nodeMark = css.cn(css.width(14), css.alignItems("center"));
+const nodeMarkText = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
+const labelSelected = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
 
-/** The window of the page: the disclosure's panel open still leaves room for the toolbar. */
-export const size = { width: 360, height: 608 };
+export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn, tree, node, nodeSelected, nodeMark, nodeMarkText, labelSelected };
+
+/** The window of the page: the disclosure's panel open and the tree's Display open too still fit (5 tree rows at rest,
+ * 6 with Brightness), and the panel is not shrunk. 760 is as tall as this page goes: the worst state's content ends at
+ * 734.1 with the 24px bottom padding. */
+export const size = { width: 360, height: 760 };
 
 const SPEEDS = ["1x", "4x", "16x"];
 const TABS = [
@@ -226,6 +250,17 @@ const TABS = [
 ];
 const TOOLS = ["Bold", "Italic", "Underline"];
 const KNOB = 16;
+
+// a settings tree: Network open, Display closed, so the collapsed subtree is the one a key opens. Ids are pre-order, as
+// the tree wants them (document order); `parent: 0` is a root; a node without children is a leaf and shows no mark.
+const NODES: ReadonlyArray<TreeNode> = [
+  { id: 1, parent: 0, label: "Network" },
+  { id: 2, parent: 1, label: "Wi-Fi" },
+  { id: 3, parent: 1, label: "Bluetooth" },
+  { id: 4, parent: 0, label: "Display" },
+  { id: 5, parent: 4, label: "Brightness" },
+  { id: 6, parent: 0, label: "Storage" },
+];
 
 /** Where the page puts its pointer callback: the host hands it to `createFrame`'s `onPointer` each frame. */
 export interface Drag {
@@ -240,6 +275,19 @@ const fillOf = (w: number): typeof s.fill => {
     const base = s.fill as any;
     const width = { type: "FIXED", min: w, max: w };
     fills.set(w, (style = { ...base, layout: { ...base.layout, sizing: { ...base.layout.sizing, width } } }));
+  }
+  return style!;
+};
+
+// a tree row indented by its level: the one style made at run time, kept per level and selection
+const nodes = new Map<string, typeof s.node>();
+const nodeOf = (level: number, selected: boolean): typeof s.node => {
+  const key = `${selected ? "s" : ""}${level}`;
+  let style = nodes.get(key);
+  if (!style) {
+    const base = (selected ? s.nodeSelected : s.node) as any;
+    const left = 8 + (level - 1) * 18;
+    nodes.set(key, (style = { ...base, layout: { ...base.layout, padding: { ...base.layout.padding, left } } }));
   }
   return style!;
 };
@@ -317,6 +365,13 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
     focus,
     onActivate: (i) => setOn((a) => a.map((v, j) => (j === i ? !v : v))),
   });
+  // the tree is the last group of the page, so its nodes come after the toolbar in the manager's document order
+  const settings = createTree({
+    id: "settings",
+    nodes: NODES,
+    defaultExpanded: [1],
+    focus,
+  });
 
   const groupBind = {
     speed: speed.radios.map((r) => input.bind(r)),
@@ -324,6 +379,8 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
     panels: tabs.panels.map((p) => input.bind(p)),
     volume: input.bind(volume.thumb),
     format: format.items.map((i) => input.bind(i)),
+    // the nodes registered themselves in the manager (`focus`), so the page only routes keys and focus to them
+    nodes: settings.nodeIds.map((id) => input.bind(settings.item(id))),
   };
 
   // a press on the rail (or on the knob, which is inside it) sets the value from where the press was and starts a drag:
@@ -428,6 +485,23 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
             <box style={on()[i] ? s.ledOn : s.led} />
           </box>
         ))}
+      </box>
+      <box style={s.tree}>
+        {settings.nodeIds.map((id, i) => {
+          const item = settings.item(id);
+          return (
+            <Show when={!item.hidden}>
+              <box {...groupBind.nodes[i]!} style={nodeOf(item.level, item.selected)}>
+                <box id={`${item.id}-mark`} style={s.nodeMark}>
+                  <Show when={item.expanded !== undefined}>
+                    <text style={s.nodeMarkText}>{item.expanded ? "-" : "+"}</text>
+                  </Show>
+                </box>
+                <text style={item.selected ? s.labelSelected : s.label}>{item.label}</text>
+              </box>
+            </Show>
+          );
+        })}
       </box>
     </box>
   );
