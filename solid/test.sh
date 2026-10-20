@@ -14,7 +14,7 @@ $W --keys Tab,Tab --expect solid/frames/widgets-tab2.png
 $W --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png
 $W --keys Tab,Tab,Tab,Tab,Space --expect solid/frames/widgets-mixed.png
 $W --keys Tab,Tab,Space,Tab,Tab,Tab,Tab,Enter --expect solid/frames/widgets-disclosure.png
-# the groups: Tab to each (6 stops before the radio, then the tab, its panel, the slider, the toolbar), then its keys
+# the groups: Tab to each (6 stops before the radio, then the tab, its panel, the slider, the toolbar, the tree), then its keys
 $W --keys Tab,Tab,Tab,Tab,Tab,Tab,Tab,ArrowRight --expect solid/frames/widgets-radio.png
 $W --keys Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,ArrowRight --expect solid/frames/widgets-tabs.png
 $W --keys Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,ArrowRight --expect solid/frames/widgets-slider.png
@@ -23,6 +23,14 @@ $W --drag 0.25 0.75 --expect solid/frames/widgets-slider-drag.png
 # the toolbar: Bold on, to Italic, Tab away to the slider and back: Italic has the ring again (memory)
 $W --keys Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Enter,ArrowRight,Shift+Tab,Tab --expect solid/frames/widgets-toolbar.png
 THEME=light $W --keys Tab,Tab,Space,Tab,Tab,Space,Tab,Tab,Enter,Tab,ArrowRight,Tab,ArrowRight,Tab,Tab,ArrowRight,ArrowRight,Tab,Enter --expect solid/frames/widgets-light.png
+# the settings tree, 12 Tabs in: the ring on Network, the first visible row; Down moves it without selecting;
+# Right on the closed Display opens it; Space selects the roving node
+TREE="Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab,Tab"
+$W --keys $TREE --expect solid/frames/widgets-tree-focus.png
+$W --keys $TREE,ArrowDown --expect solid/frames/widgets-tree-down.png
+$W --keys $TREE,ArrowDown,ArrowDown,ArrowDown,ArrowRight --expect solid/frames/widgets-tree-expanded.png
+$W --keys $TREE,ArrowDown,ArrowDown,ArrowDown,ArrowRight,Space --expect solid/frames/widgets-tree-select.png
+THEME=light $W --keys $TREE,ArrowDown,Space --expect solid/frames/widgets-tree-light.png
 bun solid/widgets.test.ts
 # the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
 bun solid/inline.test.ts
