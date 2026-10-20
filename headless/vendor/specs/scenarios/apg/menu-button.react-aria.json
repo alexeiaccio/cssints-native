@@ -1,0 +1,1080 @@
+{
+  "pattern": "menu-button",
+  "source": "react-aria",
+  "commit": "99e610236887da619ad9d54a1cd87983166c043d",
+  "license": "Apache-2.0",
+  "scenarios": [
+    {
+      "id": "menu-button.react-aria.menu-trigger-opens-and-activates",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L624",
+      "upstreamTest": "should support menu trigger",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"]
+      },
+      "steps": [
+        { "expect": { "attrs": { "trigger": { "data-pressed": null } } } },
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["menu"],
+            "attrs": { "trigger": { "data-pressed": "true" } }
+          }
+        },
+        { "event": "click", "target": "menuitem:1" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "events": { "onAction": ["menuitem:1"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.trigger-aria-haspopup-and-expanded",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenuTrigger.test.js#L46",
+      "upstreamTest": "should return default props for menu and menu trigger / proper aria props if menu is open",
+      "apg": "aria",
+      "config": { "items": ["One", "Two"] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "trigger": { "aria-haspopup": "true", "aria-expanded": null }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "attrs": {
+              "trigger": { "aria-haspopup": "true", "aria-expanded": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.trigger-disabled-does-not-toggle",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenuTrigger.test.js#L89",
+      "upstreamTest": "doesn't toggle the menu if isDisabled",
+      "apg": "extension",
+      "config": { "items": ["One", "Two"], "triggerDisabled": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.arrow-down-opens-and-focuses-first",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L604",
+      "upstreamTest": "should focus the first item on Alt+ArrowDown if no selectedKeys specified",
+      "apg": "keyboard",
+      "config": { "items": ["One", "Two", "Three"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Alt+ArrowDown", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.arrow-up-opens-and-focuses-last",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L597",
+      "upstreamTest": "should focus the last item on Alt+ArrowUp if no selectedKeys specified",
+      "apg": "keyboard",
+      "config": { "items": ["One", "Two", "Three"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Alt+ArrowUp", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:2" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.opens-on-long-press-not-short-press",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L471",
+      "upstreamTest": "should open the menu on longPress / short press does not open",
+      "apg": "extension",
+      "config": { "items": ["One", "Two"], "longPress": true },
+      "steps": [
+        { "event": "pointerdown", "pointerType": "touch", "target": "trigger" },
+        { "event": "wait", "ms": 500 },
+        { "event": "pointerup", "pointerType": "touch", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } }
+      ],
+      "notes": "Short-press and plain click paths are asserted by the click scenarios; longPress is an extension."
+    },
+    {
+      "id": "menu-button.react-aria.long-press-alt-arrow-opens-and-focuses-selected",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L563",
+      "upstreamTest": "should focus the selected item on menu open",
+      "apg": "extension",
+      "config": {
+        "variant": "radio-items",
+        "items": ["Foo", "Bar"],
+        "selected": 1
+      },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Alt+ArrowDown", "target": "trigger" },
+        {
+          "expect": {
+            "focus": "menuitem:1",
+            "attrs": { "menuitem:1": { "aria-checked": "true" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.disabled-items-skipped-in-keyboard-navigation",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L570",
+      "upstreamTest": "should support isDisabled prop on items",
+      "apg": "keyboard",
+      "config": { "items": ["Cat", "Dog", "Kangaroo"], "disabled": [1] },
+      "steps": [
+        { "event": "focus", "target": "menuitem:0" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        {
+          "expect": {
+            "focus": "menuitem:2",
+            "attrs": { "menuitem:1": { "aria-disabled": "true" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.selection-toggle-multiple-on-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L450",
+      "upstreamTest": "should support selection state",
+      "apg": "keyboard",
+      "config": {
+        "variant": "checkbox-items",
+        "selectionMode": "multiple",
+        "items": ["Cat", "Dog", "Kangaroo"]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": {
+                "role": "menuitemcheckbox",
+                "aria-checked": "false"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "true" } } } },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "false" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.section-level-selection-modes",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L469",
+      "upstreamTest": "should support section-level selection",
+      "apg": "keyboard",
+      "config": {
+        "groups": [
+          {
+            "selectionMode": "multiple",
+            "items": ["Lettuce", "Tomato", "Onion"],
+            "selected": [0]
+          },
+          {
+            "selectionMode": "single",
+            "items": ["Ham", "Tuna", "Tofu"],
+            "selected": [0]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": {
+                "role": "menuitemcheckbox",
+                "aria-checked": "true"
+              },
+              "menuitem:1": {
+                "role": "menuitemcheckbox",
+                "aria-checked": "false"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "menuitem:1" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-checked": "true" },
+              "menuitem:1": { "aria-checked": "true" }
+            }
+          }
+        },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:3": { "role": "menuitemradio", "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "click", "target": "menuitem:4" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:3": { "aria-checked": "false" },
+              "menuitem:4": { "aria-checked": "true" }
+            }
+          }
+        },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:4" },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:3" },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:2" },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:1" },
+        { "expect": { "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.escape-key-behavior-none-keeps-selection",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L546",
+      "upstreamTest": "should prevent Esc from clearing selection if escapeKeyBehavior is none",
+      "apg": "extension",
+      "config": {
+        "variant": "checkbox-items",
+        "selectionMode": "multiple",
+        "items": ["Cat", "Dog"],
+        "escapeKeyBehavior": "none"
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "true" } } } },
+        { "event": "key", "key": "Escape", "target": "menuitem:0" },
+        { "expect": { "attrs": { "menuitem:0": { "aria-checked": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.on-action-fires-for-menu-and-item",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L605",
+      "upstreamTest": "should support onAction on menu and menu items",
+      "apg": "keyboard",
+      "config": { "items": ["Cat", "Dog", "Kangaroo"] },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "events": {
+              "onAction": ["menuitem:0"],
+              "onItemAction": ["menuitem:0"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.press-events-on-items",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1880",
+      "upstreamTest": "should support press events on menu items",
+      "apg": "extension",
+      "config": { "items": ["Cat", "Dog"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "events": {
+              "onAction": ["menuitem:0"],
+              "onPressStart": ["menuitem:0"],
+              "onPress": ["menuitem:0"],
+              "onClick": ["menuitem:0"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.press-events-keyboard",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1964",
+      "upstreamTest": "should support press events on menu items when using keyboard",
+      "apg": "extension",
+      "config": { "items": ["Cat", "Dog"] },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        {
+          "expect": {
+            "events": {
+              "onAction": ["menuitem:0"],
+              "onPressStart": ["menuitem:0"],
+              "onClick": ["menuitem:0"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.press-events-drag-release",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1938",
+      "upstreamTest": "should support press events on menu items when dragging and releasing",
+      "apg": "mouse",
+      "config": { "items": ["Cat", "Dog"] },
+      "steps": [
+        { "event": "pointerdown", "target": "trigger" },
+        { "event": "pointerup", "target": "menuitem:0" },
+        {
+          "expect": {
+            "events": { "onAction": ["menuitem:0"], "onClick": ["menuitem:0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.should-close-on-select-false-on-menu",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L768",
+      "upstreamTest": "should not close the menu when shouldCloseOnSelect is false",
+      "apg": "extension",
+      "config": {
+        "items": ["Open", "Rename…", "Delete…"],
+        "shouldCloseOnSelect": false
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.should-close-on-select-false-on-item",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L801",
+      "upstreamTest": "should not close individual menu item when shouldCloseOnSelect=false",
+      "apg": "extension",
+      "config": {
+        "items": ["Open", "Rename…", "Delete…"],
+        "itemShouldCloseOnSelect": [0]
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "click", "target": "menuitem:1" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.context-menu-right-click-opens",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L658",
+      "upstreamTest": "should support a context menu trigger",
+      "apg": "extension",
+      "config": {
+        "variant": "context-menu",
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"]
+      },
+      "steps": [
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "attrs": {
+              "trigger": { "aria-haspopup": null, "aria-expanded": null }
+            }
+          }
+        },
+        { "event": "click", "target": "trigger" },
+        { "expect": { "hidden": ["menu"] } },
+        { "event": "contextmenu", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "click", "target": "menuitem:1" },
+        {
+          "expect": {
+            "hidden": ["menu"],
+            "events": { "onAction": ["menuitem:1"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.context-menu-right-click-outside-closes",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L708",
+      "upstreamTest": "should close a context menu when right clicking outside",
+      "apg": "extension",
+      "config": {
+        "variant": "context-menu",
+        "items": ["Open", "Rename…", "Duplicate"]
+      },
+      "steps": [
+        { "event": "contextmenu", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "contextmenu", "target": "menu" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "contextmenu", "target": "outside" },
+        { "expect": { "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.use-context-menu-right-click-callback",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/interactions/useContextMenu.test.tsx#L35",
+      "upstreamTest": "calls onContextMenu on right click",
+      "apg": "extension",
+      "config": { "variant": "context-menu", "items": ["Action"] },
+      "steps": [
+        { "event": "contextmenu", "target": "trigger" },
+        {
+          "expect": { "events": { "onContextMenu": [[{ "x": 20, "y": 20 }]] } }
+        }
+      ],
+      "notes": "Coordinates are relative to the trigger rect; asserted as a pointer event was delivered."
+    },
+    {
+      "id": "menu-button.react-aria.use-context-menu-prevents-default",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/interactions/useContextMenu.test.tsx#L59",
+      "upstreamTest": "prevents default and stops propagation on contextmenu event",
+      "apg": "extension",
+      "config": { "variant": "context-menu", "items": ["Action"] },
+      "steps": [
+        { "event": "contextmenu", "target": "trigger" },
+        {
+          "expect": {
+            "events": {
+              "onContextMenuDefaultPrevented": [true],
+              "onContextMenuPropagationStopped": [true]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.use-context-menu-ctrl-enter-macos",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/interactions/useContextMenu.test.tsx#L103",
+      "upstreamTest": "triggers onContextMenu via Ctrl+Enter on macOS when no contextmenu event fires",
+      "apg": "extension",
+      "config": {
+        "variant": "context-menu",
+        "platform": "macOS",
+        "items": ["Action"]
+      },
+      "steps": [
+        { "event": "key", "key": "Ctrl+Enter", "target": "trigger" },
+        { "event": "wait", "ms": 10 },
+        { "expect": { "events": { "onContextMenu": [[]] } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.use-context-menu-long-press-ios",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/interactions/useContextMenu.test.tsx#L185",
+      "upstreamTest": "triggers onContextMenu via long press on iOS",
+      "apg": "extension",
+      "config": {
+        "variant": "context-menu",
+        "platform": "iOS",
+        "items": ["Action"]
+      },
+      "steps": [
+        { "event": "pointerdown", "pointerType": "touch", "target": "trigger" },
+        { "event": "wait", "ms": 500 },
+        { "event": "pointerup", "pointerType": "touch", "target": "trigger" },
+        { "expect": { "events": { "onContextMenu": [[]] } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-trigger-aria-and-open-on-hover",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L931",
+      "upstreamTest": "should support a submenu trigger",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"],
+        "submenu": { "at": 3, "items": ["Email", "SMS", "X"] }
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:3": {
+                "aria-haspopup": "menu",
+                "aria-expanded": "false",
+                "data-has-submenu": "true"
+              }
+            }
+          }
+        },
+        { "event": "hover", "target": "menuitem:3" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:3": { "aria-expanded": "true", "data-open": "true" }
+            },
+            "visible": ["submenu:1"]
+          }
+        },
+        { "event": "click", "target": "menuitem:3/0" },
+        {
+          "expect": {
+            "hidden": ["menu", "submenu:1"],
+            "events": { "onAction": ["menuitem:3/0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.nested-submenu-triggers",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L998",
+      "upstreamTest": "should support nested submenu triggers",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"],
+        "submenu": {
+          "at": 3,
+          "items": ["Email…", "SMS", "X"],
+          "nestedSubmenu": { "at": 0, "items": ["Work", "Personal"] }
+        }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:3" },
+        { "expect": { "visible": ["submenu:1"] } },
+        { "event": "hover", "target": "menuitem:3/0" },
+        { "expect": { "visible": ["submenu:1/1"] } },
+        { "event": "click", "target": "menuitem:3/0/0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1/1", "submenu:1"],
+            "events": { "onAction": ["menuitem:3/0/0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.outside-click-closes-all-menus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1095",
+      "upstreamTest": "should close all submenus if interacting outside root submenu",
+      "apg": "mouse",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"],
+        "submenu": {
+          "at": 3,
+          "items": ["Email…", "SMS", "X"],
+          "nestedSubmenu": { "at": 0, "items": ["Work", "Personal"] }
+        }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:3" },
+        { "event": "hover", "target": "menuitem:3/0" },
+        { "expect": { "visible": ["menu", "submenu:1", "submenu:1/1"] } },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["menu", "submenu:1", "submenu:1/1"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.escape-restores-focus-to-submenu-trigger",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1195",
+      "upstreamTest": "should restore focus to menu trigger if submenu is closed with Escape key",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"],
+        "submenu": { "at": 3, "items": ["Email", "SMS", "X"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:3" },
+        { "expect": { "visible": ["submenu:1"] } },
+        { "event": "hover", "target": "menuitem:3/0" },
+        { "expect": { "focus": "menuitem:3/0" } },
+        { "event": "key", "key": "Escape", "target": "menuitem:3/0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1"],
+            "visible": ["menu"],
+            "focus": "menuitem:3"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.escape-restores-focus-to-nested-submenu-trigger",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1269",
+      "upstreamTest": "should restore focus to nested submenu trigger if nested submenu is closed with Escape key",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Open", "Rename…", "Duplicate", "Share…", "Delete…"],
+        "submenu": {
+          "at": 3,
+          "items": ["Email…", "SMS"],
+          "nestedSubmenu": { "at": 0, "items": ["Work", "Personal"] }
+        }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:3" },
+        { "event": "hover", "target": "menuitem:3/0" },
+        { "expect": { "focus": "menuitem:3/0/0" } },
+        { "event": "key", "key": "Escape", "target": "menuitem:3/0/0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1/1"],
+            "visible": ["submenu:1", "menu"],
+            "focus": "menuitem:3/0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-close-when-hover-leaves-trigger",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L142",
+      "upstreamTest": "submenu closes when hover leaves the submenu trigger",
+      "apg": "mouse",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2", "Lvl 1 Item 3"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        {
+          "expect": {
+            "visible": ["submenu:1"],
+            "attrs": { "menuitem:1": { "aria-expanded": "true" } },
+            "events": { "onOpenChange": [] }
+          }
+        },
+        { "event": "hover", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1"],
+            "attrs": { "menuitem:1": { "aria-expanded": "false" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.only-one-submenu-open-at-a-time",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L179",
+      "upstreamTest": "only allows one submenu open at a time",
+      "apg": "mouse",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 0, "items": ["A"] },
+        "submenu2": { "at": 1, "items": ["B"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:0" },
+        {
+          "expect": {
+            "visible": ["submenu:1"],
+            "attrs": {
+              "menuitem:0": { "aria-expanded": "true" },
+              "menuitem:1": { "aria-expanded": "false" }
+            }
+          }
+        },
+        { "event": "hover", "target": "menuitem:1" },
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-expanded": "false" },
+              "menuitem:1": { "aria-expanded": "true" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.hover-onto-trigger-from-submenu-keeps-open",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L219",
+      "upstreamTest": "should not close the sub menu if user hovers onto the sub menu trigger from the sub menu",
+      "apg": "mouse",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["A", "B"] }
+      },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "hover", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"] } },
+        { "event": "hover", "target": "menuitem:1/0" },
+        { "event": "hover", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "hidden": ["menu"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.hover-neighbor-closes-submenu-and-moves-focus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L254",
+      "upstreamTest": "should close the sub menu if the user hovers a neighboring menu item from the submenu trigger",
+      "apg": "mouse",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["A"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        { "event": "hover", "target": "menuitem:1/0" },
+        { "event": "hover", "target": "menuitem:0" },
+        { "expect": { "hidden": ["submenu:1"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.disabled-submenu-trigger-from-disabled-keys",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L370",
+      "upstreamTest": "disables a submenu trigger if the wrapped item is in the disabledKeys array",
+      "apg": "extension",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["A"], "disabled": true }
+      },
+      "steps": [
+        { "expect": { "attrs": { "menuitem:1": { "aria-disabled": "true" } } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.keyboard-arrow-closes-submenu-and-moves-focus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L450",
+      "upstreamTest": "should close the submenu if focus moves from the submenu trigger to a neighboring element via keyboard",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["A"] }
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "trigger" },
+        { "event": "hover", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1" } },
+        { "event": "key", "key": "ArrowUp", "target": "menuitem:1" },
+        { "expect": { "hidden": ["submenu:1"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.tab-contains-focus-in-submenus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L527",
+      "upstreamTest": "should contain focus when pressing Tab",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": {
+          "at": 1,
+          "items": ["Lvl 2 Item 1", "Lvl 2 Item 2"],
+          "nestedSubmenu": { "at": 1, "items": ["Lvl 3 Item 1"] }
+        }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        { "event": "hover", "target": "menuitem:1/1" },
+        { "expect": { "focus": "menuitem:1/1/0" } },
+        { "event": "key", "key": "Tab", "target": "menuitem:1/1/0" },
+        {
+          "expect": {
+            "focus": "menuitem:1/1/0",
+            "visible": ["menu", "submenu:1", "submenu:1/1"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-on-close-called-when-option-pressed",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L575",
+      "upstreamTest": "calls user provided submenu onAction and onClose when submenu option is pressed",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1", "Lvl 2 Item 2"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        { "event": "click", "target": "menuitem:1/1" },
+        {
+          "expect": {
+            "events": {
+              "onSubmenuAction": ["menuitem:1/1"],
+              "onSubmenuClose": [],
+              "onRootAction": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.escape-does-not-trigger-submenu-close-callback",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L665",
+      "upstreamTest": "should not trigger onClose when closing the submenu with Esc",
+      "apg": "extension",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        { "event": "key", "key": "Escape", "target": "menuitem:1" },
+        {
+          "expect": {
+            "hidden": ["submenu:1"],
+            "events": { "onClose": [], "onSubmenuClose": [] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-trigger-does-not-fire-root-action",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L696",
+      "upstreamTest": "should not trigger root menu onAction when pressing on a submenu trigger item",
+      "apg": "extension",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1"] }
+      },
+      "steps": [
+        { "event": "click", "target": "menuitem:1" },
+        {
+          "expect": { "visible": ["submenu:1"], "events": { "onAction": [] } }
+        },
+        { "event": "click", "target": "menuitem:0" },
+        {
+          "expect": {
+            "hidden": ["submenu:1", "menu"],
+            "events": { "onAction": ["menuitem:0"] }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-selection-mode-sync",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L849",
+      "upstreamTest": "doesnt select a submenu trigger even if its key is specified in selectedKeys",
+      "apg": "checkbox",
+      "config": {
+        "variant": "checkbox-items",
+        "selectionMode": "multiple",
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "selected": [0, 1],
+        "submenu": { "at": 1, "items": ["A"] }
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": {
+                "role": "menuitemcheckbox",
+                "aria-checked": "true"
+              },
+              "menuitem:2": { "role": "menuitem", "aria-expanded": "false" }
+            }
+          }
+        }
+      ],
+      "notes": "The submenu trigger is not selectable and must not carry aria-checked."
+    },
+    {
+      "id": "menu-button.react-aria.submenu-keyboard-open-close-arrow-keys",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L1059",
+      "upstreamTest": "should allow the user to open and close menus with the arrow keys",
+      "apg": "keyboard",
+      "config": {
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1"] }
+      },
+      "steps": [
+        { "event": "key", "key": "ArrowDown", "target": "trigger" },
+        { "event": "key", "key": "ArrowDown", "target": "menuitem:0" },
+        { "expect": { "focus": "menuitem:1" } },
+        { "event": "key", "key": "ArrowRight", "target": "menuitem:1" },
+        { "expect": { "visible": ["submenu:1"], "focus": "menuitem:1/0" } },
+        { "event": "key", "key": "ArrowLeft", "target": "menuitem:1/0" },
+        { "expect": { "hidden": ["submenu:1"], "focus": "menuitem:1" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.submenu-does-not-open-on-hover-in-tray",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L1022",
+      "upstreamTest": "should not open/close submenus on hover",
+      "apg": "extension",
+      "config": {
+        "variant": "touch-tray",
+        "items": ["Lvl 1 Item 1", "Lvl 1 Item 2"],
+        "submenu": { "at": 1, "items": ["Lvl 2 Item 1"] }
+      },
+      "steps": [
+        { "event": "hover", "target": "menuitem:1" },
+        { "expect": { "hidden": ["submenu:1"] } },
+        {
+          "event": "pointerdown",
+          "pointerType": "touch",
+          "target": "menuitem:1"
+        },
+        { "expect": { "visible": ["submenu:1"] } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.menu-containing-focus-on-tab",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1842",
+      "upstreamTest": "contains focus within the menu",
+      "apg": "keyboard",
+      "config": { "items": ["Foo", "Bar", "Baz"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["menu"] } },
+        { "event": "key", "key": "Tab", "target": "menu" },
+        { "expect": { "visible": ["menu"], "focus": "menu" } }
+      ],
+      "notes": "Focus is trapped inside the open menu; Tab keeps focus on the currently active element."
+    },
+    {
+      "id": "menu-button.react-aria.tab-away-keeps-menu-open",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L996",
+      "upstreamTest": "does not close if menu is tabbed away from",
+      "apg": "keyboard",
+      "config": { "items": ["One", "Two", "Three"] },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "key", "key": "Tab", "target": "menu" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.virtualized-aria-posinset-setsize",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenu.test.tsx#L153",
+      "upstreamTest": "sets correct aria-posinset (1-based) for virtualized menu items",
+      "apg": "aria",
+      "config": { "virtualized": true, "items": ["One", "Two", "Three"] },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-posinset": "1", "aria-setsize": "3" },
+              "menuitem:1": { "aria-posinset": "2", "aria-setsize": "3" },
+              "menuitem:2": { "aria-posinset": "3", "aria-setsize": "3" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.global-aria-posinset-across-sections",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenu.test.tsx#L185",
+      "upstreamTest": "sets global aria-posinset across sections",
+      "apg": "aria",
+      "config": {
+        "virtualized": true,
+        "sections": [
+          ["One", "Two"],
+          ["Three", "Four"]
+        ]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": { "aria-posinset": "1", "aria-setsize": "4" },
+              "menuitem:1": { "aria-posinset": "2" },
+              "menuitem:2": { "aria-posinset": "3" },
+              "menuitem:3": { "aria-posinset": "4", "aria-setsize": "4" }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.section-group-labelled-by-heading",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenu.test.tsx#L223",
+      "upstreamTest": "labels a section group via aria-label when the section has no heading",
+      "apg": "aria",
+      "config": {
+        "sections": [{ "ariaLabel": "Actions", "items": ["One", "Two"] }]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "group:0": { "aria-label": "Actions", "aria-labelledby": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.item-action-from-use-menu-item",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/menu/useMenu.test.tsx#L137",
+      "upstreamTest": "calls an onAction passed directly to useMenuItem",
+      "apg": "keyboard",
+      "config": { "items": ["One", "Two", "Three"] },
+      "steps": [
+        { "event": "click", "target": "menuitem:0" },
+        { "expect": { "events": { "onAction": ["menuitem:0"] } } }
+      ]
+    },
+    {
+      "id": "menu-button.react-aria.links-keep-menu-semantics-across-selection-modes",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L883",
+      "upstreamTest": "supports links with selectionMode none/single/multiple",
+      "apg": "aria",
+      "config": {
+        "variant": "links",
+        "selectionMode": "single",
+        "items": ["One", "Two"]
+      },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "menuitem:0": {
+                "role": "menuitemradio",
+                "href": "https://example.com/one"
+              }
+            }
+          }
+        },
+        { "event": "click", "target": "menuitem:1" },
+        {
+          "expect": {
+            "events": { "onAction": ["menuitem:1"], "onSelectionChange": [] }
+          }
+        }
+      ],
+      "notes": "Following a link is an action, not a selection change, even when a selectionMode is set."
+    },
+    {
+      "id": "menu-button.react-aria.auto-focuses-popover-for-keyboard-subdialog",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L2062",
+      "upstreamTest": "should auto focus the Popover if in keyboard modality",
+      "apg": "extension",
+      "config": {
+        "items": ["Delete"],
+        "submenu": { "at": 0, "content": "dialog" }
+      },
+      "steps": [
+        { "event": "focus", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        {
+          "expect": {
+            "visible": ["dialog:1"],
+            "focus": "dialog:1",
+            "events": { "onAction": [] }
+          }
+        },
+        { "event": "key", "key": "Escape", "target": "dialog:1" },
+        { "expect": { "focus": "menuitem:0" } }
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L158",
+      "reason": "Default/custom CSS classes, data-rac and DOM prop pass-through are styling/React-API concerns."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L256",
+      "reason": "Hover/press/focus-ring style-hook callbacks and class toggles are styling."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L1806",
+      "reason": "Portal container configuration is a rendering/React-API concern."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Menu.test.tsx#L2102",
+      "reason": "Async loading, onLoadMore and intersection-observer behaviour are data-loading concerns."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/SubMenuTrigger.test.tsx#L877",
+      "reason": "Touch tray positioning, rounded-corner dialogs and back-button chrome are styling/tray chrome."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/VirtualizedMenu.test.tsx",
+      "reason": "Virtualized scrolling/rendering is out of scope; only its ARIA numbering is ported."
+    },
+    {
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/menu/MenuTrigger.test.js#L446",
+      "reason": "Spectrum checkmark rendering when selectionMode is undefined is styling."
+    }
+  ]
+}

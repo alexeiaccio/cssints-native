@@ -1,0 +1,638 @@
+{
+  "pattern": "dialog-modal",
+  "source": "react-aria",
+  "commit": "99e610236887da619ad9d54a1cd87983166c043d",
+  "license": "Apache-2.0",
+  "skipped": [
+    {
+      "reason": "enter/exit animation and isEntering/isExiting/data-entering/data-exiting timing (react-aria-components Dialog.test.js onEnter/onExit suite)"
+    },
+    {
+      "reason": "portal container plumbing (UNSAFE_PortalProvider / UNSTABLE_portalContainer tests)"
+    },
+    {
+      "reason": "render-props and custom data-attribute styling surfaces (Dialog.test.js render props, custom data attributes)"
+    },
+    {
+      "reason": "popover positioning / OverlayArrow / spectrum styling assertions"
+    },
+    {
+      "reason": "tray, mobile detection and date-picker integration branches (should trigger a tray, mobile type modals, DateRangePicker dismissal) which assert non-dialog internals"
+    },
+    {
+      "reason": "dev-only warnings (useDialog missing-title warning, unmounting trigger warning)"
+    },
+    {
+      "reason": "React-API-only details: isOpen/defaultOpen context override, controlled onOpenChange bookkeeping without a behaviour change, FocusScope generic focus-manager unit tests against synthetic components"
+    },
+    { "reason": "SSR tests (Dialog.ssr, useModal.ssr)" }
+  ],
+  "scenarios": [
+    {
+      "id": "dialog-modal.react-aria.base-role-dialog",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L42",
+      "upstreamTest": "Dialog > should have a base default set of attributes",
+      "apg": "wai-aria",
+      "config": {},
+      "steps": [
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "attrs": { "dialog": { "role": "dialog" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.role-dialog-by-default",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L29",
+      "upstreamTest": "useDialog > should have role=\"dialog\" by default",
+      "apg": "wai-aria",
+      "config": {},
+      "steps": [{ "expect": { "attrs": { "dialog": { "role": "dialog" } } } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.role-alertdialog-accepted",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L35",
+      "upstreamTest": "useDialog > should accept role=\"alertdialog\"",
+      "apg": "wai-aria",
+      "config": { "role": "alertdialog" },
+      "steps": [
+        { "expect": { "attrs": { "dialog": { "role": "alertdialog" } } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.modal-role-and-labelledby",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L54",
+      "upstreamTest": "Dialog > works with modal",
+      "apg": "wai-aria",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "attrs": {
+              "dialog": { "role": "alertdialog", "aria-labelledby": "title" }
+            }
+          }
+        },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.alertdialog-describedby-from-description-slot",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L89",
+      "upstreamTest": "Dialog > should set aria-describedby when Text slot=\"description\" is used in alertdialog",
+      "apg": "wai-aria",
+      "config": { "modal": true, "role": "alertdialog" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "attrs": {
+              "dialog": {
+                "role": "alertdialog",
+                "aria-describedby": "description"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.modal-with-custom-underlay-labelledby",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L119",
+      "upstreamTest": "Dialog > works with modal and custom underlay",
+      "apg": "wai-aria",
+      "config": { "modal": true, "customUnderlay": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "attrs": { "dialog": { "aria-labelledby": "title" } } } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.dismiss-button-closes",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L156",
+      "upstreamTest": "Dialog > has dismiss button when isDismissable",
+      "apg": "wai-aria",
+      "config": { "modal": true, "isDismissable": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ],
+      "notes": "The dismiss control is labelled 'Dismiss'."
+    },
+    {
+      "id": "dialog-modal.react-aria.default-aria-label-from-trigger",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L229",
+      "upstreamTest": "Dialog > should get default aria label from trigger",
+      "apg": "wai-aria",
+      "config": { "overlay": "popover" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": { "attrs": { "dialog": { "aria-labelledby": "trigger" } } }
+        },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.render-prop-close-button-closes",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L249",
+      "upstreamTest": "Dialog > should support render props",
+      "apg": "extension",
+      "config": { "overlay": "popover" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["dialog"] } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.standalone-modal-dismiss-on-outside-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L281",
+      "upstreamTest": "Dialog > should support Modal being used standalone",
+      "apg": "keyboard",
+      "config": { "modal": true, "open": true, "isDismissable": true },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onOpenChange": [false] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.autofocus-input-from-keyboard-menu-item",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L672",
+      "upstreamTest": "Dialog > ensure Input autoFocus works when opening Modal from MenuItem via keyboard",
+      "apg": "focus",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "key", "key": "Tab", "target": "trigger" },
+        { "event": "key", "key": "Enter", "target": "trigger" },
+        { "expect": { "visible": ["menu"], "focus": "menuitem:0" } },
+        { "event": "key", "key": "Enter", "target": "menuitem:0" },
+        { "expect": { "visible": ["dialog"], "focus": "autofocus-input" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.outside-click-dismisses-popover-not-modal",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Dialog.test.js#L727",
+      "upstreamTest": "Dialog > should not close Modal when DateRangePicker is dismissed by outside click",
+      "apg": "extension",
+      "config": { "modal": true, "nestedPopover": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "click", "target": "calendar-button" },
+        { "expect": { "visible": ["popover"] } },
+        { "event": "click", "target": "outside" },
+        { "expect": { "hidden": ["popover"], "visible": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.dialog-does-not-autofocus-inner-content",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L22",
+      "upstreamTest": "Dialog > does not auto focus anything inside",
+      "apg": "focus",
+      "config": {},
+      "steps": [
+        {
+          "expect": {
+            "focus": "dialog",
+            "attrs": { "dialog": { "aria-labelledby": null } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.dialog-autofocuses-itself-without-focusable-child",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L36",
+      "upstreamTest": "Dialog > auto focuses the dialog itself if there is no focusable child",
+      "apg": "focus",
+      "config": {},
+      "steps": [{ "expect": { "focus": "dialog" } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.dialog-autofocuses-element-with-autofocus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L43",
+      "upstreamTest": "Dialog > autofocuses any element that has autofocus inside",
+      "apg": "focus",
+      "config": { "initialFocus": "input:1" },
+      "steps": [{ "expect": { "focus": "input:1" } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.dialog-labelled-by-header",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L55",
+      "upstreamTest": "Dialog > should be labelled by its header",
+      "apg": "wai-aria",
+      "config": { "modal": true },
+      "steps": [
+        { "expect": { "attrs": { "dialog": { "aria-labelledby": "header" } } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.aria-labelledby-precedence-over-title",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L75",
+      "upstreamTest": "Dialog > if aria-labelledby is specified, then that takes precedence over the title",
+      "apg": "wai-aria",
+      "config": { "modal": true, "ariaLabelledby": "batman" },
+      "steps": [
+        { "expect": { "attrs": { "dialog": { "aria-labelledby": "batman" } } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.aria-label-precedence-over-title",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/Dialog.test.js#L99",
+      "upstreamTest": "Dialog > if aria-label is specified, then that takes precedence over the title",
+      "apg": "wai-aria",
+      "config": { "modal": true, "ariaLabel": "robin" },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "dialog": { "aria-label": "robin", "aria-labelledby": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.dialog-trigger-modal-default",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L77",
+      "upstreamTest": "DialogTrigger > should trigger a modal by default",
+      "apg": "wai-aria",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.restore-focus-to-trigger-on-close",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L280",
+      "upstreamTest": "DialogTrigger > should restore focus to the trigger when the dialog is closed",
+      "apg": "focus",
+      "config": { "modal": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "dialog" } },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.restore-focus-after-hidden-dismiss",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L303",
+      "upstreamTest": "DialogTrigger > should restore focus to the trigger when the dialog is closed from a hidden dismiss button",
+      "apg": "focus",
+      "config": { "overlay": "popover" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "dialog" } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "focus": "trigger" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.popover-trigger-toggles-closed",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L347",
+      "upstreamTest": "DialogTrigger > popovers should be closeable by clicking their trigger while they are open",
+      "apg": "extension",
+      "config": { "overlay": "popover" },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        {
+          "expect": {
+            "visible": ["dialog"],
+            "events": { "onOpenChange": [true] }
+          }
+        },
+        { "event": "click", "target": "trigger" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.dismissable-modal-closes-on-outside-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L622",
+      "upstreamTest": "DialogTrigger > dismissable modals can be closed by clicking outside the dialog",
+      "apg": "keyboard",
+      "config": { "modal": true, "open": true, "isDismissable": true },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onOpenChange": [false] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.non-dismissable-modal-ignores-outside-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L664",
+      "upstreamTest": "DialogTrigger > non dismissable modals cannot be closed by clicking outside the dialog",
+      "apg": "keyboard",
+      "config": { "modal": true, "open": true, "isDismissable": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.non-modal-closes-on-outside-click-regardless",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L739",
+      "upstreamTest": "DialogTrigger > non-modals can be closed by clicking outside the dialog regardless of isDismissable",
+      "apg": "keyboard",
+      "config": { "overlay": "popover", "open": true, "isDismissable": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onOpenChange": [false] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.escape-disabled-keeps-dialog-open",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L781",
+      "upstreamTest": "DialogTrigger > disable closing dialog via escape key",
+      "apg": "keyboard",
+      "config": { "modal": true, "isKeyboardDismissDisabled": true },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "visible": ["dialog"], "focus": "dialog" } },
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "visible": ["dialog"], "focus": "dialog" } },
+        { "event": "click", "target": "dismiss" },
+        { "expect": { "hidden": ["dialog"] } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.nested-dialog-does-not-restore-focus-to-outer",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/@adobe/react-spectrum/test/dialog/DialogTrigger.test.js#L874",
+      "upstreamTest": "DialogTrigger > should not try to restore focus to the outer dialog when the inner dialog opens",
+      "apg": "focus",
+      "config": {
+        "modal": true,
+        "nested": true,
+        "outerAutoFocus": true,
+        "innerAutoFocus": true
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "expect": { "focus": "outer-input" } },
+        { "event": "click", "target": "inner-trigger" },
+        { "expect": { "focus": "inner-input" } },
+        { "event": "click", "target": "outside" },
+        { "expect": { "focus": "inner-input" } },
+        { "event": "focus", "target": "document-input" },
+        { "expect": { "focus": "inner-input" } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-focuses-overlay-on-mount",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L43",
+      "upstreamTest": "useDialog > should focus the overlay on mount",
+      "apg": "focus",
+      "config": {},
+      "steps": [
+        {
+          "expect": {
+            "focus": "dialog",
+            "attrs": { "dialog": { "tabindex": "-1" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-keeps-inner-autofocus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L50",
+      "upstreamTest": "useDialog > should not focus the overlay if something inside is auto focused",
+      "apg": "focus",
+      "config": { "initialFocus": "input:0" },
+      "steps": [{ "expect": { "focus": "input:0" } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-alertdialog-describedby",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L73",
+      "upstreamTest": "useDialog > should set aria-describedby on alertdialog when content is rendered",
+      "apg": "wai-aria",
+      "config": { "role": "alertdialog", "showContent": true },
+      "steps": [
+        {
+          "expect": { "attrs": { "dialog": { "aria-describedby": "content" } } }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-no-describedby-on-regular-dialog",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L80",
+      "upstreamTest": "useDialog > should not auto-wire aria-describedby on regular dialog, but contentProps.id is still provided",
+      "apg": "wai-aria",
+      "config": {},
+      "steps": [
+        { "expect": { "attrs": { "dialog": { "aria-describedby": null } } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-describedby-override",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L97",
+      "upstreamTest": "useDialog > should allow aria-describedby override on alertdialog",
+      "apg": "wai-aria",
+      "config": { "role": "alertdialog", "ariaDescribedby": "custom-id" },
+      "steps": [
+        {
+          "expect": {
+            "attrs": { "dialog": { "aria-describedby": "custom-id" } }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-dialog-no-content-id-with-override",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/dialog/useDialog.test.js#L105",
+      "upstreamTest": "useDialog > should not generate contentProps.id when aria-describedby is provided",
+      "apg": "wai-aria",
+      "config": { "role": "alertdialog", "ariaDescribedby": "custom-id" },
+      "steps": [{ "expect": { "attrs": { "content": { "id": null } } } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-keeps-child-focus",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L44",
+      "upstreamTest": "useOverlay > should not focus the overlay if a child is focused",
+      "apg": "focus",
+      "config": { "open": true, "initialFocus": "input:0" },
+      "steps": [{ "expect": { "focus": "input:0" } }]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-dismissable-outside-click",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L55",
+      "upstreamTest": "useOverlay > should hide the overlay when clicking outside if isDismissble is true",
+      "apg": "keyboard",
+      "config": { "open": true, "isDismissable": true },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onClose": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-should-close-outside-true",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L64",
+      "upstreamTest": "useOverlay > should hide the overlay when clicking outside if shouldCloseOnInteractOutside returns true",
+      "apg": "keyboard",
+      "config": {
+        "open": true,
+        "isDismissable": true,
+        "shouldCloseOutside": true
+      },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onClose": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-should-close-outside-false",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L80",
+      "upstreamTest": "useOverlay > should not hide the overlay when clicking outside if shouldCloseOnInteractOutside returns false",
+      "apg": "keyboard",
+      "config": {
+        "open": true,
+        "isDismissable": true,
+        "shouldCloseOutside": false
+      },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "visible": ["dialog"], "events": { "onClose": [] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-not-dismissable-ignores-outside",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L96",
+      "upstreamTest": "useOverlay > should not hide the overlay when clicking outside if isDismissable is false",
+      "apg": "keyboard",
+      "config": { "open": true, "isDismissable": false },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onClose": [] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-only-top-most-hides",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L105",
+      "upstreamTest": "useOverlay > should only hide the top-most overlay",
+      "apg": "extension",
+      "config": { "open": true, "isDismissable": true, "twoOverlays": true },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onCloseFirst": [], "onCloseSecond": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-escape-hides",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L126",
+      "upstreamTest": "useOverlay > should hide the overlay when pressing the escape key",
+      "apg": "keyboard",
+      "config": { "open": true },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "events": { "onClose": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-overlay-escape-hides-even-not-dismissable",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useOverlay.test.js#L134",
+      "upstreamTest": "useOverlay > should still hide the overlay when pressing the escape key if isDismissable is false",
+      "apg": "keyboard",
+      "config": { "open": true, "isDismissable": false },
+      "steps": [
+        { "event": "key", "key": "Escape", "target": "dialog" },
+        { "expect": { "events": { "onClose": [1] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-modal-overlay-should-close-outside-true",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useModalOverlay.test.js#L34",
+      "upstreamTest": "useModalOverlay > should hide the overlay when clicking outside if shouldCloseOnInteractOutside returns true",
+      "apg": "keyboard",
+      "config": {
+        "open": true,
+        "isDismissable": true,
+        "shouldCloseOutside": true
+      },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        { "expect": { "events": { "onOpenChange": [false] } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-modal-overlay-should-close-outside-false",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useModalOverlay.test.js#L50",
+      "upstreamTest": "useModalOverlay > should not hide the overlay when clicking outside if shouldCloseOnInteractOutside returns false",
+      "apg": "keyboard",
+      "config": {
+        "open": true,
+        "isDismissable": true,
+        "shouldCloseOutside": false
+      },
+      "steps": [
+        { "event": "click", "target": "outside" },
+        {
+          "expect": { "visible": ["dialog"], "events": { "onOpenChange": [] } }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-modal-aria-hidden-parent-provider",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useModal.test.js#L46",
+      "upstreamTest": "useModal > should set aria-hidden on parent providers on mount and remove on unmount",
+      "apg": "wai-aria",
+      "config": { "modal": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "root-provider": { "aria-hidden": "true" },
+              "modal-provider": { "aria-hidden": null }
+            }
+          }
+        },
+        { "event": "prop", "prop": "showModal", "value": false },
+        { "expect": { "attrs": { "root-provider": { "aria-hidden": null } } } }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.use-modal-nested-aria-hidden",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria/test/overlays/useModal.test.js#L63",
+      "upstreamTest": "useModal > should work with nested modals",
+      "apg": "wai-aria",
+      "config": { "modal": true, "nested": true },
+      "steps": [
+        {
+          "expect": {
+            "attrs": {
+              "root-provider": { "aria-hidden": "true" },
+              "modal-provider": { "aria-hidden": "true" },
+              "inner-modal-provider": { "aria-hidden": null }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "dialog-modal.react-aria.backdrop-press-does-not-scroll-dialog",
+      "upstream": "https://github.com/adobe/react-spectrum/blob/99e610236887da619ad9d54a1cd87983166c043d/packages/react-aria-components/test/Modal.browser.test.tsx#L83",
+      "upstreamTest": "does not scroll the modal into view when the backdrop is pressed",
+      "apg": "focus",
+      "config": {
+        "modal": true,
+        "isDismissable": true,
+        "scrollableOverlay": true
+      },
+      "steps": [
+        { "event": "click", "target": "trigger" },
+        { "event": "pointerdown", "target": "backdrop" },
+        { "expect": { "visible": ["dialog"], "focus": "dialog" } }
+      ],
+      "notes": "FocusScope restores focus to the dialog on backdrop mousedown without scrolling the overlay; asserted via overlay.scrollTop and modal bounding rect staying constant."
+    }
+  ]
+}

@@ -32,6 +32,13 @@ $W --keys $TREE,ArrowDown,ArrowDown,ArrowDown,ArrowRight --expect solid/frames/w
 $W --keys $TREE,ArrowDown,ArrowDown,ArrowDown,ArrowRight,Space --expect solid/frames/widgets-tree-select.png
 THEME=light $W --keys $TREE,ArrowDown,Space --expect solid/frames/widgets-tree-light.png
 bun solid/widgets.test.ts
+# the Dialog page (a modal dialog on a root-float backdrop and a menu floated off its trigger): its frames and asserts
+D="bun solid/main.ts dialog"
+$D --expect solid/frames/dialog-closed.png
+$D --keys Tab,Enter --expect solid/frames/dialog-open.png
+THEME=light $D --keys Tab,Enter --expect solid/frames/dialog-light.png
+$D --keys Tab,Tab,Enter --expect solid/frames/dialog-menu.png
+bun solid/dialog.test.ts
 # the inline-styles page (styles in the .tsx) against the same page with a .styles.ts: identical pixel for pixel, and its frame
 bun solid/inline.test.ts
 bun solid/main.ts --png "${TMPDIR:-/tmp}/cssints-native-solid.png" --bench 1000

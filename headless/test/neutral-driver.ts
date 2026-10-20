@@ -17,9 +17,11 @@ export interface NeutralPart {
   readonly id: string;
   readonly role?: string;
   readonly label?: string | undefined;
-  readonly checked?: boolean | 'mixed';
+  readonly checked?: boolean | 'mixed' | undefined;
   readonly pressed?: boolean | undefined;
   readonly expanded?: boolean | undefined;
+  /** `aria-haspopup`: the kind of popup a button opens (`"dialog"`, `"menu"`). */
+  readonly hasPopup?: string | undefined;
   readonly selected?: boolean | undefined;
   readonly disabled?: boolean | undefined;
   readonly readOnly?: boolean | undefined;
@@ -81,6 +83,12 @@ export interface NeutralDriverOptions {
    * written against that).
    */
   readonly readEvents?: 'cumulative' | 'consumed';
+  /**
+   * The parts that can be shown and hidden, as eoa's DOM driver named them (`hideableParts`). `visible` lists these
+   * that are not hidden; every other part is content whose presence is not the pattern's visible state (a dialog's
+   * backdrop, an outside button). Absent: every part that carries `hidden`.
+   */
+  readonly hideable?: ReadonlyArray<string>;
 }
 
 const flag = (value: boolean | undefined): string | null =>
@@ -227,6 +235,8 @@ export const neutralDriver = (
             return token(part.pressed);
           case 'aria-expanded':
             return token(part.expanded);
+          case 'aria-haspopup':
+            return part.hasPopup ?? null;
           case 'aria-selected':
             return token(part.selected);
           case 'aria-multiselectable':
@@ -267,10 +277,10 @@ export const neutralDriver = (
             return null;
         }
       },
-      visible: () =>
-        Object.keys(mounted.parts).filter(
-          (name) => mounted.parts[name]?.hidden === false,
-        ),
+      visible: () => {
+        const names = options.hideable ?? Object.keys(mounted.parts);
+        return names.filter((name) => mounted.parts[name]?.hidden === false);
+      },
       events: (name) => {
         const fired = mounted.events.get(canonical(name)) ?? [];
         if (options.readEvents !== 'consumed') {

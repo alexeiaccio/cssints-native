@@ -15,7 +15,10 @@ solid-js 2.0.0-rc.13, @solidjs/universal 2.0.0-rc.13 (createRenderer), @solidjs/
 sh solid/native/build.sh                         # build/solid/libui.dylib (brew sdl3 sdl3_image thorvg)
 bun solid/main.ts                                # the window: the mouse is the pointer, `t` flips the theme
 bun solid/main.ts widgets                        # the Widgets page (360x760): Tab, Shift+Tab, arrows, Space, Enter, the mouse (below)
+bun solid/main.ts dialog                         # the Dialog page (360x480): Enter opens the settings dialog, Tab cycles it,
+                                                 # Escape closes it; Tab to the menu, Enter/Down open it, arrows pick
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
+bun solid/main.ts dialog --keys Tab,Enter --expect solid/frames/dialog-open.png             # keyboard, headless
 bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
@@ -36,12 +39,13 @@ plugin.ts          Bun plugin: JSX through @solidjs/compiler, `styles.ts` and a 
 compile-styles.ts  Node child of the plugin: Vite + cssints, prints a style module as JS
 compile.tsx.ts     Node child of a `.tsx` whose styles live in it: Solid's JSX first, then cssints on the JS
 stub-bun.mjs       `bun:ffi` for that child: cssints runs the page to read its tokens, and the dylib has no meaning in Node
-src/input.ts       SDL keys to names, and where a key goes: the focus manager, the focused part, the page
+src/input.ts       SDL keys to names, and where a key goes: an open modal, the focus manager, the focused part, the page
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
 app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
-frames/            the Widgets page's stored frames (the Sensors page's are in examples/sensors)
+app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
+frames/            the Widgets and Dialog pages' stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
-test.ts, widgets.test.ts   the checks the stored frames cannot make
+test.ts, widgets.test.ts, dialog.test.ts   the checks the stored frames cannot make
 ```
 
 **Styles live where the markup does.** A page may declare its tokens and styles in its own `.tsx`
@@ -63,7 +67,7 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | --- | --- |
 | `ui_init(w, h)`, `ui_font(path)` | Clay and a ThorVG canvas; a font by file path, its id is the order of calls. 0 / id on success |
 | `ui_begin(px, py, down)` | pointer for this frame, `Clay_BeginLayout` |
-| `ui_open(id, len, f32[32])` | open an element; `id` NULL for none; the style as below |
+| `ui_open(id, len, f32[45])` | open an element; `id` NULL for none; the style as below |
 | `ui_text(bytes, len, f32[10])` | a text element; the bytes are copied for the frame |
 | `ui_close()` | close the element |
 | `ui_pointer_over(id, len)` | Clay's `Clay_PointerOver`, on the last frame's layout |
@@ -86,6 +90,22 @@ Text is measured by ThorVG, as in `host.c`.
 | 10 | child gap | | 26-29 | border colour r g b a |
 | 11 12 | child alignment x (0 left, 1 centre, 2 right), y (0 top, 1 centre, 2 bottom) | | 30 31 | clip horizontal, vertical |
 | 13 | direction (0 row, 1 column) | | | |
+
+The floating fields (`css.float`, `packBox`'s `d.floating`; all zero means not a float):
+
+| i | field | | i | field |
+| --- | --- | --- | --- | --- |
+| 32 | is a float | | 38 39 | offset x, y |
+| 33 | attach to (0 none, 1 parent, 2 element with id, 3 root) | | 40 41 | expand width, height |
+| 34 35 | the parent id's two 16-bit halves (a float32 cannot hold the 32-bit hash) | | 42 | z index |
+| 36 37 | attach point of the float, of the parent (0 `left top` .. 8 `right bottom`) | | 43 | pointer: 0 capture, 1 passthrough |
+| | | | 44 | clip: 0 none, 1 attached parent |
+
+A float is a layout root of its own: Clay lays the page out as if it were not there and draws it above (ascending z), and
+a capturing float stops `Clay_PointerOver` from seeing what is under it — which is how the dialog's backdrop swallows the
+pointer. `root: true` attaches to the window (`Clay__RootContainer`), so `width`/`height` `stretch` is the whole window
+(the backdrop) and `attach: { element: "center center", parent: "center center" }` centres the dialog, while
+`parent: "<id>"` + `attach: { element: "left top", parent: "left bottom" }` hangs a menu off its trigger.
 
 Sizing type: 0 fit, 1 grow, 2 percent, 3 fixed (Clay's order).
 
@@ -116,6 +136,11 @@ arrow, Home or End (the manager takes plain keys only). Then `input.down(name, r
 
 `input.up(name)` goes to the focused part's `keyUp` (Space fires there). `focus.onChange` blurs the part that lost focus
 (dropping an armed Space) and focuses the one that got it, so a part's `focused` follows the manager.
+
+**A modal.** `input.modal` is a key the whole page gives to one owner while it is open: the Dialog page sets it to the
+dialog's trap (`dialog.keyDown`), so Tab and Shift+Tab cycle the dialog's controls and Escape closes it before the focus
+manager or any part sees them, and everything else falls through to the focused control. `up` still goes to the part
+(Space fires there).
 
 **The pointer.** A box with `onPress` runs it when the button goes down over it, as a browser focuses on mousedown;
 `onClick` still runs on release over the box that was pressed. `input.add(part)` registers the part in the manager
@@ -192,6 +217,31 @@ row, a hidden node skipped, contrast of the ink on every fill, key names, the dr
 | `widgets-tree-select` | Tab×12 ArrowDown×3 ArrowRight Space | the same, and Display selected: the surface fill with its label in the accent, ring still on it |
 | `widgets-tree-light` | the same keys, light | the light theme: Wi-Fi selected (white fill, accent label) and ringed |
 
+## The Dialog page
+
+`bun solid/main.ts dialog` is a settings screen (360x480) with the two overlays of `headless/`:
+
+| Widget | What it is | Keys and pointer |
+| --- | --- | --- |
+| Settings dialog | `createDialogModal` (role `dialog`): a float 280 wide centred on the root (`css.float({ root: true, attach: { element: "center center", parent: "center center" }, zIndex: 2 })`) over a backdrop float that is the whole window (`root: true`, `left top`, `stretch`, `zIndex: 1`, `rgb(0 0 0 / 0.55)`) and takes the pointer | "Open settings" opens it by click or Enter; focus moves to Cancel and Tab/Shift+Tab cycle Cancel and OK and never leave; Escape and Cancel close without a write; OK writes `Volume: 55%` onto the page. The backdrop swallows every press, so the page behind is unreachable by pointer, and `input.modal` keeps it unreachable by keyboard. Closing returns focus to the trigger |
+| Zoom menu | `createMenu` (plain, `100% 125% 150% 200%`): a float attached to `zoom-trigger`, `attach: { element: "left top", parent: "left bottom" }`, 4px down, `zIndex: 10` | Tab reaches the trigger; Enter, Space, Down or Up open it on the first/last item; Up/Down wrap, Home/End go to the ends; Enter picks and closes, Escape closes and returns focus to the trigger, Tab closes and leaves. The picked zoom is shown in the pill and the menu's dot |
+
+The dialog's container and the backdrop carry an `onPress` that does nothing: a press inside the dialog or on the
+backdrop must not read as a press on empty space (`onPressMiss` would blur).
+
+| Frame | Keys | Shows |
+| --- | --- | --- |
+| `dialog-closed` | | the page at rest: `Volume: 40%`, Zoom `100%`, no menu |
+| `dialog-open` | Tab Enter | the dimmed page and the dialog centred on it, ring on Cancel, `Volume` still 40% |
+| `dialog-light` | Tab Enter, `THEME=light` | the same in the light theme: a white dialog over a greyed page |
+| `dialog-menu` | Tab Tab Enter | the menu hanging off the Zoom trigger's left-bottom corner, ring and dot on `100%`, the trigger's `-` |
+
+Checked by `bun solid/dialog.test.ts`: opening by click and by keyboard, the trap's two-control cycle, the page's trigger
+never a stop while open, Escape and Cancel writing nothing, OK writing 55%, a press on the backdrop doing nothing and not
+reaching the page behind, `ui.bounds` of the backdrop (the window) and the dialog (centred on the root), the page's
+layout unchanged behind the backdrop, and the menu's arrows, Home/End, Escape back to the trigger, Enter and a click
+picking.
+
 ## Notes
 
 - `bun solid/main.ts` needs no flag: Bun's `node` condition would load solid-js's server build (signals that never
@@ -199,9 +249,9 @@ row, a hidden node skipped, contrast of the ink on every fill, key names, the dr
 - `plugin.ts` runs the cssints plugin in a Node child (Vite, and `cssints/clay` as sources with the `development`
   condition), so a `styles.ts` costs about a second at start. A file is a style module by its name: `styles.ts` or
   `*.styles.ts`.
-- Not here yet: floating, images, scrolling, text input, reload on save, JSX types for `box` and `text`, an
-  accessibility tree (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the
-  window's 16 ms loop keeps the last button state, so a press and a release inside one poll are lost), the
-  toolbar's menu item (the headless menu is not ported), a vertical radio, tabs or toolbar on the page (the parts take the
-  option; the page has the horizontal ones), the tree's multi-select (`selection: 'multiple'` is in the part; the page is
-  single) and its type-ahead (not ported), and disabled tree nodes (the part has none).
+- Not here yet: images, scrolling, text input, reload on save, JSX types for `box` and `text`, an accessibility tree
+  (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
+  keeps the last button state, so a press and a release inside one poll are lost), the toolbar's menu item on the page
+  (the headless `createMenu` is ported; `createMenubar` is not), a vertical radio, tabs or toolbar on the page (the parts
+  take the option; the page has the horizontal ones), the tree's multi-select (`selection: 'multiple'` is in the part;
+  the page is single) and its type-ahead (not ported), and disabled tree nodes (the part has none).

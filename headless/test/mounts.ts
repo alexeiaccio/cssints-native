@@ -2,9 +2,12 @@ import { createRoot, createSignal } from 'solid-js';
 import type { ButtonConfig } from '../vendor/specs/src/apg/button.bridge';
 import type { CheckboxConfig } from '../vendor/specs/src/apg/checkbox.bridge';
 import type { CheckboxState } from '../src/checkbox';
+import type { DialogModalConfig } from '../vendor/specs/src/apg/dialog-modal.bridge';
 import type { DisclosureConfig } from '../vendor/specs/src/apg/disclosure.bridge';
 import type { Json } from '../vendor/specs/src/scenario';
 import { Unsupported } from '../vendor/specs/src/scenario';
+import type { MenuButtonConfig } from '../vendor/specs/src/apg/menu-button.bridge';
+import type { MenuCheckableConfig } from '../vendor/specs/src/apg/menu-checkable.bridge';
 import type { Mounted, NeutralPart } from './neutral-driver';
 import type { RadioConfig } from '../vendor/specs/src/apg/radio.bridge';
 import type { SliderConfig } from '../vendor/specs/src/apg/slider.bridge';
@@ -16,13 +19,16 @@ import { nodeToPath, pathToNode } from '../vendor/specs/src/apg/treeview.bridge'
 import type { ToolbarItemKind } from '../src/toolbar';
 import { createButton } from '../src/button';
 import { createCheckbox } from '../src/checkbox';
+import { createDialogModal } from '../src/dialog';
 import { createDisclosure } from '../src/disclosure';
+import { createMenu } from '../src/menu';
 import { createRadioGroup } from '../src/radio';
 import { createSlider } from '../src/slider';
 import { createSwitch } from '../src/switch';
 import { createTabs } from '../src/tabs';
 import { createToolbar } from '../src/toolbar';
 import { TREE_NODES, createTree } from '../src/tree';
+import { createFocus } from '../../focus/src/focus';
 
 /**
  * One mount per primitive, the analogue of eoa's `*.fixture.tsx`: it creates
@@ -725,6 +731,299 @@ export const mountTreeview = (config: TreeviewConfig): Mounted => {
                 ? host().filter((id) => id !== 1)
                 : [...host(), 1],
             );
+            break;
+          default:
+            throw new Error(`mount has no prop ${name}`);
+        }
+      },
+      dispose,
+    };
+  });
+};
+
+/** A key press is Space when a button takes it (the DOM's `key` or the parts' "Space"). */
+const spaceKey = (key: string): boolean => key === ' ' || key === 'Space';
+
+/**
+ * The dialog, the analogue of eoa's `dialog-modal.fixture.tsx`: the trigger, the
+ * hidden-until-open dialog (with a Confirm button and a dismiss), a backdrop and
+ * an outside area. The dialog's content controls are registered in the mount's
+ * focus manager (`dialog.add`), and each goes through the dialog's trap first,
+ * so Tab cycles them while the dialog is open. A click on the outside area
+ * closes only when the dialog is dismissable; the backdrop does the same.
+ */
+export const mountDialogModal = (config: DialogModalConfig): Mounted => {
+  const events = new Map<string, Json[]>();
+  const [host, setHost] = createSignal(config.open);
+
+  return createRoot((dispose) => {
+    const focus = createFocus();
+    const dialog = createDialogModal({
+      defaultOpen: config.open,
+      get value() {
+        return config.controlled ? host() : undefined;
+      },
+      modal: config.modal,
+      role: config.role,
+      labelledby: 'header',
+      dismissable: config.dismissable,
+      keyboardDismissDisabled: config.keyboardDismissDisabled,
+      focus,
+      onOpenChange: (open) => {
+        record(events, 'onOpenChange', open);
+        if (!open) {
+          events.set('onClose', [1]);
+        }
+        if (config.accepts) {
+          setHost(open);
+        }
+      },
+    });
+
+    let armed = false;
+    /** A content control: the dialog's trap first, then its own activation. */
+    const content = (id: string, activate?: () => void): NeutralPart => ({
+      id,
+      role: 'button',
+      get focused() {
+        return focus.focused() === id;
+      },
+      press: () => {
+        activate?.();
+      },
+      keyDown: (key, repeat) => {
+        if (dialog.keyDown(key)) {
+          return true;
+        }
+        if (repeat === true) {
+          return false;
+        }
+        if (key === 'Enter') {
+          activate?.();
+          return true;
+        }
+        if (spaceKey(key)) {
+          armed = true;
+          return true;
+        }
+        return false;
+      },
+      keyUp: (key) => {
+        if (!spaceKey(key)) {
+          return false;
+        }
+        const was = armed;
+        armed = false;
+        if (was) {
+          activate?.();
+        }
+        return was;
+      },
+      focus: () => {
+        focus.focus(id);
+      },
+      blur: () => {
+        if (focus.focused() === id) {
+          focus.blur();
+        }
+      },
+    });
+
+    // eoa's fixture order: the dialog's Confirm button holds focus when it opens,
+    // and the dismiss is its other content control.
+    const confirm = dialog.add(content('button'));
+    const dismiss = dialog.add(content(dialog.dismiss.id, dialog.dismiss.press));
+
+    return {
+      parts: {
+        trigger: dialog.trigger,
+        dialog: dialog.dialog,
+        // a press on the backdrop drops focus (ariakit) and closes when dismissable
+        backdrop: {
+          id: dialog.backdrop.id,
+          get hidden() {
+            return dialog.backdrop.hidden;
+          },
+          press: dialog.backdrop.press,
+          focus: () => {
+            focus.blur();
+          },
+        },
+        outside: {
+          id: 'outside',
+          // a press outside drops focus (ariakit), so the close restores nothing
+          focus: () => {
+            focus.blur();
+          },
+          press: () => {
+            if (config.dismissable) {
+              dialog.close();
+            }
+          },
+        },
+        dismiss,
+        button: confirm,
+      },
+      events,
+      value: () => dialog.open(),
+      setProp: (name, value) => {
+        switch (name) {
+          case 'pressEnter':
+            dialog.trigger.keyDown('Enter');
+            break;
+          case 'pressSpace':
+            dialog.trigger.keyDown(' ');
+            break;
+          case 'escape':
+            dialog.dialog.keyDown('Escape');
+            break;
+          case 'setValue':
+            if (config.controlled) {
+              setHost(value === true);
+            }
+            break;
+          case 'hostToggle':
+            if (config.controlled) {
+              setHost(!host());
+            }
+            break;
+          default:
+            throw new Error(`mount has no prop ${name}`);
+        }
+      },
+      dispose,
+    };
+  });
+};
+
+/**
+ * The plain menu button, the analogue of eoa's `menu-button.fixture.tsx`: the
+ * trigger and the flat menu of `menu-button.qnt` (4 items, the mount disables
+ * the indices the config names). Focus is the mount's own manager, which the
+ * primitive holds while open. The open state is uncontrolled, so the spec's
+ * `setValue` / `hostToggle` host writes are inert.
+ */
+export const mountMenuButton = (config: MenuButtonConfig): Mounted => {
+  const events = new Map<string, Json[]>();
+
+  return createRoot((dispose) => {
+    const menu = createMenu({
+      items: config.items,
+      variant: 'plain',
+      triggerMode: 'outside',
+      disabled: config.disabled,
+      id: 'menu',
+      onOpenChange: (open) => {
+        record(events, 'onOpenChange', [open]);
+      },
+      onItemClick: (index) => {
+        record(events, 'onItemClick', [`menuitem:${index}`]);
+      },
+    });
+    const parts: Record<string, NeutralPart> = {
+      trigger: menu.trigger,
+      menu: menu.menu,
+    };
+    config.items.forEach((_label, index) => {
+      parts[`menuitem:${index}`] = menu.item(index);
+    });
+    return {
+      parts,
+      events,
+      setProp: (name, value) => {
+        switch (name) {
+          case 'focus':
+            menu.focusTrigger();
+            break;
+          case 'leave':
+          case 'blur':
+            menu.leave();
+            break;
+          case 'key':
+            menu.keyDown(keyField(value, 'key'));
+            break;
+          case 'typeahead':
+            menu.typeaheadCode(Number(value));
+            break;
+          case 'type':
+            menu.type(String(value));
+            break;
+          case 'setValue':
+          case 'hostToggle':
+            // uncontrolled open: the spec's host writes are no-ops
+            break;
+          default:
+            throw new Error(`mount has no prop ${name}`);
+        }
+      },
+      dispose,
+    };
+  });
+};
+
+/**
+ * The checkable menu, the analogue of eoa's `menu.fixture.tsx`: the `mixed`
+ * variant is the spec's fixed shape (item 1 a checkbox, items 2-4 a radio
+ * group, item 5 plain); `checkbox-items` and `radio-items` are the ported
+ * scenarios' uniform menus. Controlled, the mount is the host of the packed
+ * checked state and either writes every request back (`accepts`) or ignores it.
+ */
+export const mountCheckableMenu = (config: MenuCheckableConfig): Mounted => {
+  const events = new Map<string, Json[]>();
+  const [host, setHost] = createSignal(config.value);
+
+  return createRoot((dispose) => {
+    const menu = createMenu({
+      items: config.items,
+      variant: config.variant,
+      triggerMode: 'held',
+      disabled: config.disabled,
+      id: 'menu',
+      get value() {
+        return config.controlled ? host() : undefined;
+      },
+      onOpenChange: (open) => {
+        record(events, 'onOpenChange', open);
+      },
+      onItemClick: (index) => {
+        record(events, 'onItemClick', [`menuitem:${index}`]);
+      },
+      onCheckedChange: (checked) => {
+        // eoa's fixture reports the latest checked value, not every one
+        events.set('onCheckedChange', [checked]);
+      },
+      onValueChange: (index) => {
+        record(events, 'onValueChange', index + 1);
+      },
+      onCheckedValueChange: (value) => {
+        if (config.accepts) {
+          setHost(value);
+        }
+      },
+    });
+    const parts: Record<string, NeutralPart> = {
+      trigger: menu.trigger,
+      menu: menu.menu,
+    };
+    config.items.forEach((_label, index) => {
+      parts[`menuitem:${index}`] = menu.item(index);
+    });
+    return {
+      parts,
+      events,
+      setProp: (name, value) => {
+        switch (name) {
+          case 'focus':
+            menu.focusTrigger();
+            break;
+          case 'key':
+            menu.keyDown(keyField(value, 'key'));
+            break;
+          case 'setValue':
+            setHost(Number(value));
+            break;
+          case 'hostToggle':
+            setHost((packed) => (packed >= 5 ? packed - 5 : packed + 5));
             break;
           default:
             throw new Error(`mount has no prop ${name}`);
