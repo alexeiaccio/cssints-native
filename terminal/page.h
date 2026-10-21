@@ -13,12 +13,18 @@ typedef struct {
     void (*declare)(void);
     /** After a layout: 1 when it is final, 0 when the page changed something (a scroll) and needs another pass. */
     int (*settled)(void);
+    /** A screen entered again: its focus and its scroll. NULL: nothing to do. */
+    void (*reset)(void);
 } Page;
 
 extern const Page SENSORS_PAGE; // terminal/page.c: the Sensors page plus a list
 extern const Page SKY_PAGE;     // terminal/sky.c: apps/csssky-tui's home screen
+extern const Page THREAD_PAGE;  // terminal/thread.c: its thread screen
+extern const Page PROFILE_PAGE; // terminal/profile.c: apps/csssky's profile screen
+
+/** 0 dark, 1 light: the theme the three sky screens draw (main.c sets it; `t` flips it in terminal/shell.c). */
+extern int sky_light;
 
 void page_set_theme(int light);
-void sky_set_theme(int light);
 
 #endif

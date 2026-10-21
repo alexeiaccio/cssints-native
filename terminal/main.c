@@ -6,7 +6,9 @@
 //   dump      the grid as plain text (headless; see cells_dump: '.' is a fill)
 //
 //   demo                            the Sensors page in the terminal, on termbox2; q or Ctrl-C quits
-//   demo --page sky                 apps/csssky-tui's home screen (cell-aligned, terminal/sky.c)
+//   demo --page sky                 apps/csssky-tui's screens (terminal/sky.c, thread.c, profile.c): the feed, and the
+//                                   thread or the profile it opens; Tab/arrows move the focus, enter opens, esc back
+//   demo --page thread|profile      one of those two screens as the bottom of the stack (a snapshot's entry point)
 //   demo --dump out.txt             one frame headless, written as plain text
 //   demo --ansi out.ansi            the same frame as ANSI (the escapes a terminal gets)
 //   demo --keys Tab,ArrowDown       headless: a frame, then each key with a frame after it (as solid/main.ts)
@@ -32,6 +34,7 @@
 #include "measure.h"
 #include "page.h"
 #include "render.h"
+#include "shell.h"
 #include "tb2.h"
 
 static int errors;
@@ -149,7 +152,18 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--click")) click = argv[++i];
         else if (!strcmp(argv[i], "--theme")) theme = argv[++i];
         else if (!strcmp(argv[i], "--backend")) backend = argv[++i];
-        else if (!strcmp(argv[i], "--page")) page = !strcmp(argv[++i], "sky") ? &SKY_PAGE : &SENSORS_PAGE;
+        else if (!strcmp(argv[i], "--page")) {
+            const char *name = argv[++i];
+            const Page *root = !strcmp(name, "thread") ? &THREAD_PAGE : !strcmp(name, "profile") ? &PROFILE_PAGE : &SKY_PAGE;
+            if (!strcmp(name, "sensors")) page = &SENSORS_PAGE;
+            else if (root == &THREAD_PAGE || root == &PROFILE_PAGE || !strcmp(name, "sky")) {
+                shell_reset(root);
+                page = &SHELL_PAGE;
+            } else {
+                fprintf(stderr, "unknown page %s (sensors, sky, thread, profile)\n", name);
+                return 2;
+            }
+        }
         else if (!strcmp(argv[i], "--frames")) frames = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--colors")) {
             const char *c = argv[++i];
@@ -176,7 +190,8 @@ int main(int argc, char **argv)
                     (Clay_Dimensions){(float)(cols * CELL_W), (float)(rows * CELL_H)}, (Clay_ErrorHandler){on_error});
     Clay_SetMeasureTextFunction(term_measure_text, NULL);
     page_set_theme(!strcmp(theme, "light"));
-    sky_set_theme(!strcmp(theme, "light"));
+    sky_light = !strcmp(theme, "light");
+    if (page->reset) page->reset();
     cells_init(&grid, cols, rows);
 
     if (!headless) {
