@@ -118,13 +118,18 @@ Each step ends in a check that fails when it breaks.
    (The trap on the way there: a host that does not create `tvg.measurer` measures every run at width 0, Clay then
    stacks all the page's text in the middle of the window, and the frame differs in 58872 channels — that paint is
    `Clay_ThorVG_MeasureText`'s only state, and the surface path has nothing else to set it.)
-   Numbers, M2, one thread, `--bench 200`: at 360x360, CPU raster 0.31 ms, WebGPU readback 0.68 ms, the surface path
-   **15.0-16.3 ms a frame (62-67 fps) — the display, not the GPU**: layout is 0.023 ms, present 0.010 ms, and the rest
-   sits in ThorVG's sync, where the layer's next drawable waits for the compositor (a 16x16 surface still takes 8.2 ms,
-   and `--novsync`'s Immediate + non-Fifo layer mode does not lift it). At 1080x1080: 0.52-0.58 ms CPU, 2.1-2.3 ms
-   readback, 15.5 ms surface (64 fps). So the surface path removes the readback and the upload but does not make a frame
-   faster here — it makes the frame run at the screen's pace. Kept as an opt-in experiment; the defaults (`--raster
-   thorvg`, `--raster sdl`, `--raster thorvg-gpu`) are untouched.
+   Numbers, M2, one thread, `--bench 200`, five runs each: the surface path is **12.4-16.4 ms a frame (61-81 fps) at
+   1080x1080 and 12.7-16.4 ms at 360x360 — one range, the screen paces it, not the GPU**. Per frame, layout is
+   0.02-0.09 ms and present 0.008-0.026 ms (it never waits); the rest sits in ThorVG's sync. Timed from inside a
+   throwaway ThorVG build (temporary timers in `WgRenderer::sync`), that sync is 14.2 ms at 360x360 and 14.8 ms at
+   1080x1080, of which the layer's next drawable is 13.7 and 13.3 ms: ThorVG's own frame work is **0.49 and 1.49 ms**,
+   the wait is the compositor's — a 16x16 surface still takes 8.2 ms, and `--novsync` (a non-Fifo present mode on top
+   of ThorVG's Immediate) does not lift it. So vsync cannot be separated from the frame here, only from its parts: what
+   is left out of the wait is 0.5-1.5 ms of ThorVG's work. Against the readback path at the same sizes, CPU raster
+   0.31 ms / readback 0.67-0.80 ms at 360x360 and 0.52-0.70 / 2.1-2.3 ms at 1080x1080: the surface path removes that
+   readback (0.3-0.6 ms of it) and the texture upload, but ThorVG's WebGPU frame work is itself more than the CPU
+   raster's 0.31-0.70 ms, so no raster gets faster for it — the frame just runs at the screen's pace. Kept as an opt-in
+   experiment; the defaults (`--raster thorvg`, `--raster sdl`, `--raster thorvg-gpu`) are untouched.
 
 3. **Done: states, tokens, fonts in `cssints/clay`.** `css.hover`/`focus`/`active` print as whole declarations of
    their own (`units_active`); `createTokens` and `createGlobalTheme(tokens, "light", ...)` print every style again
