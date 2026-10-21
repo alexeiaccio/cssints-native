@@ -7,7 +7,9 @@
 void app_frame_pressed(void)
 {
     CLAY(CLAY_ID("Root"), root) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), title_text);
+        CLAY(CLAY_ID("Title"), {}) {
+            CLAY_TEXT(CLAY_STRING("Sensors"), title_text);
+        }
         CLAY_TEXT(CLAY_STRING("accel m/s\302\262"), caption_text);
         CLAY_TEXT(CLAY_STRING("+1.16  -0.72  +10.04"), value_text);
         CLAY_TEXT(CLAY_STRING("gyro \302\260/s"), caption_text);
@@ -22,7 +24,9 @@ void app_frame_pressed(void)
 void app_frame_pressed_light(void)
 {
     CLAY(CLAY_ID("Root"), root_light) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), title_text_light);
+        CLAY(CLAY_ID("Title"), {}) {
+            CLAY_TEXT(CLAY_STRING("Sensors"), title_text_light);
+        }
         CLAY_TEXT(CLAY_STRING("accel m/s\302\262"), caption_text_light);
         CLAY_TEXT(CLAY_STRING("+1.16  -0.72  +10.04"), value_text_light);
         CLAY_TEXT(CLAY_STRING("gyro \302\260/s"), caption_text_light);
