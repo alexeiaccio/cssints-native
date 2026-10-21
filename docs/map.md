@@ -311,12 +311,30 @@ Each step ends in a check that fails when it breaks.
    Up/Down, Space/Enter and `t` as on the desktop. Check: `terminal/test_cells.c` (clipping, the box characters,
    UTF-8, SGR merging, the scissor stack) and three stored dumps (dark, light, after `Tab,ArrowDown`) plus ANSI
    asserts (the title's and the pill label's truecolour; the surface fill is one escape a row, not one a cell) in
-   `test.sh`; dropping the text colour fails the ANSI assert. Left: **termbox2** (raw termios is this step's
-   backend; the cells/commands layer is what a backend swaps under), the mouse, **csssky-tui ported** (its screen
-   tests are the step's check and are not written yet), wide glyphs and emoji (a code point is one cell), images
-   (counted and reported, not drawn), floating overlays (untried, the page has none), sub-cell borders and radii
-   (a 1px and a 4px border are both one cell, a corner radius is a square corner), scrollback, the `focus/` manager
-   (focus is two ints in this page, not the manager), and Solid on the terminal (the page is C, as step 5's). The
+   `test.sh`; dropping the text colour fails the ANSI assert.
+   **`csssky-tui` in cells**: `terminal/sky.c` is its home screen (the bar with the three feed tabs, the cards from
+   `apps/csssky`'s recorded `home-discover-1`/`home-science-1`, the footer), `terminal/thread.c` its thread (the
+   parent, the post with its full time and counts in words, the replies at their depth), and `terminal/profile.c`
+   `apps/csssky`'s profile (the header, the Posts/Replies/Media tabs, those three fixtures) — the tui has no profile
+   screen of its own, and that is the one honest gap in "port the app's screens". `terminal/focus.c` is the keyboard
+   focus: stops in document order, Tab/Shift+Tab with the focus released at either end, a group as one stop with
+   roving focus (an orientation, wrap and leave-at-the-edge), and `focus(id)` refusing a disabled stop — the semantics
+   of `focus/src/focus.ts`, not shared code with it (the C page has no DOM to register into, so its stops are rebuilt
+   when a feed or a tab changes the rows). `terminal/shell.c` is the screen stack (`enter` pushes, `esc` pops). The
+   pages' rings are the focus state, not two ints. Check: `terminal/test_focus.c` (Tab order, the release, a roving
+   group with and without wrap, leaving at an edge, memory, Home/End, a disabled stop), `terminal/expected-thread.txt`
+   and `expected-profile.txt` (the two screens), `expected-sky-focus.txt` (the bar focused, its roving tab the active
+   feed) and, in `test.sh`, the accent border's rows in the ANSI of focused/unfocused frames (a click and `ArrowDown`
+   move the ring), the bar's wrap, the list leaving at its edge, a click on a control of each screen, and the scroll of
+   the thread and of the profile. Breaking the group's wrap, or its leave, fails both a unit test and a page test.
+   Left: **termbox2 is in** (`terminal/tb2.c`: truecolour or 256, keys and the mouse, checked through a pty in
+   `test.sh`), and so are clicks; what a click cannot do is hover — termbox2 reports no motion events. Still left:
+   `csssky-tui`'s own profile and notifications screens (it has neither; the profile here is the web app's), its data
+   fetching and paging (every frame is one recorded fixture), images (a media line; counted and reported, not drawn),
+   quote boxes, a body that wraps (one clipped row), the system theme of `src/system.ts` (the static dark/light ones
+   are ported), the wheel and dragging, wide glyphs and emoji (a code point is one cell), floating overlays (untried),
+   sub-cell borders and radii (a 1px and a 4px border are both one cell, a corner radius is a square corner),
+   scrollback, and Solid on the terminal (the pages are C, as step 5's). The
    cell size is the cost: 8x16 makes a 38px pill 2.4 rows and a 200px pill 25 columns, so a page's pixel lengths
    have to be re-cut to land on cell boundaries, and text smaller or larger than a cell is the same cell.
 7. **Back to the board.** esp32's `ui.c` reads generated `styles.h` and C from step 5; then the browser (WASM) and the

@@ -1,0 +1,32 @@
+ sky   · Thread (esc: back)
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Mina Kimes @minakimes.bsky.social · Sep 10                                   │
+│ Talked to @wired.com about a bunch of things, including: r/bald, Bluesky, Elo│
+│ [link: Want to Get Off Your Phone? Mina Kimes Suggests Having a Baby - wired.│
+│ ↩ 110   ⟲ 127   ♥ 1.9K                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Bluesky @bsky.app                                                            │
+│ Thanks for being with us here on Bluesky, the official app of sports™️       │
+│ September 10, 2026 at 4:59 PM                                                │
+│ 9 replies   16 reposts   2 quotes   326 likes                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│   jlp2024.bsky.social @jlp2024.bsky.social · Sep 10                          │
+│   Unfortunately you ban and flag acco7nts in accurately. But,  yeah,  you're │
+│   ↩ 0   ⟲ 0   ♥ 0                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│   Davide Aversa 🎃 @davideaversa.it · Sep 10                                  │
+│   🏐🏐🏐🏐                                                                       │
+│   ↩ 0   ⟲ 0   ♥ 0                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+└──────────────────────────────────────────────────────────────────────────────┘
+ j/k move · enter open · tab feed · esc back · t theme · q quit
+# colours: index rgb glyphs fills
+3 23,27,32 0 2080
+4 59,156,240 171 0
+5 139,152,165 384 0
+6 230,233,236 277 0
+7 50,58,68 660 0

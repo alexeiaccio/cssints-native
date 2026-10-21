@@ -102,6 +102,79 @@ grep -q "Michael Warburton" "$OUT/sky-click.txt" && { echo "FAIL: the click did 
 ./terminal/demo --page sky --cols 60 --rows 13 --keys ArrowDown,ArrowDown --dump "$OUT/sky-scroll.txt"
 grep -q "alexjungle" "$OUT/sky-scroll.txt" || { echo "FAIL: the third post did not scroll into view"; exit 1; }
 grep -q "Michael Warburton" "$OUT/sky-scroll.txt" && { echo "FAIL: the list did not scroll past the first post"; exit 1; }
+# a click on a card focuses it and opens its thread (the app's onMouseDown), and Escape comes back to the same frame
+./terminal/demo --page sky --cols 80 --rows 20 --click 10,3 --dump "$OUT/sky-open.txt"
+grep -q "Thread (esc: back)" "$OUT/sky-open.txt" || { echo "FAIL: a click on a card did not open the thread"; exit 1; }
+./terminal/demo --page sky --cols 80 --rows 20 --keys Enter,Escape --dump "$OUT/sky-back.txt"
+cmp "$OUT/sky-back.txt" "$OUT/sky.txt" || { echo "FAIL: Escape did not come back to the feed frame"; exit 1; }
+
+# the focus layer (terminal/focus.c, the counterpart of focus/src/focus.ts): Tab order and the release at either end,
+# the roving group's arrows with and without wrap, leaving a group at its edge, memory, Home/End, a disabled stop
+cc -std=c99 -Wall -Wno-unused-variable -I terminal terminal/test_focus.c terminal/focus.c -o "$OUT/test_focus"
+"$OUT/test_focus"
+# the focus state, drawn from the focus and not from two ints: Tab out of the list (it is the last stop, so the layer
+# releases it and the page presses it again) lands on the bar, and Right moves the roving tab focus, which is the
+# active feed. The frame is the Science feed, and the accent's glyphs are the title's three: no card has the ring.
+./terminal/demo --page sky --cols 80 --rows 20 --keys Tab,ArrowRight --dump "$OUT/sky-focus.txt"
+cmp "$OUT/sky-focus.txt" terminal/expected-sky-focus.txt || { echo "FAIL: terminal/expected-sky-focus.txt is stale"; exit 1; }
+acc=$(awk '$2 == "59,156,240" { print $3 }' "$OUT/sky-focus.txt")
+[ "$acc" = 3 ] || { echo "FAIL: the accent has $acc glyphs with the bar focused, want 3 (the title, no card ring)"; exit 1; }
+# the bar's arrows wrap (its group says so): Left from the first tab is News, whose feed has no fixture ("Nothing here yet")
+./terminal/demo --page sky --cols 80 --rows 20 --keys Tab,ArrowLeft --dump "$OUT/sky-wrap.txt"
+grep -q "Nothing here yet" "$OUT/sky-wrap.txt" || { echo "FAIL: Left from the first tab did not wrap to News"; exit 1; }
+# and the list's edge leaves it (its group says leave): three rows down is the last card, then the bar, where no card
+# has the accent border: the accent's glyphs are the title's three again
+./terminal/demo --page sky --cols 80 --rows 20 --keys ArrowDown,ArrowDown,ArrowDown --dump "$OUT/sky-leave.txt"
+acc=$(awk '$2 == "59,156,240" { print $3 }' "$OUT/sky-leave.txt")
+[ "$acc" = 3 ] || { echo "FAIL: the last card's edge left the ring on $acc accent glyphs, want 3 (the bar's focus)"; exit 1; }
+
+# the thread screen (terminal/thread.c): the parent, the post (full time and counts in words) and the replies, the
+# indented depth, the accent border on the focused row. 80x26: two and a half cards
+./terminal/demo --page thread --cols 80 --rows 26 --dump "$OUT/thread.txt"
+cmp "$OUT/thread.txt" terminal/expected-thread.txt || { echo "FAIL: terminal/expected-thread.txt is stale"; exit 1; }
+# the ring is the focus: the root card's six rows start with the accent border. A click on the parent's author row
+# moves it there (five... six rows of that card), so the row that starts with the accent is the parent's
+ansi_rows() { awk -v esc="$ESC" '{gsub(esc "\\[[0-9]+;1H", "\n"); print}' "$1"; }
+accent_rows() { ansi_rows "$1" | grep -ac "^${ESC}\\[38;2;59;156;240m" || true; }
+./terminal/demo --page thread --cols 80 --rows 26 --ansi "$OUT/thread.ansi"
+n=$(accent_rows "$OUT/thread.ansi")
+[ "$n" = 6 ] || { echo "FAIL: the thread's focused card has $n accent rows, want 6 (the root's card)"; exit 1; }
+./terminal/demo --page thread --cols 80 --rows 26 --click 20,2 --ansi "$OUT/thread-click.ansi"
+n=$(accent_rows "$OUT/thread-click.ansi")
+[ "$n" = 6 ] || { echo "FAIL: a click on the parent's card left $n accent rows, want 6"; exit 1; }
+ansi_rows "$OUT/thread-click.ansi" | awk -v esc="$ESC" 'index($0, esc "[38;2;59;156;240m") == 1 {
+  l = $0; gsub(esc "\\[[0-9;]*m", "", l); print l }' | grep -q "Mina Kimes" ||
+  { echo "FAIL: the click did not put the ring on the parent's card"; exit 1; }
+# ArrowDown moves it to the first reply, whose card is five rows: the ring follows the focus
+./terminal/demo --page thread --cols 80 --rows 26 --keys ArrowDown --ansi "$OUT/thread-focus.ansi"
+n=$(accent_rows "$OUT/thread-focus.ansi")
+[ "$n" = 5 ] || { echo "FAIL: after ArrowDown $n accent rows, want 5 (the first reply's card)"; exit 1; }
+ansi_rows "$OUT/thread-focus.ansi" | awk -v esc="$ESC" 'index($0, esc "[38;2;59;156;240m") == 1 {
+  l = $0; gsub(esc "\\[[0-9;]*m", "", l); print l }' | grep -q "jlp2024" ||
+  { echo "FAIL: ArrowDown did not move the ring to the first reply"; exit 1; }
+# and the thread scrolls: five rows down puts a reply of a reply's parent in view, and the parent's card out
+./terminal/demo --page thread --cols 80 --rows 26 --keys ArrowDown,ArrowDown,ArrowDown,ArrowDown,ArrowDown \
+  --dump "$OUT/thread-scroll.txt"
+grep -q "Mdubs949" "$OUT/thread-scroll.txt" || { echo "FAIL: the thread did not scroll to the later replies"; exit 1; }
+grep -q "Mina Kimes" "$OUT/thread-scroll.txt" && { echo "FAIL: the thread did not scroll past the parent"; exit 1; }
+
+# the profile screen (terminal/profile.c): apps/csssky's profile on its recorded getProfile, its header and the three
+# tabs' posts. 80x26: the banner band, the identity, the bio, the counts, the tabs, the pinned card and a repost
+./terminal/demo --page profile --cols 80 --rows 26 --dump "$OUT/profile.txt"
+cmp "$OUT/profile.txt" terminal/expected-profile.txt || { echo "FAIL: terminal/expected-profile.txt is stale"; exit 1; }
+# a click on the Replies tab switches the list (its reason lines are new), as the app's tab does
+./terminal/demo --page profile --cols 80 --rows 26 --click 12,8 --dump "$OUT/profile-click.txt"
+grep -q "Replying to @minakimes.bsky.social" "$OUT/profile-click.txt" ||
+  { echo "FAIL: a click on the Replies tab did not switch the tab"; exit 1; }
+grep -q "Reposted by bsky.app" "$OUT/profile-click.txt" && { echo "FAIL: the click did not leave Posts"; exit 1; }
+# Enter opens the focused post's thread, Escape comes back to the profile
+./terminal/demo --page profile --cols 80 --rows 26 --keys Enter,Escape --dump "$OUT/profile-back.txt"
+cmp "$OUT/profile-back.txt" "$OUT/profile.txt" || { echo "FAIL: Escape did not come back to the profile frame"; exit 1; }
+# the list scrolls: two rows down brings the third card into view, where the first card was
+./terminal/demo --page profile --cols 80 --rows 26 --keys ArrowDown,ArrowDown --dump "$OUT/profile-scroll.txt"
+grep -q "Thread numbering is out of beta" "$OUT/profile-scroll.txt" ||
+  { echo "FAIL: the third profile card did not scroll into view"; exit 1; }
+grep -q "Pinned" "$OUT/profile-scroll.txt" && { echo "FAIL: the profile list did not scroll past the first card"; exit 1; }
 
 # termbox2 (terminal/tb2.c). It needs a terminal -- tb_init opens /dev/tty -- so it runs under a pty (script, whose
 # stdin is the pty too, so a click is the bytes a terminal sends). 256 colours unless COLORTERM says truecolour.
