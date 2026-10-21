@@ -45,7 +45,11 @@ void app_frame(bool down)
     snprintf(mag, sizeof mag, "|a| %.2f %s", a * scale, unit);
 
     CLAY(CLAY_ID("Root"), T(root)) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), T(title_text));
+        // The title in a box of its own: on the board a press on the "Title" id is the way home, and the page is the
+        // same page on every target, so the box is here too (it draws nothing of itself).
+        CLAY(CLAY_ID("Title"), {}) {
+            CLAY_TEXT(CLAY_STRING("Sensors"), T(title_text));
+        }
         CLAY_TEXT(str(label), T(caption_text));
         CLAY_TEXT(str(accel), T(value_text));
         CLAY_TEXT(CLAY_STRING("gyro \u00b0/s"), T(caption_text));

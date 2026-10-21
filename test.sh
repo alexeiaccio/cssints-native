@@ -31,6 +31,14 @@ cc -std=c99 -Wall -Wno-unused-variable -I "$OUT/sensors" -I "$CLAY_H" examples/s
 # a page with its styles in the .tsx (InlineDemo.tsx, no styles module): the literals header() prints, compiled
 bun --conditions=development generator/page-to-c.ts solid/app/InlineDemo.tsx --out "$OUT/sensors-gen/inline_generated.c"
 cc -std=c99 -Wall -Wno-unused-variable -I "$CLAY_H" -c "$OUT/sensors-gen/inline_generated.c" -o "$OUT/inline_generated.o"
+# ...and a page whose strings are the target's (--text): the board's live sample, one call per text element. The
+# header lists the indices; the file has to compile on its own, with only the hook's prototype from it.
+bun --conditions=development generator/page-to-c.ts solid/app/Sensors.tsx --styles examples/sensors/styles.ts \
+  --text sensors_text --out "$OUT/sensors-gen/page_text.c"
+grep -q 'CLAY_TEXT(sensors_text(6), unitsLabel_text)' "$OUT/sensors-gen/page_text.c" ||
+  { echo "FAIL: --text did not hook the pill's label"; exit 1; }
+cc -std=c99 -Wall -Wno-unused-variable -I "$OUT/sensors" -I "$CLAY_H" -c "$OUT/sensors-gen/page_text.c" -o "$OUT/page_text.o"
+
 
 # The desktop: the Sensors page headless, against its stored frames: the SDL renderer (the software one; the window
 # uses the GPU), dark, after a scripted click on Units, and the light theme

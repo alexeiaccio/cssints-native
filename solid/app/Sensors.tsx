@@ -20,7 +20,11 @@ export function Sensors() {
 
   return (
     <box id="Root" style={s.root}>
-      <text style={s.title}>Sensors</text>
+      {/* the page's name in a box with the id the shell's "Title" carries: the way home on every screen, and the
+          one element a target's pointer handling can find (the generated C has no handlers of its own) */}
+      <box id="Title">
+        <text style={s.title}>Sensors</text>
+      </box>
       <text style={s.caption}>{`accel ${unit()}`}</text>
       <text style={s.value}>{ACCEL.map((x) => signed(f(x * scale()), 2)).join("  ")}</text>
       <text style={s.caption}>{"gyro \u00b0/s"}</text>

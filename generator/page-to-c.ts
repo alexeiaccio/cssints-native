@@ -11,6 +11,10 @@
 //   bun --conditions=development generator/page-to-c.ts solid/app/Sensors.tsx \
 //     --styles examples/sensors/styles.ts --states examples/sensors/states.json \
 //     --state use_g=true --name app_frame_g --out examples/sensors/page_generated_g.c
+//
+// --text <name> hands the strings to the target instead of baking them in: each text element's content becomes
+// `<name>(<index>)`, with its index in tree order (the file lists them), for a target whose values are not the
+// build's -- the board's live sample. Without the flag the strings are the page's own, as double-quoted bytes.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
@@ -33,6 +37,8 @@ interface Options {
   styles: string[];
   states?: string;
   state: string[];
+  /** The function the target supplies the strings with, by index: `--text`. */
+  text?: string;
 }
 const opts: Partial<Options> & { styles: string[]; state: string[] } = { name: "app_frame", styles: [], state: [] };
 {
@@ -45,6 +51,7 @@ const opts: Partial<Options> & { styles: string[]; state: string[] } = { name: "
     else if (a === "--styles") opts.styles.push(value());
     else if (a === "--states") opts.states = value();
     else if (a === "--state") opts.state.push(value());
+    else if (a === "--text") opts.text = value();
     else if (a.startsWith("--")) fail(`unknown option ${a}`);
     else if (!opts.page) opts.page = a;
     else fail(`unexpected argument ${a}`);
@@ -52,6 +59,7 @@ const opts: Partial<Options> & { styles: string[]; state: string[] } = { name: "
   if (!opts.page) fail("usage: bun generator/page-to-c.ts <page.tsx> --out <page.c> [--styles <styles.ts>]...");
   if (!opts.out) fail("--out is required");
   if (opts.state.length && !opts.states) fail("--state needs a --states file: a state is a script of events, not a signal");
+  if (opts.text && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(opts.text)) fail(`--text ${opts.text} is not a C identifier`);
 }
 
 // ---------- the page, rendered
@@ -152,9 +160,11 @@ function* walk(n: El): Generator<El> {
   for (const c of n.children) if (c instanceof El) yield* walk(c);
 }
 
-/** The C expression naming a style's declaration: its export's name in styles.h, or a printed literal. */
+/** The C expression naming a style's declaration: its export's name in styles.h, or a printed literal. An element with
+ *  no declaration is `{}`, not `{ 0 }`: GCC makes `{ 0 }` of a struct a missing-braces error under -Werror, and the
+ *  firmware builds with it. */
 function decl(style: Record<string, any> | undefined, el: El, theme: string | undefined, text: boolean): string {
-  if (!style) return text ? defaultText() : "{ 0 }";
+  if (!style) return text ? defaultText() : "{}";
   const states = heldStates(style, el);
   const suffix = states.length ? `_${states.at(-1)!.slice(1)}` : "";
   const themeSuffix = theme ? `_${theme}` : "";
@@ -172,7 +182,7 @@ function decl(style: Record<string, any> | undefined, el: El, theme: string | un
   const resolved = resolveStyle(style, theme, states) as Record<string, any>;
   const box = Object.keys(resolved).filter((k) => k !== "text").length > 0;
   if (text && !resolved.text) return defaultText();
-  if (!text && !box) return "{ 0 }";
+  if (!text && !box) return "{}";
 
   const name = exported.get(style);
   if (name) {
@@ -232,13 +242,22 @@ const cstr = (s: string): string =>
 
 let usedExports = false;
 const frames: string[] = [];
+/** The texts in tree order, as the `--text` hook's indices: one table, checked on every frame. */
+const texts: string[] = [];
 function emitFrame(name: string, theme: string | undefined): void {
   const lines: string[] = [];
+  let index = 0; // per frame; the tree is the same for every theme and state, so the indices agree
   const emit = (el: El, depth: number) => {
     const pad = "    ".repeat(depth);
     if (el.tag === "text") {
       const text = el.children.filter((c) => c instanceof Txt).map((c) => c.text).join("");
-      lines.push(`${pad}CLAY_TEXT(CLAY_STRING("${cstr(text)}"), ${decl(el.props.style, el, theme, true)});`);
+      if (!opts.text) {
+        lines.push(`${pad}CLAY_TEXT(CLAY_STRING("${cstr(text)}"), ${decl(el.props.style, el, theme, true)});`);
+        return;
+      }
+      if (texts[index] === undefined) texts[index] = text;
+      else if (texts[index] !== text) fail(`text ${index} is "${text}" in ${name}, "${texts[index]}" in the first frame`);
+      lines.push(`${pad}CLAY_TEXT(${opts.text}(${index++}), ${decl(el.props.style, el, theme, true)});`);
       return;
     }
     const d = decl(el.props.style, el, theme, false);
@@ -265,8 +284,16 @@ const cfile = [
     ? `// styles: ${opts.styles.join(", ")}, generated as styles.h by generator/clay-header.ts; referred to by their names there`
     : "// styles: none exported by the page; printed below as literals, in tree order",
   "// The tree is the solid/src/renderer.ts tree the desktop draws, in tree order; each theme is the same tree again.",
+  ...(opts.text
+    ? [
+        `// The strings are the target's: ${opts.text}(index) is called once per text element, in tree order. These are`,
+        "// the strings this page had at build time, so a target can check its own table against them:",
+        ...texts.map((t, i) => `//   ${i}: "${cstr(t)}"`),
+      ]
+    : []),
   usedExports ? '#include "styles.h"' : '#include "clay.h"',
   "",
+  ...(opts.text ? [`// called by the frame functions below, one per text element`, `Clay_String ${opts.text}(int index);`, ""] : []),
   ...(literals.length ? ["// styles the page does not export, printed by cssints/clay's header()", ...literals.sort(), ""] : []),
   ...frames,
 ].join("\n") + "\n";

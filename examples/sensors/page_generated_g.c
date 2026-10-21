@@ -7,7 +7,9 @@
 void app_frame_g(void)
 {
     CLAY(CLAY_ID("Root"), root) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), title_text);
+        CLAY(CLAY_ID("Title"), {}) {
+            CLAY_TEXT(CLAY_STRING("Sensors"), title_text);
+        }
         CLAY_TEXT(CLAY_STRING("accel g"), caption_text);
         CLAY_TEXT(CLAY_STRING("+0.12  -0.07  +1.02"), value_text);
         CLAY_TEXT(CLAY_STRING("gyro \302\260/s"), caption_text);
@@ -22,7 +24,9 @@ void app_frame_g(void)
 void app_frame_g_light(void)
 {
     CLAY(CLAY_ID("Root"), root_light) {
-        CLAY_TEXT(CLAY_STRING("Sensors"), title_text_light);
+        CLAY(CLAY_ID("Title"), {}) {
+            CLAY_TEXT(CLAY_STRING("Sensors"), title_text_light);
+        }
         CLAY_TEXT(CLAY_STRING("accel g"), caption_text_light);
         CLAY_TEXT(CLAY_STRING("+0.12  -0.07  +1.02"), value_text_light);
         CLAY_TEXT(CLAY_STRING("gyro \302\260/s"), caption_text_light);
