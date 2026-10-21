@@ -75,3 +75,38 @@ grep -qF "${ESC}[38;2;230;60;60m" "$OUT/term.ansi" || { echo "FAIL: the title ha
 grep -qF "${ESC}[38;2;235;235;240m" "$OUT/term.ansi" || { echo "FAIL: the pill's label has no ink (38;2;235;235;240)"; exit 1; }
 runs=$(grep -oF "${ESC}[48;2;36;40;52m" "$OUT/term.ansi" | wc -l | tr -d ' ')
 [ "$runs" = 4 ] || { echo "FAIL: the surface background has $runs SGR runs, want 4 (merged, not one a cell)"; exit 1; }
+# the ported screen: apps/csssky-tui's home feed (terminal/sky.c), its styles from terminal/sky_styles.ts, its data from
+# apps/csssky's recorded fixtures. 80x20: the bar, three post cards of six cells each, the footer
+./terminal/demo --page sky --cols 80 --rows 20 --dump "$OUT/sky.txt"
+cmp "$OUT/sky.txt" terminal/expected-sky.txt || { echo "FAIL: terminal/expected-sky.txt is stale"; exit 1; }
+# a click is the pointer's cell and a button's down and up, through the same page input termbox2's events reach: a click
+# on the second tab (cell 22,0 of the bar) switches the feed to Science, so Discover's first post is gone
+./terminal/demo --page sky --cols 80 --rows 20 --click 22,0 --dump "$OUT/sky-click.txt"
+grep -q "Erik Strub" "$OUT/sky-click.txt" || { echo "FAIL: a click on the Science tab did not switch the feed"; exit 1; }
+grep -q "Michael Warburton" "$OUT/sky-click.txt" && { echo "FAIL: the click did not leave Discover"; exit 1; }
+# and a selection below the visible rows scrolls the list (sky_settled: Clay's boxes, another layout pass): at 13 rows
+# two cards fit, the third does not, and ArrowDown twice brings it into view from the top
+./terminal/demo --page sky --cols 60 --rows 13 --keys ArrowDown,ArrowDown --dump "$OUT/sky-scroll.txt"
+grep -q "alexjungle" "$OUT/sky-scroll.txt" || { echo "FAIL: the third post did not scroll into view"; exit 1; }
+grep -q "Michael Warburton" "$OUT/sky-scroll.txt" && { echo "FAIL: the list did not scroll past the first post"; exit 1; }
+
+# termbox2 (terminal/tb2.c). It needs a terminal -- tb_init opens /dev/tty -- so it runs under a pty (script, whose
+# stdin is the pty too, so a click is the bytes a terminal sends). 256 colours unless COLORTERM says truecolour.
+if command -v script >/dev/null 2>&1; then
+  rm -f "$OUT/tb2-256.log" "$OUT/tb2-true.log" "$OUT/tb2-mouse.log"
+  script -q "$OUT/tb2-256.log" sh -c "stty rows 20 cols 80; env -u COLORTERM $PWD/terminal/demo --page sky --backend tb2 --frames 1" >/dev/null 2>&1
+  n=$(grep -oF "${ESC}[38;5;" "$OUT/tb2-256.log" | wc -l | tr -d ' ')
+  [ "$n" -gt 0 ] || { echo "FAIL: termbox2 without COLORTERM wrote no 256-colour SGR"; exit 1; }
+  grep -qF "${ESC}[38;2;" "$OUT/tb2-256.log" && { echo "FAIL: the 256-colour fallback wrote truecolour SGR"; exit 1; }
+  script -q "$OUT/tb2-true.log" sh -c "stty rows 20 cols 80; COLORTERM=truecolor $PWD/terminal/demo --page sky --backend tb2 --frames 1" >/dev/null 2>&1
+  grep -qF "${ESC}[38;2;255;255;255;48;2;59;156;240m" "$OUT/tb2-true.log" ||
+    { echo "FAIL: termbox2 with COLORTERM has no white-on-accent tab (38;2;255;255;255;48;2;59;156;240)"; exit 1; }
+  grep -qF "${ESC}[38;5;" "$OUT/tb2-true.log" && { echo "FAIL: truecolour still wrote a 256-colour SGR"; exit 1; }
+  # a mouse click through termbox2: a press on the Science tab (SGR 1006, 1-based: column 23, row 1) and its release,
+  # then q. The frame after the release is the Science feed
+  { sleep 0.4; printf '\033[<0;23;1M'; sleep 0.3; printf '\033[<0;23;1m'; sleep 0.4; printf 'q'; sleep 0.2; } |
+    script -q "$OUT/tb2-mouse.log" sh -c "stty rows 20 cols 80; $PWD/terminal/demo --page sky --backend tb2" >/dev/null 2>&1
+  grep -q "Erik Strub" "$OUT/tb2-mouse.log" || { echo "FAIL: termbox2's mouse click did not switch the feed"; exit 1; }
+else
+  echo "terminal: no script(1), termbox2's pty checks skipped"
+fi

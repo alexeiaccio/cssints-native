@@ -1,34 +1,38 @@
-// The terminal host: a window-less frame loop. Clay lays the page out in cell-sized pixels (cols x CELL_W by
-// rows x CELL_H), render.c turns the commands into a Cells grid, and the grid goes out as ANSI truecolour.
+// The terminal host: a window-less frame loop. Clay lays a page out in cell-sized pixels (cols x CELL_W by rows x
+// CELL_H), render.c turns the commands into a Cells grid, and a backend puts the grid out:
 //
-//   demo                            the page in the terminal: raw termios, keys, redraw; q or Ctrl-C quits
-//   demo --dump out.txt             one frame headless, written as plain text (see cells_dump: '.' is a fill)
+//   tb2       termbox2 (terminal/tb2.c): the grid as cells, truecolour or 256 colours, keys and the mouse
+//   ansi      the grid as ANSI truecolour (headless, or to a file)
+//   dump      the grid as plain text (headless; see cells_dump: '.' is a fill)
+//
+//   demo                            the Sensors page in the terminal, on termbox2; q or Ctrl-C quits
+//   demo --page sky                 apps/csssky-tui's home screen (cell-aligned, terminal/sky.c)
+//   demo --dump out.txt             one frame headless, written as plain text
 //   demo --ansi out.ansi            the same frame as ANSI (the escapes a terminal gets)
 //   demo --keys Tab,ArrowDown       headless: a frame, then each key with a frame after it (as solid/main.ts)
+//   demo --click X,Y                headless: a frame, a pointer down over that cell with a frame, a release with a frame
 //   demo --theme light              start in the light theme (or press t)
-//   demo --cols N --rows N          the grid (headless default 80x26; a terminal asks its own size)
+//   demo --cols N --rows N          the grid (headless default 80x26; termbox2 asks the terminal)
+//   demo --backend tb2|ansi|dump    the backend (default: tb2; ansi and dump write to stdout unless a file is named)
+//   demo --colors auto|truecolor|256  termbox2's output colours (auto: the terminal's COLORTERM/TERM)
+//   demo --frames N                 termbox2: draw N frames, no input, then quit (a smoke check; 1 is a screen)
 //
-// No termbox2: this step's raw termios is enough to prove the cells layer, and a later backend (termbox2 or a
-// keyboard in a window) replaces input and output without touching cells.c or render.c.
+// termbox2 needs a terminal: tb_init opens /dev/tty. Headless, the tests use --dump/--ansi (and drive termbox2 through
+// a pty for the backend itself: see test.sh).
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
 
 #include <errno.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <termios.h>
 #include <unistd.h>
 
 #include "cells.h"
 #include "measure.h"
+#include "page.h"
 #include "render.h"
-
-void page_frame(bool down);
-void page_key(const char *name);
-void page_set_theme(int light);
+#include "tb2.h"
 
 static int errors;
 static void on_error(Clay_ErrorData e)
@@ -39,145 +43,118 @@ static void on_error(Clay_ErrorData e)
 
 static int cols = 80, rows = 26;
 static Cells grid;
-static struct termios saved;
-static int raw_mode;
-static volatile sig_atomic_t stop;
+static const Page *page = &SENSORS_PAGE;
+static TermEvent ev = {.px = -1, .py = -1};
 
-static void restore_terminal(void)
-{
-    if (!raw_mode) return;
-    raw_mode = 0;
-    // leave the alternate screen, show the cursor, reset the colours; then the shell's modes
-    fputs("\x1b[0m\x1b[?25h\x1b[?1049l", stdout);
-    fflush(stdout);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved);
-}
+static int quit(const TermEvent *e) { return e->key && (!strcmp(e->key, "q") || !strcmp(e->key, "Ctrl+C")); }
 
-static void on_signal(int sig)
-{
-    (void)sig;
-    stop = 1;
-}
-
-/** One frame: Clay in cells, into the grid. */
+/** One frame: the page's input, then Clay in cells, into the grid. A page that scrolls gets another pass. */
 static void frame(void)
 {
-    Clay_SetLayoutDimensions((Clay_Dimensions){(float)(cols * CELL_W), (float)(rows * CELL_H)});
-    Clay_SetPointerState((Clay_Vector2){-1, -1}, false);
-    Clay_BeginLayout();
-    page_frame(false);
-    Clay_RenderCommandArray cmds = Clay_EndLayout(1.0f / 60);
+    if (page->input) page->input(&ev);
+    Clay_RenderCommandArray cmds = {0};
+    for (int pass = 0; pass < 8; pass++) {
+        Clay_SetLayoutDimensions((Clay_Dimensions){(float)(cols * CELL_W), (float)(rows * CELL_H)});
+        // the pointer the backend last reported, in Clay's pixels; a click's edge is the button's for this frame
+        Clay_SetPointerState((Clay_Vector2){(float)(ev.px * CELL_W), (float)(ev.py * CELL_H)}, ev.down);
+        Clay_BeginLayout();
+        page->declare();
+        cmds = Clay_EndLayout(1.0f / 60);
+        if (!page->settled || page->settled()) break;
+    }
+    if (getenv("DEBUG_CMDS")) {
+        for (int32_t i = 0; i < cmds.length; i++) {
+            Clay_RenderCommand *c = &cmds.internalArray[i];
+            fprintf(stderr, "%d type %d box %.0f,%.0f %.0fx%.0f\n", i, c->commandType, c->boundingBox.x,
+                    c->boundingBox.y, c->boundingBox.width, c->boundingBox.height);
+        }
+    }
     cells_clear(&grid);
     term_render(&grid, &cmds);
-    if (errors) stop = 1;
 }
 
-static int term_size(int *c, int *r)
+static void write_dump(const char *path)
 {
-    struct winsize ws;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) || !ws.ws_col || !ws.ws_row) return 0;
-    *c = ws.ws_col > 200 ? 200 : ws.ws_col, *r = ws.ws_row > 60 ? 60 : ws.ws_row;
-    return 1;
-}
-
-static void write_frame(void)
-{
-    fputs("\x1b[H", stdout);
-    cells_ansi(&grid, stdout);
-    fflush(stdout);
-}
-
-/** A key name from the bytes the tty gave us, the names the desktop's focus manager uses. */
-static const char *key_name(const unsigned char *b, int n, int *used)
-{
-    *used = 1;
-    if (b[0] == 0x1b && n >= 3 && b[1] == '[') {
-        *used = 3;
-        switch (b[2]) {
-        case 'A': return "ArrowUp";
-        case 'B': return "ArrowDown";
-        case 'C': return "ArrowRight";
-        case 'D': return "ArrowLeft";
-        case 'Z': return "Shift+Tab";
-        default: *used = 1; return "Escape";
-        }
+    FILE *f = !path[0] || !strcmp(path, "-") ? stdout : fopen(path, "w");
+    if (!f) {
+        fprintf(stderr, "%s: %s\n", path, strerror(errno));
+        exit(2);
     }
-    if (b[0] == 0x1b) return "Escape";
-    if (b[0] == '\t') return "Tab";
-    if (b[0] == '\r' || b[0] == '\n') return "Enter";
-    if (b[0] == ' ') return "Space";
-    if (b[0] == 0x7f || b[0] == 0x08) return "Backspace";
-    static char letter[2];
-    if (b[0] >= 'a' && b[0] <= 'z') letter[0] = (char)b[0], letter[1] = 0;
-    else if (b[0] >= '0' && b[0] <= '9') letter[0] = (char)b[0], letter[1] = 0;
-    else letter[0] = 0;
-    return letter[0] ? letter : NULL;
+    cells_dump(&grid, f);
+    if (f != stdout) fclose(f);
 }
 
-static int interactive(void)
+static void write_ansi(const char *path)
 {
-    struct termios t;
-    if (tcgetattr(STDIN_FILENO, &saved)) return 2;
-    t = saved;
-    // raw: no line editing, no echo, no signals (Ctrl-C arrives as 0x03 and is ours), no CR/NL translation
-    t.c_lflag &= (tcflag_t) ~(ICANON | ECHO | ECHONL | IEXTEN | ISIG);
-    t.c_iflag &= (tcflag_t) ~(IXON | ICRNL | INLCR | IGNCR | BRKINT);
-    t.c_oflag &= (tcflag_t) ~OPOST;
-    t.c_cc[VMIN] = 0;  // a read waits up to VTIME and takes what there is, so the loop can see signals
-    t.c_cc[VTIME] = 1; // 100 ms
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &t)) return 2;
-    raw_mode = 1;
-    atexit(restore_terminal);
-    signal(SIGINT, on_signal);
-    signal(SIGTERM, on_signal);
-    signal(SIGHUP, on_signal);
-    fputs("\x1b[?1049h\x1b[?25l\x1b[2J", stdout);
-    fflush(stdout);
+    FILE *f = !path[0] || !strcmp(path, "-") ? stdout : fopen(path, "wb");
+    if (!f) {
+        fprintf(stderr, "%s: %s\n", path, strerror(errno));
+        exit(2);
+    }
+    cells_ansi(&grid, f);
+    if (f != stdout) fclose(f);
+}
 
-    int w = cols, h = rows;
-    while (!stop) {
-        int c, r;
-        if (term_size(&c, &r) && (c != w || r != h)) {
-            w = cols = c, h = rows = r;
+/** termbox2: a frame, termbox2's events, a frame each; the terminal's own size, and a resize makes the grid again. */
+static int interactive(Tb2Colors colors, int frames)
+{
+    const int rv = term_tb2_open(&cols, &rows, colors);
+    if (rv != 0) {
+        fprintf(stderr, "termbox2: %s (needs a terminal: use --dump or --ansi)\n", term_tb2_error());
+        return 2;
+    }
+    cells_free(&grid);
+    cells_init(&grid, cols, rows);
+    frame();
+    term_tb2_present(&grid);
+    for (int i = 1; i < frames; i++) {
+        frame();
+        term_tb2_present(&grid);
+    }
+
+    int status = 0;
+    while (!quit(&ev) && !frames) {
+        ev.key = NULL;
+        ev.down = ev.up = 0;
+        const Tb2Status s = term_tb2_poll(&ev);
+        if (s == TB2_QUIT) break;
+        if (s == TB2_RESIZE) {
+            term_tb2_size(&cols, &rows);
             cells_free(&grid);
             cells_init(&grid, cols, rows);
-            fputs("\x1b[2J", stdout);
+            ev.px = ev.py = -1;
+        } else if (s != TB2_EVENT) {
+            continue;
         }
         frame();
-        write_frame();
-        unsigned char buf[32];
-        const ssize_t n = read(STDIN_FILENO, buf, sizeof buf);
-        for (int i = 0; i < n && !stop;) {
-            if (buf[i] == 0x03) { // Ctrl-C
-                stop = 1;
-                break;
-            }
-            int used = 1;
-            const char *name = key_name(buf + i, (int)n - i, &used);
-            i += used;
-            if (!name) continue;
-            if (!strcmp(name, "q")) { // quit, like the desktop window's close
-                stop = 1;
-                break;
-            }
-            page_key(name);
-        }
+        term_tb2_present(&grid);
+        if (errors) break; // Clay's error handler ran: the frame is not to be trusted
     }
-    return errors ? 1 : 0;
+    term_tb2_close();
+    status = errors ? 1 : 0;
+    return status;
 }
 
 int main(int argc, char **argv)
 {
-    const char *dump = NULL, *ansi = NULL, *keys = NULL;
-    const char *theme = "dark";
+    const char *dump = NULL, *ansi = NULL, *keys = NULL, *click = NULL, *theme = "dark", *backend = "tb2";
+    int frames = 0;
+    Tb2Colors colors = TB2_COLORS_AUTO;
     for (int i = 1; i + 1 < argc; i++) {
         if (!strcmp(argv[i], "--cols")) cols = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--rows")) rows = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--dump")) dump = argv[++i];
         else if (!strcmp(argv[i], "--ansi")) ansi = argv[++i];
         else if (!strcmp(argv[i], "--keys")) keys = argv[++i];
+        else if (!strcmp(argv[i], "--click")) click = argv[++i];
         else if (!strcmp(argv[i], "--theme")) theme = argv[++i];
-        else {
+        else if (!strcmp(argv[i], "--backend")) backend = argv[++i];
+        else if (!strcmp(argv[i], "--page")) page = !strcmp(argv[++i], "sky") ? &SKY_PAGE : &SENSORS_PAGE;
+        else if (!strcmp(argv[i], "--frames")) frames = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--colors")) {
+            const char *c = argv[++i];
+            colors = !strcmp(c, "truecolor") ? TB2_COLORS_TRUECOLOR : !strcmp(c, "256") ? TB2_COLORS_256 : TB2_COLORS_AUTO;
+        } else {
             fprintf(stderr, "unknown option %s\n", argv[i]);
             return 2;
         }
@@ -185,49 +162,54 @@ int main(int argc, char **argv)
     if (cols < 4) cols = 4;
     if (rows < 3) rows = 3;
 
+    // --backend ansi/dump with no file is that output on stdout; either file flag forces the headless path
+    const int headless = dump || ansi || keys || click || !strcmp(backend, "ansi") || !strcmp(backend, "dump");
+    if (!strcmp(backend, "ansi") && !ansi) ansi = "";
+    if (!strcmp(backend, "dump") && !dump) dump = "";
+    if (strcmp(backend, "ansi") && strcmp(backend, "dump") && strcmp(backend, "tb2")) {
+        fprintf(stderr, "unknown backend %s (tb2, ansi, dump)\n", backend);
+        return 2;
+    }
+
     const uint32_t size = Clay_MinMemorySize();
     Clay_Initialize(Clay_CreateArenaWithCapacityAndMemory(size, malloc(size)),
                     (Clay_Dimensions){(float)(cols * CELL_W), (float)(rows * CELL_H)}, (Clay_ErrorHandler){on_error});
     Clay_SetMeasureTextFunction(term_measure_text, NULL);
     page_set_theme(!strcmp(theme, "light"));
+    sky_set_theme(!strcmp(theme, "light"));
     cells_init(&grid, cols, rows);
 
-    const bool headless = dump || ansi || keys;
     if (!headless) {
-        const int status = interactive();
+        const int status = interactive(colors, frames);
         cells_free(&grid);
         term_render_report();
         return status;
     }
 
-    // headless: the base frame, then a frame after each key
+    // headless: the base frame, then a frame after each key, then a click's press and release
     frame();
+    ev.key = NULL;
     if (keys) {
         char *copy = strdup(keys);
         for (char *k = strtok(copy, ","); k; k = strtok(NULL, ",")) {
-            page_key(k);
+            ev.key = k;
             frame();
+            ev.key = NULL;
         }
         free(copy);
     }
-    if (dump) {
-        FILE *f = !strcmp(dump, "-") ? stdout : fopen(dump, "w");
-        if (!f) {
-            fprintf(stderr, "%s: %s\n", dump, strerror(errno));
-            return 2;
+    if (click) {
+        int x = 0, y = 0;
+        if (sscanf(click, "%d,%d", &x, &y) == 2) {
+            ev.px = x, ev.py = y, ev.down = 1;
+            frame();
+            ev.down = 0, ev.up = 1;
+            frame();
+            ev.up = 0;
         }
-        cells_dump(&grid, f);
-        if (f != stdout) fclose(f);
     }
-    if (ansi) {
-        FILE *f = !strcmp(ansi, "-") ? stdout : fopen(ansi, "wb");
-        if (!f) {
-            fprintf(stderr, "%s: %s\n", ansi, strerror(errno));
-            return 2;
-        }
-        cells_ansi(&grid, f);
-        if (f != stdout) fclose(f);
-    }
+    if (dump) write_dump(dump);
+    if (ansi) write_ansi(ansi);
     cells_free(&grid);
     term_render_report();
     return errors ? 1 : 0;
