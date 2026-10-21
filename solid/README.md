@@ -78,6 +78,7 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | Function | |
 | --- | --- |
 | `ui_init(w, h)`, `ui_font(path)` | Clay and a ThorVG canvas; a font by file path, its id is the order of calls. 0 / id on success |
+| `ui_init_gpu(w, h)` | the same on ThorVG's WebGPU canvas (`--raster thorvg-gpu`); only a `libui.dylib` from `desktop/build-thorvg-gpu.sh solid` |
 | `ui_begin(px, py, down, dt)` | pointer for this frame, then Clay's scroll containers move by the wheel this frame took (`Clay_UpdateScrollContainers(false, delta, dt)`, before the layout), then `Clay_BeginLayout` |
 | `ui_open(id, len, f32[45])` | open an element; `id` NULL for none; the style as below |
 | `ui_text(bytes, len, f32[10])` | a text element; the bytes are copied for the frame |

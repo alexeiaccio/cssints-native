@@ -7,8 +7,11 @@
 //                           ref.png.actual.png on a difference
 //   --click X Y             headless: a press and a release at X,Y before the frame that is written
 //   --press X Y             headless: a press at X,Y held down, the frame written while still pressed
-//   --raster thorvg|sdl     clay_renderer_thorvg.c into a buffer that is the frame headless and a texture in the
-//                           window (the default), or Clay's SDL3 renderer
+//   --raster thorvg|thorvg-gpu|sdl
+//                           clay_renderer_thorvg.c into a buffer that is the frame headless and a texture in the
+//                           window (the default), the same scene on ThorVG's WebGPU canvas read back into that
+//                           buffer (only a build with CLAY_THORVG_WG, desktop/build-thorvg-gpu.sh), or Clay's
+//                           SDL3 renderer
 //   --bench N               headless: draw the last frame N more times and print the raster's ms a frame
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
@@ -22,6 +25,12 @@
 
 #include "clay_renderer_SDL3.c"
 #include "clay_renderer_thorvg.c"
+
+#ifdef CLAY_THORVG_WG
+#include "thorvg_wg.c"
+#else
+typedef struct { int unused; } Clay_WgTarget; // --raster thorvg-gpu: only the WebGPU build (build-thorvg-gpu.sh)
+#endif
 
 #ifndef APP_W
 #define APP_W 360
@@ -69,12 +78,15 @@ static long differ(SDL_Surface *a, SDL_Surface *b)
 }
 
 /** One frame on a black ground, by the chosen raster. */
-static void draw(bool thorvg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int n, Clay_SDL3RendererData *sdl,
-                 Clay_RenderCommandArray *cmds)
+static void draw(bool thorvg, Clay_WgTarget *wg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int n,
+                 Clay_SDL3RendererData *sdl, Clay_RenderCommandArray *cmds)
 {
     if (thorvg) {
-        for (int i = 0; i < n; i++) pixels[i] = 0xff000000;
+        if (!wg) for (int i = 0; i < n; i++) pixels[i] = 0xff000000; // the WebGPU texture is its own cleared target
         Clay_ThorVG_RenderClayCommands(tvg, cmds);
+#ifdef CLAY_THORVG_WG
+        if (wg) Clay_Wg_Readback(wg, pixels);
+#endif
         return;
     }
     SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 255);
@@ -99,9 +111,10 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--raster")) raster = argv[++i];
         else if (!strcmp(argv[i], "--bench")) bench = atoi(argv[++i]);
     }
-    const bool thorvg = !strcmp(raster, "thorvg");
+    const bool gpu = !strcmp(raster, "thorvg-gpu");
+    const bool thorvg = gpu || !strcmp(raster, "thorvg");
     if (!thorvg && strcmp(raster, "sdl")) {
-        fprintf(stderr, "--raster %s: sdl or thorvg\n", raster);
+        fprintf(stderr, "--raster %s: sdl, thorvg or thorvg-gpu\n", raster);
         return 2;
     }
     const bool headless = png || expect;
@@ -139,17 +152,39 @@ int main(int argc, char **argv)
     const int tw = (int)(APP_W * tvg.scale), th = (int)(APP_H * tvg.scale);
     Uint32 *tvg_pixels = NULL;
     SDL_Texture *tvg_texture = NULL;
+    Clay_WgTarget wg = {0}, *wg_target = NULL;
     if (thorvg) {
         tvg_pixels = malloc((size_t)tw * th * 4);
-        if (tvg_engine_init(0) || !(tvg.canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_DEFAULT)) ||
-            tvg_swcanvas_set_target(tvg.canvas, tvg_pixels, tw, tw, th, TVG_COLORSPACE_ABGR8888) ||
-            tvg_font_load(FONT_PATH)) {
-            fprintf(stderr, "thorvg: no software canvas or no font %s\n", FONT_PATH);
+        if (tvg_engine_init(0) || tvg_font_load(FONT_PATH)) {
+            fprintf(stderr, "thorvg: no engine or no font %s\n", FONT_PATH);
+            return 1;
+        }
+        if (gpu) {
+            bool ok = false;
+#ifdef CLAY_THORVG_WG
+            // the WebGPU canvas draws into a texture; the frame comes back as pixels for the same buffer
+            ok = Clay_Wg_Create(&wg, tw, th) && (tvg.canvas = tvg_wgcanvas_create(TVG_ENGINE_OPTION_DEFAULT)) &&
+                 !tvg_wgcanvas_set_target(tvg.canvas, wg.device, wg.instance, wg.texture, tw, th,
+                                          TVG_COLORSPACE_ABGR8888, 1);
+            if (ok) wg_target = &wg;
+#endif
+            if (!ok) {
+                fprintf(stderr, "thorvg-gpu: no WebGPU canvas: needs a ThorVG built with -Dengines=wg and wgpu-native, "
+                                "as desktop/build-thorvg-gpu.sh does\n");
+                return 2;
+            }
+        } else if (!(tvg.canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_DEFAULT)) ||
+                   tvg_swcanvas_set_target(tvg.canvas, tvg_pixels, tw, tw, th, TVG_COLORSPACE_ABGR8888)) {
+            fprintf(stderr, "thorvg: no software canvas\n");
             return 1;
         }
         tvg.measurer = tvg_text_new();
         Clay_SetMeasureTextFunction(Clay_ThorVG_MeasureText, &tvg);
-        if (window) tvg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, tw, th);
+        if (window) {
+            tvg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, tw, th);
+            // ThorVG's WebGPU canvas renders premultiplied; the software canvas does not
+            if (wg_target) SDL_SetTextureBlendMode(tvg_texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+        }
     }
 
     if (window) printf("renderer: %s, raster: %s\n", SDL_GetRendererName(renderer), raster);
@@ -185,7 +220,7 @@ int main(int argc, char **argv)
         app_frame(down);
         Clay_RenderCommandArray cmds = Clay_EndLayout(dt);
 
-        draw(thorvg, &tvg, tvg_pixels, tw * th, &data, &cmds);
+        draw(thorvg, wg_target, &tvg, tvg_pixels, tw * th, &data, &cmds);
         if (tvg_texture) {
             SDL_UpdateTexture(tvg_texture, NULL, tvg_pixels, tw * 4);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -197,7 +232,7 @@ int main(int argc, char **argv)
         if (headless && bench > 0) {
             const Uint64 t0 = SDL_GetTicksNS();
             for (int i = 0; i < bench; i++) {
-                draw(thorvg, &tvg, tvg_pixels, tw * th, &data, &cmds);
+                draw(thorvg, wg_target, &tvg, tvg_pixels, tw * th, &data, &cmds);
                 if (!thorvg) SDL_FlushRenderer(renderer);
             }
             printf("%s: %.3f ms a frame (%d frames, %dx%d)\n", raster,

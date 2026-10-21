@@ -44,6 +44,11 @@ THEME=light ./build/sensors/app --raster sdl --expect examples/sensors/expected-
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
 # Units held down: the pressed look (units_active), written while the pointer is still down
 ./build/sensors/app --raster thorvg --press 180 250 --expect examples/sensors/expected-pressed.png
+# the same page on ThorVG's WebGPU canvas (Metal through wgpu-native): only when its build exists, because brew's
+# thorvg has no GPU engine. Its frame is its own: the shapes and colours are the CPU frame's, the anti-aliasing is not
+if [ -x ./build/sensors/app-gpu ]; then
+  ./build/sensors/app-gpu --raster thorvg-gpu --expect examples/sensors/expected-thorvg-gpu.png
+fi
 
 # Solid 2 on the desktop: the Sensors page as JSX, its frames against the same stored ThorVG frames
 sh solid/test.sh

@@ -18,6 +18,8 @@
 //   --wheel N                            headless, before --keys: the pointer onto the list's viewport, then N wheel
 //                                        notches down, a frame each (one notch is 10px of Clay's scroll)
 //   --bench N                            headless: N more frames, the ms a frame by phase
+//   --raster thorvg|thorvg-gpu           the ThorVG software canvas (the default) or its WebGPU canvas, the frame read
+//                                        back; the latter needs a libui.dylib from desktop/build-thorvg-gpu.sh solid
 //   --frames N                           window: close after N frames (a smoke test)
 //   THEME=light                          the light theme
 import "./plugin.ts";
@@ -41,6 +43,8 @@ const keys = arg("--keys")?.[0]?.split(",");
 // headless: wheel notches down over the list's viewport, a frame each
 const wheel = Number(arg("--wheel")?.[0] ?? 0);
 const bench = Number(arg("--bench")?.[0] ?? 0);
+// the raster: ThorVG's software canvas (the default) or its WebGPU one, when the dylib was built for it
+const gpu = arg("--raster")?.[0] === "thorvg-gpu";
 const maxFrames = Number(arg("--frames")?.[0] ?? Infinity);
 let theme = process.env.THEME === "light" ? "light" : undefined;
 
@@ -66,7 +70,7 @@ const H =
           ? listSize.height
           : 360;
 
-if (ui.init(W, H) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
+if ((gpu ? ui.initGpu(W, H) : ui.init(W, H)) || ui.font(new URL("../vendor/fonts/Roboto-Regular.ttf", import.meta.url).pathname) < 0) {
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
   process.exit(1);
 }
