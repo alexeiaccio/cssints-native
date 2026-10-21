@@ -239,6 +239,40 @@ Each step ends in a check that fails when it breaks.
    `labelledby` and the backdrop are the gaps that fix will have to close.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
+   **Done: the evaluator** (`generator/page-to-c.ts`, `bun --conditions=development`). It imports `solid/plugin.ts`
+   (JSX and cssints compile as in the app), renders a page with `solid/src/renderer.ts` into an `El` tree, replays the
+   state's events, and walks the tree in tree order, one function per theme. A style is not printed again: the style
+   object is looked up by identity among the exports of the modules passed with `--styles`, and the C names are the
+   ones `generator/clay-header.ts` gave it in `styles.h` (`root`, `units`, `units_active`, `title_text`, `<name>_light`),
+   so `header()` prints declarations (one per export, with its states and themes) and page-to-c prints only the frames.
+   A style the page does not export (declared inside the .tsx) is printed by `header()` itself and named `style_<n>` in
+   tree order: one printer, two sets of names, no second C printer. The state is a build-time input: `--state use_g=true`
+   looks the key up in `examples/sensors/states.json`, which says how to reach it (a click on `Units`, i.e. the page's own
+   `onClick`, called where the frame calls it on release), so the generator drives the page's signals the way the host
+   does; a `pointer` action declares the pointer over an element, down or up, which is a build-time `:active`/`:hover` and
+   picks `units_active`/`units_hover`. States stay overlays: the state that holds picks one declaration, and when two
+   hold at once the generator checks that the last one's declaration equals their merge (pack.ts's order) and fails
+   loudly when it does not.
+   Emitted: `examples/sensors/page_generated.c` (the base), `page_generated_g.c` (use_g true) and
+   `page_generated_pressed.c` (the pointer over Units, held), 36 lines each, six frame functions, no style declarations
+   of their own.
+   Check: `examples/sensors/gen.c` runs the three generated files and `page.c`'s hand-written frame through Clay at
+   360x360 with one fixed measure and compares the command arrays field by field (type, id, z-index, box, colour, corner
+   radius, border width, and the text's bytes, colour and font fields): six comparisons (dark and light × base, clicked,
+   pressed), 10 commands each, identical. Step 4's frames already hold `page.c` equal to the Solid page pixel for pixel,
+   so generated C = hand C = the desktop's frame. `test.sh` regenerates the committed C and `cmp`s it, so the file in
+   git cannot rot; `InlineDemo.tsx` (styles in the .tsx, no styles module) is generated and compiled for the literal
+   path. Mutation: `units` to `units_active` in the base frame fails at `renderData.rectangle.backgroundColor`, one digit
+   of a value fails at the text's bytes. Cost: about 1.2 s a state (3.5 s for the three) plus one C compile.
+   Left: **events are dropped** (`Clay_OnHover`, keys, `onPress`): the C page is one static frame and cannot toggle
+   `use_g`; a host that wants the other frame builds it. No run-time signals for the same reason. Not emitted: Dialog and
+   Widgets' menu (floats; `Clay_ElementDeclaration.floating` would print, but no page proves it and the pointer capture
+   is the host's), List (the viewport's offset is `Clay_GetScrollOffset()`, which `ui_open` asks Clay for each frame, not
+   a declaration), Field (typing is SDL's text events) and Widgets itself (12 Tab stops and keys; a static frame is
+   possible but unproven). The style contract has no image config, so images cannot be emitted; `clip.childOffset` is
+   the host's too. `:focus` comes from a prop, not a signal, so only a page rendered with `focused` gets it. The fonts
+   enum (`font_Roboto = 0`) is the header's; the C page carries no font array, and text measure stays the host's
+   (gen.c fixes one to compare layout). Text without a style is the renderer's white 14, printed as `white_14_text`.
 6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:
    csssky-tui's screen tests on the new renderer. Then deprecate `cssints/tui` (in cssints).
 7. **Back to the board.** esp32's `ui.c` reads generated `styles.h` and C from step 5; then the browser (WASM) and the
