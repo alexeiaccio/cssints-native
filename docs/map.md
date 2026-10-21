@@ -21,7 +21,7 @@ it needs no runtime on the device.
 | ----------------- | --------------- | -------------- | ------------------------------ | -------------- | ----------------------------- |
 | Desktop (macOS)   | `cssints/clay`  | Clay           | Clay's SDL3 renderer (GPU)     | optional (Bun) | a page in a window            |
 | ESP32-S3          | `cssints/clay`  | Clay           | esp32's `render.c`, CPU bands  | none           | one element proven on board   |
-| Browser (WASM)    | `cssints/clay`  | Clay (C→WASM)  | canvas                         | the page       | exists in esp32 storybook     |
+| Browser (WASM)    | `cssints/clay`  | Clay (C→WASM)  | canvas 2D                      | none (the generated C) | a static frame and its `use_g` twin on a canvas |
 | ESP32-P4          | `cssints/clay`  | Clay           | CPU + PPA (2D DMA)             | none           | later, needs a board          |
 | Terminal          | `cssints/clay`  | Clay (cells)   | Clay's `termbox2` renderer     | optional (Bun) | after desktop; replaces `cssints/tui` |
 
@@ -62,6 +62,7 @@ in pixels, so a terminal page has its own styles under the same member names.
 | -------- | ------------------------------------------------------------------------- |
 | Desktop  | Solid 2 universal renderer building Clay's tree each frame (Bun FFI)      |
 | ESP32    | none at run time: JSX evaluated at build time to C, state in C            |
+| Browser  | none at run time yet: the same generated C as the ESP32, on a canvas      |
 | Terminal | the desktop's universal renderer over Clay, cells for pixels              |
 
 Measured for the ESP32: QuickJS 38 ms a UI turn (retired, esp32-mkn5); scriptc 0.3.6 has no Xtensa/RISC-V target and
@@ -321,6 +322,34 @@ Each step ends in a check that fails when it breaks.
    have to be re-cut to land on cell boundaries, and text smaller or larger than a cell is the same cell.
 7. **Back to the board.** esp32's `ui.c` reads generated `styles.h` and C from step 5; then the browser (WASM) and the
    ESP32-P4. Checked by hand in the live window (2026-10-19): Tab order and ring, Space on release, the switch, Select all and mixed, Details, click focus, `t`.
+
+8. **Done: the browser.** `browser/page.c` is Clay plus **step 5's generated C, unchanged** (`page_generated.c` and
+   `page_generated_g.c`), compiled by `zig cc -target wasm32-wasi` (a libc; there is no emscripten and no `wasm-ld` on
+   this machine, and Apple's clang has no wasm target) into 104,375 bytes: 10 commands, 19 slots each, read out of the
+   wasm's memory by `browser/render.js` — type, id, box, colour, corner radii, border widths, text bytes. The one import
+   is `env.measure`: Clay's measure callback calls Canvas2D, so the layout is the font the canvas draws with (Roboto
+   from `vendor/fonts`), not a table from another raster. The draw is Canvas2D: `roundRect` fills, borders as the
+   even-odd ring inside the box as ThorVG draws them, `fillText` on the alphabetic baseline one ascent below Clay's line
+   box, `clip()` for a scissor. `frame(0)`/`frame(1)` are the two generated frames; `w` or the button toggles them, which
+   is the only state on this target (the generated C has no events). No framework and no build step in the page: a static
+   `index.html` plus the wasm, 8,505 bytes of page.
+   Check: `browser/check.mjs`, Chromium through Playwright, in `test.sh`. (a) the command array against the desktop's own
+   for the same C (`browser/dump-commands.c`, Clay + SDL_ttf/Roboto, the frame of `expected-thorvg.png`): 10 commands,
+   same order, ids, colours, strings and font sizes; the worst box is 3.09 px out, because Canvas2D does not hint and
+   SDL_ttf sums integer advances, so a 20 px line is up to 3 px wider and a centred box moves by half of that. (b) the
+   raster against two stored frames, as per-region (command box) mean colours plus each text line's ink box, not per
+   pixel: against its own `browser/expected.png` every 8×8 block is within 3/255 (identical here); against ThorVG's frame
+   6.4 % (base) and 10.0 % (`use_g`) of pixels differ, every region mean within 13.9/255, every text ink box within 4 px,
+   and the frame's mean colour within 1.17/255 — i.e. the same colours and layout with glyphs and rounded corners
+   drawn by another rasteriser. The browser's own frame is the regression guard, ThorVG's the design. Cost, headless
+   Chromium on an M2: 0.08 ms a frame for the layout, the commands and one readback (100 frames), so the raster is the
+   cost and it is the compositor's.
+   Limits: no Solid in the page (a static generated frame, as step 5's); no events beyond the unit toggle, so it cannot
+   drive the other states; no ThorVG (Canvas2D instead); no touch, no scrolling, images or floats (the page has none, and
+   an image command is counted and not drawn); DPR is one scale factor and nothing else; a browser refuses to fetch the
+   wasm from `file://`, so the page is served (`node browser/check.mjs --serve`). What would make it real: the host's JS
+   in the browser (Solid over Clay in the page, as on the desktop, with the same input path) and the generated C kept as
+   the no-JS path, which is what the board already is.
 
 
 ## Not doing

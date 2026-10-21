@@ -28,6 +28,7 @@ focus/                     the focus manager: Tab order, roving focus in groups,
 terminal/                  the same page in cells: Clay -> terminal/cells.c -> ANSI truecolour; demo, --dump, --keys
 vendor/                    clay.h and Clay's SDL3 renderer (e6cc369), a font
 headless/                  button, switch, checkbox, disclosure as signals + neutral parts, checked against Quint specs
+browser/                   the same page as WebAssembly on a canvas: page.c (Clay + generated C), render.js, check.mjs
 docs/map.md                targets, layers, order of work
 ```
 
@@ -45,7 +46,32 @@ bun solid/main.ts widgets                                     # Solid: headless 
 sh terminal/build.sh && ./terminal/demo                       # the Sensors page in characters: Tab, Up/Down, Space, t; q quits
 ./terminal/demo --dump out.txt                                # one frame headless as plain text ('.' is a fill)
 ./terminal/demo --keys Tab,ArrowDown --dump out.txt           # a frame after each key, as solid/main.ts --keys
+sh browser/build.sh && node browser/check.mjs                 # the browser target, headless: wasm + Canvas2D, compared
+node browser/check.mjs --serve                                # ...or serve the page and open the URL it prints
 ```
+
+## Browser (WASM)
+
+The same generated C as step 5, compiled with `zig cc -target wasm32-wasi` (a libc; there is no emscripten here) and
+drawn by `browser/render.js` on a `<canvas>`: rectangles, inside borders, `roundRect` corners, `fillText`, `clip()` for
+a scissor. No framework and no build step at run time. Text is measured by Canvas2D through one wasm import, so Clay
+lays out with the same font the canvas draws with (Roboto from `vendor/fonts`), and `w` or the button switches the
+`use_g` frame.
+
+```sh
+sh browser/build.sh            # -> ${TMPDIR:-/tmp}/cssints-native-web/page.wasm, next to the generated styles.h
+node browser/check.mjs         # Chromium through Playwright: the command array and the raster
+node browser/check.mjs --serve # http://127.0.0.1:<port>/browser/index.html — a browser will not fetch a .wasm from file://
+```
+
+| What         | Size       |
+| ------------ | ---------- |
+| `page.wasm`  | 104,375 B  |
+| the page     | 8,505 B (index.html + render.js) |
+
+`browser/check.mjs` builds nothing: `browser/build.sh` does, into `$TMPDIR`, because the wasm is a build product.
+`browser/dump-commands.c` is how the desktop's command table in the check was produced (Clay + SDL_ttf/Roboto, the
+frame in `examples/sensors/expected-thorvg.png`); it is not part of the page.
 
 `cssints` is linked from the `cssints` package of css-in-ts-compiler (master, `cssints/clay` merged), until it is
 released: `cd ~/github/css-in-ts-compiler/packages/cssints && bun link`, then `bun install` here. The engine's source is

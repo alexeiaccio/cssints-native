@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- The browser target: Clay + the generated C page, compiled to WebAssembly (browser/build.sh), drawn on a canvas.
+     Serve the repo root over HTTP; browsers refuse to fetch a .wasm from file://. See browser/render.js for the draw. -->
+<meta charset="utf-8">
+<title>cssints-native, Sensors, wasm</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  canvas { width: 360px; height: 360px; display: block; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; color: #ebeef0; background: #242834; border: 1px solid #969baa; border-radius: 8px;
+           padding: 6px 12px; cursor: pointer; }
+  kbd { border: 1px solid #3a3f4d; border-radius: 4px; padding: 0 4px; }
+</style>
+<canvas id="frame" width="360" height="360" aria-label="Sensors page drawn from Clay's render commands"></canvas>
+<div class="bar">
+  <button id="toggle" type="button">switch units</button>
+  <span>or press <kbd>w</kbd> · <span id="ms"></span></span>
+</div>
+<script type="module" src="render.js"></script>

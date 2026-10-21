@@ -123,3 +123,17 @@ if command -v script >/dev/null 2>&1; then
 else
   echo "terminal: no script(1), termbox2's pty checks skipped"
 fi
+
+# Step 8: the browser target. Clay + the generated C page as WebAssembly (zig cc -target wasm32-wasi: a libc, no
+# emscripten), drawn on a canvas by browser/render.js. The check builds it, opens browser/index.html in Chromium
+# through Playwright, compares the command array the wasm exposes with the desktop's own (the same generated C,
+# measured with SDL_ttf) and the raster with two stored frames: the browser's own and ThorVG's, as per-region means
+# and text ink boxes, because another rasteriser's anti-aliasing and font metrics are not pixel-identical. Skips when
+# zig, node or Playwright's chromium is not installed.
+if command -v zig >/dev/null 2>&1 && command -v node >/dev/null 2>&1 &&
+   node -e 'process.exit(require("node:fs").existsSync(require("playwright").chromium.executablePath()) ? 0 : 1)' 2>/dev/null; then
+  sh browser/build.sh >/dev/null
+  node browser/check.mjs
+else
+  echo "browser: no zig, node or Playwright chromium, skipped (sh browser/build.sh && node browser/check.mjs)"
+fi
