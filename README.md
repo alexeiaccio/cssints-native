@@ -24,6 +24,7 @@ examples/sensors/          the Sensors page: styles.ts, page.c, its stored frame
 desktop/                   host.c (SDL3 window or a headless frame), clay_renderer_thorvg.c, build.sh
 solid/                     Solid 2 on the desktop: a universal renderer over Clay through bun:ffi; the Sensors and Widgets pages (solid/README.md)
 focus/                     the focus manager: Tab order, roving focus in groups, restore (no DOM), focus/README.md
+terminal/                  the same page in cells: Clay -> terminal/cells.c -> ANSI truecolour; demo, --dump, --keys
 vendor/                    clay.h and Clay's SDL3 renderer (e6cc369), a font
 headless/                  button, switch, checkbox, disclosure as signals + neutral parts, checked against Quint specs
 docs/map.md                targets, layers, order of work
@@ -38,6 +39,9 @@ sh desktop/build.sh examples/sensors && ./build/sensors/app   # the window, Thor
 ./build/sensors/app --raster sdl                              # Clay's SDL3 renderer instead (the window uses the GPU)
 bun solid/main.ts widgets                                     # Solid: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar; Tab, arrows, Space work
 ./build/sensors/app --press 180 250 --png out.png             # headless: a press held at 180,250, the frame written while pressed
+sh terminal/build.sh && ./terminal/demo                       # the Sensors page in characters: Tab, Up/Down, Space, t; q quits
+./terminal/demo --dump out.txt                                # one frame headless as plain text ('.' is a fill)
+./terminal/demo --keys Tab,ArrowDown --dump out.txt           # a frame after each key, as solid/main.ts --keys
 ```
 
 `cssints` is linked from the `cssints` package of css-in-ts-compiler (master, `cssints/clay` merged), until it is

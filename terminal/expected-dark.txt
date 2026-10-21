@@ -1,0 +1,27 @@
+
+
+                                    Sensors
+                                   accel m/s²
+                              +1.16  -0.72  +10.04
+                                    gyro °/s
+                                +2.2  +4.8  +0.0
+                                 |a| 10.14 m/s²
+                           ┌───────────────────────┐
+                           │......switch to g......│
+                           └───────────────────────┘
+
+                .> accel........................................
+                   gyro
+                   magnetometer
+                   temperature
+
+               Tab focus  Up/Down select  Space activate  t theme
+
+
+# colours: index rgb glyphs fills
+1 16,18,24 0 1477
+2 230,60,60 7 0
+3 150,155,170 68 0
+4 235,235,240 87 0
+5 240,140,50 66 0
+6 36,40,52 0 123

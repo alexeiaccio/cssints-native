@@ -52,3 +52,26 @@ node focus/test/focus.test.ts
 
 # Headless widgets (button, switch, checkbox, disclosure) on neutral parts: ported scenarios and a walk against the Quint models
 (cd headless && bun install --frozen-lockfile >/dev/null && bun run typecheck && bun run test)
+
+# Step 6: the terminal target. Clay's commands into character cells (terminal/cells.c, render.c, measure.c), the
+# Sensors page plus a list in C. The cell layer's own checks, then three stored frames: the dark page, the light
+# theme, and the page after Tab (focus the list) and ArrowDown (select the second row). A cell is 8x16, so the page
+# is 80x20 cells. In a dump, '.' is a cell whose background is not the page's (the pill's fill, the selected row).
+sh terminal/build.sh >/dev/null
+cc -std=c99 -Wall -Wno-unused-variable -Wno-missing-field-initializers -I terminal -I vendor/clay \
+  terminal/test_cells.c terminal/cells.c terminal/render.c -lm -o "$OUT/test_cells"
+"$OUT/test_cells"
+./terminal/demo --cols 80 --rows 20 --dump "$OUT/term-dark.txt"
+cmp "$OUT/term-dark.txt" terminal/expected-dark.txt || { echo "FAIL: terminal/expected-dark.txt is stale"; exit 1; }
+./terminal/demo --cols 80 --rows 20 --theme light --dump "$OUT/term-light.txt"
+cmp "$OUT/term-light.txt" terminal/expected-light.txt || { echo "FAIL: terminal/expected-light.txt is stale"; exit 1; }
+./terminal/demo --cols 80 --rows 20 --keys Tab,ArrowDown --dump "$OUT/term-focus.txt"
+cmp "$OUT/term-focus.txt" terminal/expected-focus.txt || { echo "FAIL: terminal/expected-focus.txt is stale"; exit 1; }
+# the ANSI path, which the dump cannot show: truecolour SGR for a known cell, and runs merged (the surface fill is
+# one escape a row that carries it -- 4 rows, 123 cells -- not one an empty cell)
+ESC=$(printf '\033')
+./terminal/demo --cols 80 --rows 20 --ansi "$OUT/term.ansi"
+grep -qF "${ESC}[38;2;230;60;60m" "$OUT/term.ansi" || { echo "FAIL: the title has no red (38;2;230;60;60)"; exit 1; }
+grep -qF "${ESC}[38;2;235;235;240m" "$OUT/term.ansi" || { echo "FAIL: the pill's label has no ink (38;2;235;235;240)"; exit 1; }
+runs=$(grep -oF "${ESC}[48;2;36;40;52m" "$OUT/term.ansi" | wc -l | tr -d ' ')
+[ "$runs" = 4 ] || { echo "FAIL: the surface background has $runs SGR runs, want 4 (merged, not one a cell)"; exit 1; }

@@ -273,8 +273,24 @@ Each step ends in a check that fails when it breaks.
    the host's too. `:focus` comes from a prop, not a signal, so only a page rendered with `focused` gets it. The fonts
    enum (`font_Roboto = 0`) is the header's; the C page carries no font array, and text measure stays the host's
    (gen.c fixes one to compare layout). Text without a style is the renderer's white 14, printed as `white_14_text`.
-6. **Terminal.** Clay in cells, `termbox2` renderer, the desktop's focus and input; csssky-tui ported. Check:
-   csssky-tui's screen tests on the new renderer. Then deprecate `cssints/tui` (in cssints).
+6. **Done: the terminal renderer.** `terminal/`: Clay's commands into a grid of character cells (`cells.c`: a
+   code point a cell, 8x16, a palette index each; ANSI truecolour with SGR runs merged, and a plain-text dump for
+   tests), `render.c` (a box's cells: fill as their background, border as `─│┌┐└┘` on the rect's perimeter, text at
+   `x/CELL_W` one row clipped, a scissor stack), `measure.c` (a code point a cell, a line a cell: a monospace grid)
+   and `main.c` (no window: raw termios and a full repaint with `\x1b[H` in a terminal, `--dump`, `--ansi` and
+   `--keys` headless). The page is the Sensors page plus a list in C (`terminal/page.c`), the generated `styles.h`
+   from `examples/sensors/styles.ts` with only the root's padding/gap and the pill's height re-cut for cells; Tab,
+   Up/Down, Space/Enter and `t` as on the desktop. Check: `terminal/test_cells.c` (clipping, the box characters,
+   UTF-8, SGR merging, the scissor stack) and three stored dumps (dark, light, after `Tab,ArrowDown`) plus ANSI
+   asserts (the title's and the pill label's truecolour; the surface fill is one escape a row, not one a cell) in
+   `test.sh`; dropping the text colour fails the ANSI assert. Left: **termbox2** (raw termios is this step's
+   backend; the cells/commands layer is what a backend swaps under), the mouse, **csssky-tui ported** (its screen
+   tests are the step's check and are not written yet), wide glyphs and emoji (a code point is one cell), images
+   (counted and reported, not drawn), floating overlays (untried, the page has none), sub-cell borders and radii
+   (a 1px and a 4px border are both one cell, a corner radius is a square corner), scrollback, the `focus/` manager
+   (focus is two ints in this page, not the manager), and Solid on the terminal (the page is C, as step 5's). The
+   cell size is the cost: 8x16 makes a 38px pill 2.4 rows and a 200px pill 25 columns, so a page's pixel lengths
+   have to be re-cut to land on cell boundaries, and text smaller or larger than a cell is the same cell.
 7. **Back to the board.** esp32's `ui.c` reads generated `styles.h` and C from step 5; then the browser (WASM) and the
    ESP32-P4. Checked by hand in the live window (2026-10-19): Tab order and ring, Space on release, the switch, Select all and mixed, Details, click focus, `t`.
 
