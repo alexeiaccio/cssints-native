@@ -4,6 +4,7 @@ import { dlopen, FFIType as T, ptr } from "bun:ffi";
 
 const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.meta.url).pathname, {
   ui_init: { args: [T.i32, T.i32], returns: T.i32 },
+  ui_init_gpu: { args: [T.i32, T.i32], returns: T.i32 },
   ui_font: { args: [T.cstring], returns: T.i32 },
   ui_errors: { args: [], returns: T.i32 },
   ui_begin: { args: [T.f32, T.f32, T.i32, T.f32], returns: T.void },
@@ -34,6 +35,8 @@ const cstr = (x: string) => Buffer.from(`${x}\0`);
 
 export const ui = {
   init: (w: number, h: number) => s.ui_init(w, h),
+  /** The same renderer on ThorVG's WebGPU canvas: only a libui.dylib built with desktop/build-thorvg-gpu.sh solid. */
+  initGpu: (w: number, h: number) => s.ui_init_gpu(w, h),
   font: (path: string) => s.ui_font(cstr(path)),
   errors: () => s.ui_errors(),
   begin: s.ui_begin,

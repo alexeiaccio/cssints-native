@@ -12,6 +12,11 @@
 #include <string.h>
 
 #include "../../desktop/clay_renderer_thorvg.c"
+#ifdef CLAY_THORVG_WG
+#include "../../desktop/thorvg_wg.c" // --raster thorvg-gpu: the WebGPU canvas and its readback
+#else
+typedef struct { int unused; } Clay_WgTarget; // only the GPU build (desktop/build-thorvg-gpu.sh solid)
+#endif
 
 #define MAX_FONTS 8
 #define ARENA_SIZE (1 << 16)
@@ -28,6 +33,8 @@ static int arena_used;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Texture *texture;
+static Clay_WgTarget wg; // the WebGPU device and texture, when the canvas is ThorVG's WebGPU one
+static int gpu;          // 0: the software canvas; 1: the WebGPU canvas, the frame read back into pixels
 
 // the wheel the polls took, in Clay's units (positive scrolls the content down, the wheel up), for the next ui_begin
 static float wheel_x, wheel_y;
@@ -48,22 +55,49 @@ static int retarget(float scale)
     free(pixels);
     pixels = malloc((size_t)tw * th * 4);
     tvg.scale = scale;
+    if (gpu) {
+#ifdef CLAY_THORVG_WG
+        // ponytail: a new device and texture on every retarget (init, then the window's scale); the old one is left to
+        // the process, which exits with it
+        if (!Clay_Wg_Create(&wg, tw, th)) return 1;
+        return tvg_wgcanvas_set_target(tvg.canvas, wg.device, wg.instance, wg.texture, tw, th, TVG_COLORSPACE_ABGR8888, 1);
+#else
+        return 1;
+#endif
+    }
     return tvg_swcanvas_set_target(tvg.canvas, pixels, tw, tw, th, TVG_COLORSPACE_ABGR8888);
 }
 
-/** Starts Clay and a ThorVG canvas of w x h; 0 on success. */
-int ui_init(int w, int h)
+/** Starts Clay and a ThorVG canvas of w x h; 0 on success. `want_gpu` picks the WebGPU canvas over the software one. */
+static int init(int w, int h, int want_gpu)
 {
     width = w, height = h;
     uint32_t size = Clay_MinMemorySize();
     Clay_Initialize(Clay_CreateArenaWithCapacityAndMemory(size, malloc(size)), (Clay_Dimensions){w, h},
                     (Clay_ErrorHandler){on_error});
     tvg.fonts = font_names;
-    if (tvg_engine_init(0) || !(tvg.canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_DEFAULT)) || retarget(1)) return 1;
+    if (tvg_engine_init(0)) return 1;
+    gpu = want_gpu;
+    if (gpu) {
+#ifdef CLAY_THORVG_WG
+        if (!(tvg.canvas = tvg_wgcanvas_create(TVG_ENGINE_OPTION_DEFAULT))) return 1;
+#else
+        fprintf(stderr, "thorvg-gpu: this libui has no WebGPU engine (desktop/build-thorvg-gpu.sh solid)\n");
+        return 1;
+#endif
+    } else if (!(tvg.canvas = tvg_swcanvas_create(TVG_ENGINE_OPTION_DEFAULT))) {
+        return 1;
+    }
+    if (retarget(1)) return 1;
     tvg.measurer = tvg_text_new();
     Clay_SetMeasureTextFunction(Clay_ThorVG_MeasureText, &tvg);
     return 0;
 }
+
+int ui_init(int w, int h) { return init(w, h, 0); }
+
+/** The same page on ThorVG's WebGPU canvas (wgpu-native on Metal), its frames read back into the same buffer. */
+int ui_init_gpu(int w, int h) { return init(w, h, 1); }
 
 /** Loads a font file; its id is the order of the calls. ThorVG names a font by its file name without extension. */
 int ui_font(const char *path)
@@ -179,8 +213,11 @@ int ui_end(float dt)
 void ui_draw(void)
 {
     const int n = (int)(width * tvg.scale) * (int)(height * tvg.scale);
-    for (int i = 0; i < n; i++) pixels[i] = 0xff000000;
+    if (!gpu) for (int i = 0; i < n; i++) pixels[i] = 0xff000000; // the WebGPU texture carries the ground
     Clay_ThorVG_RenderClayCommands(&tvg, &cmds);
+#ifdef CLAY_THORVG_WG
+    if (gpu) Clay_Wg_Readback(&wg, pixels);
+#endif
 }
 
 /** The pixel at x, y (in Clay units) of the last frame: R, G, B, A bytes, R lowest. */
@@ -237,6 +274,8 @@ float ui_window_open(const char *title)
     if (retarget(scale)) return 0;
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING,
                                 (int)(width * scale), (int)(height * scale));
+    // ThorVG's WebGPU canvas renders premultiplied; the software canvas does not
+    if (texture && gpu) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
     return texture ? scale : 0;
 }
 
