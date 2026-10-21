@@ -110,6 +110,22 @@ Each step ends in a check that fails when it breaks.
    means this host would have to own a WebGPU swapchain instead of SDL's renderer (the SDL Texture upload goes away,
    but SDL3's GPU API cannot host a WebGPU texture; either the window becomes wgpu-native's own, or the host stays on
    SDL and the readback stays). For the ESP32-S3 the CPU engine remains the target either way.
+   **Tried 2026-10-21: that surface path, and it draws the page.** `desktop/wg_window.c` (opt-in:
+   `sh desktop/build-wg-window.sh` -> `build/sensors/wg-window`) owns the window: SDL for the events and its
+   `CAMetalLayer`, wgpu-native wraps that layer in a surface, ThorVG's WebGPU canvas targets it (type 0) and the loop
+   presents it — no copy to a buffer, no map, no SDL texture upload. `--capture` draws one frame into a swapchain
+   texture this file acquires itself (type 1) and reads it back once, which is how the frame is checked without a
+   screen: **0 of 518400 channels differ from `expected-thorvg-gpu.png`**, so the window shows the CPU frame exactly.
+   (The trap on the way there: a host that does not create `tvg.measurer` measures every run at width 0, Clay then
+   stacks all the page's text in the middle of the window, and the frame differs in 58872 channels — that paint is
+   `Clay_ThorVG_MeasureText`'s only state, and the surface path has nothing else to set it.)
+   Numbers, M2, one thread, `--bench 200`: at 360x360, CPU raster 0.31 ms, WebGPU readback 0.68 ms, the surface path
+   **15.0-16.3 ms a frame (62-67 fps) — the display, not the GPU**: layout is 0.023 ms, present 0.010 ms, and the rest
+   sits in ThorVG's sync, where the layer's next drawable waits for the compositor (a 16x16 surface still takes 8.2 ms,
+   and `--novsync`'s Immediate + non-Fifo layer mode does not lift it). At 1080x1080: 0.52-0.58 ms CPU, 2.1-2.3 ms
+   readback, 15.5 ms surface (64 fps). So the surface path removes the readback and the upload but does not make a frame
+   faster here — it makes the frame run at the screen's pace. Kept as an opt-in experiment; the defaults (`--raster
+   thorvg`, `--raster sdl`, `--raster thorvg-gpu`) are untouched.
 
 3. **Done: states, tokens, fonts in `cssints/clay`.** `css.hover`/`focus`/`active` print as whole declarations of
    their own (`units_active`); `createTokens` and `createGlobalTheme(tokens, "light", ...)` print every style again
