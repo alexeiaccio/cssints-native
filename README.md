@@ -98,6 +98,6 @@ What stays unported: `apps/csssky-tui` has no profile screen of its own (that on
 layer and fixtures); no fetching (the frame is the recorded fixture), no images (a media line), no quote box, no
 wrapping (a body is one clipped row), the app's system theme, and the app shell (a bar, a list, a footer is all).
 
-`cssints` is linked from the `cssints` package of css-in-ts-compiler (master, `cssints/clay` merged), until it is
-released: `cd ~/github/css-in-ts-compiler/packages/cssints && bun link`, then `bun install` here. The engine's source is
-what runs (`--conditions=development`); `bun run build` there produces the `dist` a release would carry.
+`cssints` comes from npm (`^0.4.0`, the release that carries `cssints/clay`): no local link, so the tree builds on a
+clean machine. The tests still run with `--conditions=development`, which resolves to the package's shipped source;
+`dist` is what a web build gets. A change to the engine means a new release, not an edit in a sibling checkout.
