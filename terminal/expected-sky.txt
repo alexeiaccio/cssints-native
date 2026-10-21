@@ -1,0 +1,27 @@
+ sky   1 Discover    2 Science    3 News
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Michael Warburton @michaelwarburton.bsky.social · 1h                         │
+│ René Magritte at work in his living room in 1964                             │
+│ [image]                                                                      │
+│ ↩ 8   ⟲ 32   ♥ 310                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Titania @titaniasrealm.bsky.social · 40m                                     │
+│ The Witch's Cat (1955) by Hilda Boswell                                      │
+│ [image: Painting of a witch riding a broom above rooftops. A cat is watching │
+│ ↩ 3   ⟲ 27   ♥ 128                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ alexjungle.bsky.social @alexjungle.bsky.social · 1h                          │
+│ A man in China dislocates his shoulder playing basketball, and a foreigner sa│
+│ [video]                                                                      │
+│ ↩ 7   ⟲ 61   ♥ 357                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+ j/k move · enter open · tab feed · esc back · t theme · q quit
+# colours: index rgb glyphs fills
+3 23,27,32 0 1588
+4 59,156,240 171 12
+5 255,255,255 12 0
+6 139,152,165 323 0
+7 230,233,236 210 0
+8 50,58,68 336 0

@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "cells.h"
+#include "page.h"
 #include "styles.h"
 
 static const float ACCEL[3] = {1.159f, -0.718f, 10.044f}, GYRO[3] = {2.23f, 4.82f, 0.02f};
@@ -80,9 +81,12 @@ static Clay_ElementDeclaration row_style(bool selected)
     return d;
 }
 
-void page_key(const char *name)
+// The keys page.c answers: the names the desktop's focus manager uses, applied before the frame that shows them.
+void sensors_input(const TermEvent *ev)
 {
+    const char *name = ev->key;
     theme_init();
+    if (!name) return;
     if (!strcmp(name, "t")) {
         light = !light;
     } else if (!strcmp(name, "Tab") || !strcmp(name, "Shift+Tab")) {
@@ -103,9 +107,8 @@ void page_set_theme(int l)
     light = l;
 }
 
-void page_frame(bool down)
+void sensors_declare(void)
 {
-    (void)down; // no pointer in a terminal
     theme_init();
     const float scale = use_g ? 1.0f / 9.80665f : 1.0f;
     const char *unit = use_g ? "g" : "m/s\u00b2";
@@ -138,3 +141,5 @@ void page_frame(bool down)
         CLAY_TEXT(CLAY_STRING("Tab focus  Up/Down select  Space activate  t theme"), T(caption_text));
     }
 }
+
+const Page SENSORS_PAGE = {sensors_input, sensors_declare, NULL};
