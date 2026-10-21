@@ -203,6 +203,10 @@ typedef struct {
     Clay_ThorVGRendererData *tvg;
     double ms_layout, ms_draw, ms_present;
     int frames;
+    // the pointer, as SDL reports it: window coordinates are Clay's units here (no high-DPI flag on the window), and a
+    // press is `down` for the frame, so `.active` and a click behave as on the SDL host
+    float px, py;
+    bool down;
 } Loop;
 
 /** One frame: Clay's layout, ThorVG's walk (which builds the scene, draws and syncs into the target — the submit),
@@ -210,9 +214,9 @@ typedef struct {
 static bool frame(Loop *l, float dt, Wg_Frame *copied, Uint32 *pixels)
 {
     Uint64 t0 = SDL_GetTicksNS();
-    Clay_SetPointerState((Clay_Vector2){-1, -1}, false); // no mouse in this experiment: nothing is hovered
+    Clay_SetPointerState((Clay_Vector2){l->px, l->py}, l->down);
     Clay_BeginLayout();
-    app_frame(false);
+    app_frame(l->down);
     Clay_RenderCommandArray cmds = Clay_EndLayout(dt);
     Uint64 t1 = SDL_GetTicksNS();
     const bool synced = Clay_ThorVG_RenderClayCommands(l->tvg, &cmds);
@@ -425,6 +429,10 @@ int main(int argc, char **argv)
                 app_key((int)e.key.key);
                 if (e.key.key == 'q') running = false;
             }
+            if (e.type == SDL_EVENT_MOUSE_MOTION) loop.px = e.motion.x, loop.py = e.motion.y;
+            if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) loop.px = e.button.x, loop.py = e.button.y, loop.down = true;
+            if (e.type == SDL_EVENT_MOUSE_BUTTON_UP) loop.px = e.button.x, loop.py = e.button.y, loop.down = false;
+            if (e.type == SDL_EVENT_WINDOW_MOUSE_LEAVE) loop.px = -1, loop.py = -1, loop.down = false;
         }
         const Uint64 now = SDL_GetTicks();
         const float dt = (now - last) / 1000.0f;
