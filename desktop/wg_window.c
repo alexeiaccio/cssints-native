@@ -279,7 +279,9 @@ int main(int argc, char **argv)
     SDL_Window *window = SDL_CreateWindow("cssints-native: WebGPU surface", w, h, SDL_WINDOW_METAL);
     // A CAMetalLayer that nothing can see hands out no drawable (Metal's nextDrawable is nil, wgpu's Occluded), and a
     // window behind another one counts as unseen: raise it, and pump until SDL has mapped it. Only for this experiment.
+    // Not resizable: the surface is configured once, for `--size`, and a resize would leave ThorVG's target behind it.
     SDL_SetWindowAlwaysOnTop(window, true);
+    SDL_SetWindowResizable(window, false);
     SDL_RaiseWindow(window);
     for (int i = 0; window && i < 30; i++) {
         SDL_PumpEvents();
