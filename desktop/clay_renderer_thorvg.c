@@ -10,6 +10,12 @@ typedef struct {
     const char **fonts; // ThorVG font names by fontId (tvg_font_load names a font by its file name, no extension)
     Tvg_Paint measurer; // a text paint for Clay_ThorVG_MeasureText
     bool clear;         // draw into a target whose last frame is gone (a swapchain): clear it, not just overdraw it
+    // an image's picture, by the imageData it was loaded from: a cssints/clay image carries the path in that pointer
+    struct {
+        const void *imageData;
+        Tvg_Paint picture;
+    } images[32];
+    int imageCount;
 } Clay_ThorVGRendererData;
 
 // Clay sizes are CSS pixels; ThorVG sizes text in points at 96 dpi
@@ -59,6 +65,27 @@ static void Clay_ThorVG_RoundRect(Tvg_Paint s, float x, float y, float w, float 
     tvg_shape_line_to(s, x, y + b[0]);
     tvg_shape_cubic_to(s, x, y + b[0] * k, x + a[0] * k, y, x + a[0], y);
     tvg_shape_close(s);
+}
+
+/** The picture of an image path, loaded on first use and kept: the path is the imageData of the command, and the
+ *  style's own string is the key, so two elements of one style share one picture. NULL if the file does not load. */
+static Tvg_Paint Clay_ThorVG_Picture(Clay_ThorVGRendererData *d, const void *imageData)
+{
+    const char *path = imageData;
+    if (!path) return NULL;
+    for (int i = 0; i < d->imageCount; i++)
+        if (d->images[i].imageData == imageData) return d->images[i].picture;
+    // ponytail: 32 images, no eviction; a scene past that needs a list that grows
+    if (d->imageCount == (int)(sizeof d->images / sizeof *d->images)) return NULL;
+    Tvg_Paint p = tvg_picture_new();
+    if (tvg_picture_load(p, path) != TVG_RESULT_SUCCESS) {
+        fprintf(stderr, "image not loaded: %s\n", path);
+        tvg_paint_rel(p);
+        p = NULL;
+    }
+    d->images[d->imageCount].imageData = imageData;
+    d->images[d->imageCount++].picture = p;
+    return p;
 }
 
 /** Rebuilds the canvas from the commands and draws it into the target buffer, over what the buffer holds (or, with
@@ -125,9 +152,11 @@ static bool Clay_ThorVG_RenderClayCommands(Clay_ThorVGRendererData *d, Clay_Rend
         } break;
         case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END: into = root; break;
         case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
-            // imageData is a loaded ThorVG picture (tvg_picture_new + tvg_picture_load); drawn as a copy, so one
-            // picture can be on screen many times
-            Tvg_Paint p = tvg_paint_duplicate((Tvg_Paint)rcmd->renderData.image.imageData);
+            // imageData is the path of the picture (Clay's image config is that pointer alone), loaded once per path;
+            // the command's box is where it goes, and ThorVG scales the picture into it
+            Tvg_Paint picture = Clay_ThorVG_Picture(d, rcmd->renderData.image.imageData);
+            if (!picture) break;
+            Tvg_Paint p = tvg_paint_duplicate(picture);
             tvg_picture_set_size(p, w, h);
             tvg_paint_translate(p, x, y);
             tvg_scene_add(into, p);

@@ -57,3 +57,6 @@ export const units = css.cn(
   css.active(css.bg(t.color.active)),
 );
 export const unitsLabel = css.cn(font.Roboto, css.color(t.color.ink), css.fontSize(14));
+// The IMAGE=1 variant's picture: the path is imageData, which the desktop ThorVG renderer loads; the 32x32 glyph is
+// its own size here, and `contain` keeps its proportions in a box another style would grow
+export const glyph = css.image("examples/sensors/glyph.png", { width: 32, height: 32, fit: "contain" });

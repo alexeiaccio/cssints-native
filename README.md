@@ -45,6 +45,7 @@ sh desktop/build-thorvg-gpu.sh examples/sensors               # ThorVG built fro
 sh desktop/build-wg-window.sh && ./build/sensors/wg-window --capture out.png   # ThorVG into the window's own WebGPU surface, no readback; --capture checks the frame
 bun solid/main.ts widgets                                     # Solid: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar; Tab, arrows, Space work
 ./build/sensors/app --press 180 250 --png out.png             # headless: a press held at 180,250, the frame written while pressed
+IMAGE=1 ./build/sensors/app --raster thorvg --png out.png    # the IMAGE=1 variant: the page's 32x32 image, loaded by ThorVG from its path
 sh terminal/build.sh && ./terminal/demo                       # the Sensors page in characters: Tab, Up/Down, Space, t; q quits
 ./terminal/demo --page sky                                    # apps/csssky-tui in characters: the feed; enter opens the thread
 ./terminal/demo --page profile                                # apps/csssky's profile: its tabs, its posts; enter opens a thread

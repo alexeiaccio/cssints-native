@@ -10,11 +10,15 @@ static const float ACCEL[3] = {1.159f, -0.718f, 10.044f}, GYRO[3] = {2.23f, 4.82
 static bool use_g;
 // THEME=light picks the light theme, and the t key toggles it: styles.h has every style again as <name>_light
 static int light = -1;
+// IMAGE=1 adds the page's image (the 32x32 glyph of the picture above the caption): a frame of its own, so the stored
+// frames of the plain page stay as they are. ThorVG loads its path; Clay's SDL3 renderer knows only SDL_Textures.
+static int image_on = -1;
 #define T(name) (light ? name##_light : name)
 
 static void theme_init(void)
 {
     if (light < 0) light = getenv("THEME") && !strcmp(getenv("THEME"), "light");
+    if (image_on < 0) image_on = getenv("IMAGE") && strcmp(getenv("IMAGE"), "0");
 }
 
 static Clay_String str(const char *s) { return (Clay_String){.length = (int32_t)strlen(s), .chars = s}; }
@@ -50,6 +54,8 @@ void app_frame(bool down)
         CLAY(CLAY_ID("Title"), {}) {
             CLAY_TEXT(CLAY_STRING("Sensors"), T(title_text));
         }
+        // the IMAGE=1 variant: the page's own image, a leaf with its box from the style
+        if (image_on) CLAY(CLAY_ID("Glyph"), T(glyph)) {}
         CLAY_TEXT(str(label), T(caption_text));
         CLAY_TEXT(str(accel), T(value_text));
         CLAY_TEXT(CLAY_STRING("gyro \u00b0/s"), T(caption_text));
