@@ -12,6 +12,7 @@ import {
   type TextField,
 } from "../../headless/src/index.ts";
 import { ui } from "../src/ffi.ts";
+import { a11y } from "../a11y.ts";
 import type { Bind, Input } from "../src/input.ts";
 
 const t = css.createTokens({
@@ -173,19 +174,31 @@ export function Field(props: { input: Input }) {
       <text style={s.title}>Text field</text>
       <text style={s.note}>Type in the field.</text>
       <text style={s.note}>Shift with the arrows selects.</text>
-      <box {...pressBind} style={s.button}>
+      <box {...pressBind} {...a11y(press.part)} style={s.button}>
         <text style={s.label}>{`Presses: ${count()}`}</text>
       </box>
-      <text style={s.label}>Name</text>
-      <box {...bindOf(input.bind(name.part))} onClick={pressAt(name, "name-line")} style={s.field}>
+      <text id="name-label" style={s.label}>Name</text>
+      <box
+        {...bindOf(input.bind(name.part))}
+        {...a11y(name.part)}
+        labelledBy="name-label"
+        onClick={pressAt(name, "name-line")}
+        style={s.field}
+      >
         <Content field={name} id="name-line" />
       </box>
       <text style={s.note}>{readout()}</text>
-      <text style={s.label}>Read-only</text>
-      <box {...input.bind(mail.part)} onClick={pressAt(mail, "mail-line")} style={s.field}>
+      <text id="mail-label" style={s.label}>Read-only</text>
+      <box
+        {...input.bind(mail.part)}
+        {...a11y(mail.part)}
+        labelledBy="mail-label"
+        onClick={pressAt(mail, "mail-line")}
+        style={s.field}
+      >
         <Content field={mail} id="mail-line" />
       </box>
-      <box {...submitBind} style={s.button}>
+      <box {...submitBind} {...a11y(submit.part)} style={s.button}>
         <text style={s.label}>Submit</text>
       </box>
       <text style={s.note}>{submitted() === null ? "Nothing submitted yet" : `Submitted: ${submitted()}`}</text>

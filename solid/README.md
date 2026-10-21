@@ -48,7 +48,7 @@ compile-styles.ts  Node child of the plugin: Vite + cssints, prints a style modu
 compile.tsx.ts     Node child of a `.tsx` whose styles live in it: Solid's JSX first, then cssints on the JS
 stub-bun.mjs       `bun:ffi` for that child: cssints runs the page to read its tokens, and the dylib has no meaning in Node
 src/input.ts       SDL keys to names, and where a key goes: an open modal, the focus manager, the focused part, the page
-a11y.ts            the accessibility tree of a rendered page: snapshot(root) -> { role, name, states, bounds, children }
+a11y.ts            the accessibility tree of a rendered page: snapshot(root) -> { role, name, states, bounds, children }, and a11y(part), the props a page spreads to make a box the part's box
 app/Sensors.tsx    the Sensors page; styles are examples/sensors/styles.ts, the same file the C page's styles.h comes from
 app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclosure, radio, tabs, slider, toolbar, settings tree, and its styles, in the same file
 app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
@@ -391,19 +391,25 @@ the revert.
 `{ role, name?, value?, states, hasPopup?, level?, bounds?, children }` over the boxes that carry a role, in document
 order. The fields are the box's own props first (`role`, `label`, `labelledBy`, `checked`, `expanded`, `selected`,
 `disabled`, `focused`, `hidden`, `level`, `value`/`valueText`, `hasPopup`, `modal`), then the part `options.parts` names
-by id; a page that spreads its part (`<box {...part}>`) needs no option. `options.containers` adopts a group part whose
-id is on no box at the lowest common ancestor of its items. The name is `label`, else `labelledBy` (the text of the
-element with that id, when the tree has it), else the text of the box's descendants outside nested role nodes; a `text`
-element is never a node. `hidden` prunes a box and its subtree, and so does an open modal dialog (role `dialog` /
-`alertdialog`, `modal` not false): the page behind it is left out of the snapshot, as a screen reader does not see it.
-`bounds` is `ui.bounds(id)` of the last frame, for a box with an id only.
+by id. The pages spread their parts instead (`a11y(part)`: the part's `id` and each field above as a live getter,
+`<box {...bind(part)} {...a11y(part)}>`), so a page's boxes are its parts' boxes and no `options.parts` table is needed;
+`options.containers` still adopts a group part whose id is on no box at the lowest common ancestor of its items, but the
+pages draw a box for every group now. The name is `label`, else `labelledBy` (the text of the element with that id, when
+the tree has it), else the text of the box's descendants outside nested role nodes; a `text` element is never a node.
+`hidden` prunes a box and its subtree, and so does an open modal dialog (role `dialog` / `alertdialog`, `modal` not
+false): the page behind it is left out of the snapshot, as a screen reader does not see it. `bounds` is `ui.bounds(id)` of
+the last frame, for a box with an id only.
 
-`bun solid/a11y.test.ts` asserts the Widgets, Field and Dialog pages' snapshots, the rules on a hand-built tree, and
-two mutations (no `labelledBy` resolution fails three asserts, no hidden pruning one). The pages spread only
-`input.bind(part)` (`id`, `focused`, `onPress`, `onClick`), so their roles and states come from the parts the test hands
-in: spreading the part itself is the fix. Until then the group boxes (`speed`, `tabs-tablist`, `format`, `settings`)
-carry no id, the field's label has no id and its part no `label`, the disclosure's and the tree's marks are not hidden,
-and the dialog passes no `labelledby`.
+`bun solid/a11y.test.ts` asserts the three pages' bare snapshots (`p.snap()`, no table of parts standing in for what a
+page drops): every interactive box carries its part's role and the name a reader needs, so a dropped field fails the
+test. It checks the Widgets page (the four checkboxes in their `group`, the radiogroup/tablist/toolbar/tree as the page's
+own boxes with bounds, the disclosure named `Details` with no `+`/`-` in it, the menu button `Size: Medium` with
+`hasPopup`, the tree's rows named by their nodes, the slider named by its caption with `40%` as its value, the mixed and
+the disabled box, the disabled box no Tab stop, the tab-focused switch's path), the toolbar's open menu, the Field page
+(textboxes named `Name` and `Read-only` through `labelledBy`, the value as typed), the Dialog page (closed: the zoom
+trigger `Zoom: 100%` with `hasPopup`; open: the dialog alone, named by its title, the backdrop and the page behind not
+nodes; and its menu), the rules on a hand-built tree, and two rules on every page: a role on every node, a non-empty name
+on every role that requires one. Mutation: dropping `label` from the disclosure trigger fails the name assertions.
 
 ## Notes
 
@@ -412,8 +418,6 @@ and the dialog passes no `labelledby`.
 - `plugin.ts` runs the cssints plugin in a Node child (Vite, and `cssints/clay` as sources with the `development`
   condition), so a `styles.ts` costs about a second at start. A file is a style module by its name: `styles.ts` or
   `*.styles.ts`.
-- Not here yet: images, reload on save, JSX types for `box` and `text`, an accessibility tree
-  (the parts' `role`, `checked`, `expanded`... are there for it), a click quicker than one poll (the window's 16 ms loop
 - Not here yet: images, scrolling, reload on save, JSX types for `box` and `text`,
   a click quicker than one poll (the window's 16 ms loop
   keeps the last button state, so a press and a release inside one poll are lost), a menubar on a page (the headless

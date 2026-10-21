@@ -63,6 +63,37 @@ export interface PartFields {
   readonly modal?: boolean;
 }
 
+/** The fields of `PartFields`, as `a11y` puts them on a box. */
+const FIELDS = [
+  "id",
+  "role",
+  "label",
+  "labelledBy",
+  "checked",
+  "expanded",
+  "selected",
+  "disabled",
+  "focused",
+  "hidden",
+  "level",
+  "value",
+  "valueText",
+  "hasPopup",
+  "modal",
+] as const;
+
+/**
+ * A part's `id` and accessibility fields as the props of the box that draws it: `<box {...bind(part)} {...a11y(part)}>`,
+ * or for a part whose box takes no pointer itself, `<box {...a11y(part)}>`. Every field is a getter over the part's own,
+ * so the box follows the part (a checkbox re-states itself when its part checks) and the snapshot reads the page's own
+ * boxes, with no `parts` table to keep in step. The id is the one `ui.bounds` knows the box by.
+ */
+export function a11y(part: PartFields): Record<string, unknown> {
+  const props: Record<string, unknown> = {};
+  for (const key of FIELDS) Object.defineProperty(props, key, { enumerable: true, get: () => part[key] });
+  return props;
+}
+
 /** A container part the page renders no box for: the node is the box that holds all of `items`. */
 export interface Container {
   readonly part: PartFields;

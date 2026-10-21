@@ -10,6 +10,7 @@ import {
   createMenu,
 } from "../../headless/src/index.ts";
 import type { Input } from "../src/input.ts";
+import { a11y } from "../a11y.ts";
 
 const t = css.createTokens({
   color: {
@@ -182,7 +183,7 @@ export function Dialog(props: { input: Input }) {
   const [changed, setChanged] = createSignal(false);
   const [zoom, setZoom] = createSignal(0);
 
-  const dialog = createDialogModal({ id: "settings", focus: input.focus });
+  const dialog = createDialogModal({ id: "settings", focus: input.focus, labelledby: "settings-title" });
   const cancel = createButton({ id: "cancel", onClick: () => dialog.close() });
   const ok = createButton({
     id: "ok",
@@ -216,11 +217,11 @@ export function Dialog(props: { input: Input }) {
     <box id="Root" style={s.root}>
       <text style={s.title}>Settings</text>
       <text style={s.note}>A modal dialog on a dimmed page, and a menu that floats under its trigger.</text>
-      <box {...bind.open} style={s.button}>
+      <box {...bind.open} {...a11y(dialog.trigger)} style={s.button}>
         <text style={s.label}>Open settings</text>
       </box>
       <text style={s.label}>{`Volume: ${volume()}%${changed() ? " (just set)" : ""}`}</text>
-      <box {...menuBind.trigger} style={s.row}>
+      <box {...menuBind.trigger} {...a11y(menu.trigger)} label={`Zoom: ${ZOOMS[zoom()]}`} style={s.row}>
         <text style={s.label}>Zoom</text>
         <box style={s.pill}>
           <text style={s.pillText}>{ZOOMS[zoom()]}</text>
@@ -228,9 +229,9 @@ export function Dialog(props: { input: Input }) {
         <text style={s.mark}>{menu.open() ? "-" : "+"}</text>
       </box>
       <Show when={menu.open()}>
-        <box id={menu.menu.id} style={s.menuPanel}>
+        <box {...a11y(menu.menu)} label="Zoom" style={s.menuPanel}>
           {ZOOMS.map((name, index) => (
-            <box {...menuBind.items[index]!} style={s.item}>
+            <box {...menuBind.items[index]!} {...a11y(menu.item(index))} style={s.item}>
               <text style={s.label}>{name}</text>
               <Show when={index === zoom()}>
                 <box style={s.dot} />
@@ -241,14 +242,14 @@ export function Dialog(props: { input: Input }) {
       </Show>
       <Show when={dialog.open()}>
         <box id={dialog.backdrop.id} style={s.backdrop} onPress={() => {}} />
-        <box id={dialog.dialog.id} style={s.panel} onPress={() => {}}>
-          <text style={s.dialogTitle}>Set the volume</text>
+        <box {...a11y(dialog.dialog)} style={s.panel} onPress={() => {}}>
+          <text id="settings-title" style={s.dialogTitle}>Set the volume</text>
           <text style={s.note}>OK sets it to 55%. Cancel or Escape leaves it at {volume()}%.</text>
           <box style={s.actions}>
-            <box {...bind.cancel} style={s.button}>
+            <box {...bind.cancel} {...a11y(cancel.part)} style={s.button}>
               <text style={s.label}>Cancel</text>
             </box>
-            <box {...bind.ok} style={s.button}>
+            <box {...bind.ok} {...a11y(ok.part)} style={s.button}>
               <text style={s.label}>OK</text>
             </box>
           </box>

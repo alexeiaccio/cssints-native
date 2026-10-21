@@ -229,14 +229,22 @@ Each step ends in a check that fails when it breaks.
    disabled, focused, hidden }, hasPopup, level, bounds, children }`: the name from the part's `label` / `labelledBy`
    (resolved to the text of the element it names) / the text of its descendants outside nested roles, `hidden` pruned
    with its subtree, and an open modal dialog's page pruned as a screen reader sees it (not marked hidden); `bounds` is
-   `ui.bounds` of the box's id. Check: the Widgets snapshot (13 page-level roles, the radiogroup/tablist/toolbar/tree
-   groups with their items, the mixed and disabled boxes, the slider's `40%`, `hasPopup` on the menu button, the
-   Tab-focused switch's path), the Field and Dialog pages (the dialog alone while open), a hand-built tree for
-   `labelledBy`, `hidden`, nesting and absent bounds, and two mutations (no `labelledBy` resolution fails 3 asserts, no
-   hidden pruning 1). Left: the pages spread only `input.bind(part)` (`id`, `focused`), so the roles and states in the
-   test come from the parts it hands in, not from the tree — `<box {...part}>` (or `input.bind` carrying the fields) is
-   the fix; the group boxes, the field's label, the disclosure/tree marks (`+`/`-` in the names), the dialog's
-   `labelledby` and the backdrop are the gaps that fix will have to close.
+   `ui.bounds` of the box's id. `a11y(part)` is the other half: the part's `id` and each field as a live getter, spread
+   by a page on the box that draws it (`{...bind(part)} {...a11y(part)}`), so a page's boxes are its parts' boxes and a
+   field a page drops is a missing role, name or state in the snapshot. Check: the three pages' bare snapshots
+   (`p.snap()`, no table of parts) — the Widgets page (the four checkboxes in their `group`, the
+   radiogroup/tablist/toolbar/tree as the page's own boxes with bounds, the mixed and the disabled box, the disabled box
+   no Tab stop, the disclosure named `Details` with the `+`/`-` mark outside its name, the toolbar's `Size: Medium` with
+   `hasPopup: "menu"`, the tree's rows named by their nodes, the slider named `Volume` with `40%` as its value, the
+   Tab-focused switch's path), its open menu, the Field page (the textboxes named `Name`/`Read-only` through
+   `labelledBy`, the value as typed), the Dialog page (closed, the zoom trigger `Zoom: 100%` with its `hasPopup`; open,
+   the dialog alone named by its title, the backdrop and the page behind no nodes; and its open menu), a hand-built tree
+   for `labelledBy`, `hidden`, nesting and absent bounds, and two rules on every page: a role on every node, a non-empty
+   name on every role that requires one. Dropping the disclosure trigger's `label` fails the name asserts. Left:
+   `aria-controls`/`describedBy` in the tree (the parts carry `controls` and `describedBy`; no field copies them, and no
+   disclosure, dialog or menu exposes them), live regions, the focus trap in the snapshot (the dialog's Tab cycle is
+   `dialog.test.ts`'s, not the tree's), the `tree`/`toolbar`/`tablist` containers unnamed (the page has no caption for
+   them), and the List page, which is no headless part and so has no roles at all yet.
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
    **Done: the evaluator** (`generator/page-to-c.ts`, `bun --conditions=development`). It imports `solid/plugin.ts`

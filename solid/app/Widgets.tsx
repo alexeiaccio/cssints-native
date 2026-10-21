@@ -21,6 +21,7 @@ import {
   type Checkbox,
   type TreeNode,
 } from "../../headless/src/index.ts";
+import { a11y } from "../a11y.ts";
 import { ui } from "../src/ffi.ts";
 import type { Bind, Input } from "../src/input.ts";
 
@@ -103,6 +104,8 @@ const row = css.cn(
   css.focus(css.border(2, t.color.ring)),
 );
 const rowIndented = css.cn(row, css.pl(34));
+// the four checkboxes are one group node: a column with the page's own gap, so the wrapper takes no space of its own
+const checks = css.cn(css.width("stretch"), css.gap(6), css.flexDirection("column"));
 
 const track = css.cn(
   css.width(44),
@@ -262,7 +265,7 @@ const nodeMark = css.cn(css.width(14), css.alignItems("center"));
 const nodeMarkText = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
 const labelSelected = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(16));
 
-export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn, formatMenu, menuItem, menuDot, tree, node, nodeSelected, nodeMark, nodeMarkText, labelSelected };
+export const s = { t, font, root, title, label, labelDisabled, note, mark, button, row, rowIndented, checks, track, trackOn, thumb, box, boxOn, boxDisabled, tick, dash, panel, field, caption, choice, radio, radioOn, radioDisabled, dot, tabsBox, tablist, tab, tabOn, tabPanel, sliderRow, rail, fill, slack, knob, readout, tools, tool, led, ledOn, formatMenu, menuItem, menuDot, tree, node, nodeSelected, nodeMark, nodeMarkText, labelSelected };
 
 /** The window of the page: the disclosure's panel open and the tree's Display open too still fit (5 tree rows at rest,
  * 6 with Brightness), and the panel is not shrunk. 760 is as tall as this page goes: the worst state's content ends at
@@ -324,7 +327,7 @@ const nodeOf = (level: number, selected: boolean): typeof s.node => {
 function Check(props: { cb: Checkbox; bind: Bind; label: string; indented?: boolean }) {
   const checked = () => props.cb.checked();
   return (
-    <box {...props.bind} style={props.indented ? s.rowIndented : s.row}>
+    <box {...props.bind} {...a11y(props.cb.part)} style={props.indented ? s.rowIndented : s.row}>
       <box style={props.cb.disabled() ? s.boxDisabled : checked() === false ? s.box : s.boxOn}>
         <Show when={checked() === true}>
           <box style={s.tick} />
@@ -469,20 +472,22 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
   return (
     <box id="Root" style={s.root}>
       <text style={s.title}>Widgets</text>
-      <box {...bind.press} style={s.button}>
+      <box {...bind.press} {...a11y(press.part)} style={s.button}>
         <text style={s.label}>{`Presses: ${count()}`}</text>
       </box>
-      <box {...bind.wifi} style={s.row}>
+      <box {...bind.wifi} {...a11y(wifi.part)} style={s.row}>
         <box style={wifi.checked() ? s.trackOn : s.track}>
           <box style={s.thumb} />
         </box>
         <text style={s.label}>Wi-Fi</text>
       </box>
-      <Check cb={all} bind={bind.all} label="Select all" />
-      <Check cb={wired} bind={bind.wired} label="Wired" indented />
-      <Check cb={wireless} bind={bind.wireless} label="Wireless" indented />
-      <Check cb={beta} bind={bind.beta} label="Beta (disabled)" />
-      <box {...bind.more} style={s.row}>
+      <box role="group" style={s.checks}>
+        <Check cb={all} bind={bind.all} label="Select all" />
+        <Check cb={wired} bind={bind.wired} label="Wired" indented />
+        <Check cb={wireless} bind={bind.wireless} label="Wireless" indented />
+        <Check cb={beta} bind={bind.beta} label="Beta (disabled)" />
+      </box>
+      <box {...bind.more} {...a11y(more.trigger)} label="Details" style={s.row}>
         <text style={s.mark}>{more.expanded() ? "-" : "+"}</text>
         <text style={s.label}>Details</text>
       </box>
@@ -491,12 +496,12 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
           <text style={s.note}>This panel is the disclosure's: Enter, Space or a click on its trigger hides it.</text>
         </box>
       </Show>
-      <box style={s.field}>
+      <box {...a11y(speed.group)} labelledBy="speed-label" style={s.field}>
         <box style={s.caption}>
-          <text style={s.label}>Speed</text>
+          <text id="speed-label" style={s.label}>Speed</text>
         </box>
         {speed.radios.map((r, i) => (
-          <box {...groupBind.speed[i]!} style={s.choice}>
+          <box {...groupBind.speed[i]!} {...a11y(r)} style={s.choice}>
             <box style={r.disabled ? s.radioDisabled : r.checked ? s.radioOn : s.radio}>
               <Show when={r.checked}>
                 <box style={s.dot} />
@@ -507,16 +512,16 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
         ))}
       </box>
       <box style={s.tabsBox}>
-        <box style={s.tablist}>
+        <box {...a11y(tabs.tablist)} style={s.tablist}>
           {tabs.tabs.map((t, i) => (
-            <box {...groupBind.tabs[i]!} style={t.selected ? s.tabOn : s.tab}>
+            <box {...groupBind.tabs[i]!} {...a11y(t)} style={t.selected ? s.tabOn : s.tab}>
               <text style={s.label}>{TABS[i]!.name}</text>
             </box>
           ))}
         </box>
         {tabs.panels.map((p, i) => (
           <Show when={!p.hidden}>
-            <box {...groupBind.panels[i]!} style={s.tabPanel}>
+            <box {...groupBind.panels[i]!} {...a11y(p)} style={s.tabPanel}>
               {TABS[i]!.lines.map((line) => (
                 <text style={s.note}>{line}</text>
               ))}
@@ -526,9 +531,9 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
       </box>
       <box style={s.field}>
         <box style={s.caption}>
-          <text style={s.label}>Volume</text>
+          <text id="volume-label" style={s.label}>Volume</text>
         </box>
-        <box id={groupBind.volume.id} style={s.sliderRow}>
+        <box {...a11y(volume.thumb)} labelledBy="volume-label" style={s.sliderRow}>
           <box id="volume-rail" focused={groupBind.volume.focused} onPress={onRail} style={s.rail}>
             <box style={fillOf((volume.value() / 100) * (140 - KNOB))} />
             <box id="volume-knob" style={s.knob} />
@@ -539,11 +544,13 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
           </box>
         </box>
       </box>
-      <box style={s.tools}>
+      <box {...a11y(format.toolbar)} style={s.tools}>
         {format.items.map((item, i) => (
           <box
             {...groupBind.format[i]!}
+            {...a11y(item)}
             style={s.tool}
+            label={i === 2 ? `Size: ${SIZES[size.choice()]}` : item.label}
             focused={groupBind.format[i]!.focused && !(i === 2 && size.open())}
             hasPopup={i === 2 ? "menu" : undefined}
             expanded={i === 2 ? size.open() : undefined}
@@ -553,10 +560,11 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
           </box>
         ))}
         <Show when={size.open()}>
-          <box id={size.menu.id} style={s.formatMenu}>
+          <box {...a11y(size.menu)} label="Size" style={s.formatMenu}>
             {SIZES.map((name, i) => (
               <box
                 {...groupBind.menu[i]!}
+                {...a11y(size.item(i))}
                 style={s.menuItem}
                 onClick={() => (groupBind.menu[i]!.onClick?.(), size.closeMenu())}
               >
@@ -569,12 +577,13 @@ export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?:
           </box>
         </Show>
       </box>
-      <box style={s.tree}>
+      {/* the tree part's `focused` means "an item has it": the treeitem's node says focused, not the tree that holds it */}
+      <box {...a11y(settings.tree)} focused={false} style={s.tree}>
         {settings.nodeIds.map((id, i) => {
           const item = settings.item(id);
           return (
             <Show when={!item.hidden}>
-              <box {...groupBind.nodes[i]!} style={nodeOf(item.level, item.selected)}>
+              <box {...groupBind.nodes[i]!} {...a11y(item)} style={nodeOf(item.level, item.selected)}>
                 <box id={`${item.id}-mark`} style={s.nodeMark}>
                   <Show when={item.expanded !== undefined}>
                     <text style={s.nodeMarkText}>{item.expanded ? "-" : "+"}</text>
