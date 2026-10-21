@@ -9,6 +9,7 @@ typedef struct {
     float scale;        // device pixels per Clay unit (the window's pixel density); the buffer is that much larger
     const char **fonts; // ThorVG font names by fontId (tvg_font_load names a font by its file name, no extension)
     Tvg_Paint measurer; // a text paint for Clay_ThorVG_MeasureText
+    bool clear;         // draw into a target whose last frame is gone (a swapchain): clear it, not just overdraw it
 } Clay_ThorVGRendererData;
 
 // Clay sizes are CSS pixels; ThorVG sizes text in points at 96 dpi
@@ -60,8 +61,9 @@ static void Clay_ThorVG_RoundRect(Tvg_Paint s, float x, float y, float w, float 
     tvg_shape_close(s);
 }
 
-/** Rebuilds the canvas from the commands and draws it into the target buffer, over what the buffer holds. */
-static void Clay_ThorVG_RenderClayCommands(Clay_ThorVGRendererData *d, Clay_RenderCommandArray *rcommands)
+/** Rebuilds the canvas from the commands and draws it into the target buffer, over what the buffer holds (or, with
+ *  d->clear, clearing it first); false if the canvas could not sync its target. */
+static bool Clay_ThorVG_RenderClayCommands(Clay_ThorVGRendererData *d, Clay_RenderCommandArray *rcommands)
 {
     tvg_canvas_remove(d->canvas, NULL);
     Tvg_Paint root = tvg_scene_new(), into = root;
@@ -134,6 +136,6 @@ static void Clay_ThorVG_RenderClayCommands(Clay_ThorVGRendererData *d, Clay_Rend
         }
     }
     tvg_canvas_add(d->canvas, root);
-    tvg_canvas_draw(d->canvas, false);
-    tvg_canvas_sync(d->canvas);
+    tvg_canvas_draw(d->canvas, d->clear);
+    return tvg_canvas_sync(d->canvas) == TVG_RESULT_SUCCESS;
 }
