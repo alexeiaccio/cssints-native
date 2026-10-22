@@ -30,6 +30,13 @@ static Clay_RenderCommandArray cmds;
 static char arena[ARENA_SIZE];
 static int arena_used;
 
+// image paths: a Clay image's config is one pointer (`imageData`), and the renderer caches a picture by that pointer, so
+// one path must arrive as one address every frame. Interned on first use and kept for the process.
+#define MAX_IMAGES 64
+static const char *image_paths[MAX_IMAGES];
+static int image_count;
+static const char *pending_image;
+
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Texture *texture;
@@ -119,6 +126,7 @@ static Clay_String slice(const char *s, int len) { return (Clay_String){.length 
 void ui_begin(float px, float py, int down, float dt)
 {
     arena_used = 0;
+    pending_image = NULL;
     Clay_SetPointerState((Clay_Vector2){px, py}, down);
     // Clay's scroll containers: the wheel delta of the polls moves the container the pointer is over, before the layout
     // reads the offsets (ui_open hands each clip element its own through Clay_GetScrollOffset). No drag scrolling: a
@@ -141,6 +149,25 @@ static Clay_SizingAxis axis(const float *f)
 }
 
 static Clay_Color color(const float *f) { return (Clay_Color){f[0], f[1], f[2], f[3]}; }
+
+/** The image the next ui_open declares: the path of the picture, interned. Clay's image config is that pointer and the
+ *  renderer keys its picture on it, so the same path must have the same address every frame (a per-frame copy would
+ *  load the file again each frame and fill the renderer's cache). */
+void ui_image(const char *path, int len)
+{
+    for (int i = 0; i < image_count; i++)
+        if ((int)strlen(image_paths[i]) == len && memcmp(image_paths[i], path, (size_t)len) == 0) {
+            pending_image = image_paths[i];
+            return;
+        }
+    // ponytail: 64 distinct paths a process, never freed; a page with more needs a bigger table
+    if (image_count == MAX_IMAGES) {
+        errors++;
+        return;
+    }
+    image_paths[image_count] = strndup(path, (size_t)len);
+    pending_image = image_paths[image_count++];
+}
 
 /** Opens an element. id is NULL for an anonymous one; f is 45 floats: the box fields, then the floating ones. */
 void ui_open(const char *id, int len, const float *f)
@@ -170,6 +197,11 @@ void ui_open(const char *id, int len, const float *f)
         d.floating.zIndex = (int16_t)f[42];
         d.floating.pointerCaptureMode = (Clay_PointerCaptureMode)(int)f[43];
         d.floating.clipTo = (Clay_FloatingClipToElement)(int)f[44];
+    }
+    // the style's image (css.image), set by ui_image just before this call; cleared so a sibling cannot inherit it
+    if (pending_image) {
+        d.image.imageData = (void *)pending_image;
+        pending_image = NULL;
     }
     if (id) Clay__OpenElementWithId(Clay__HashString(slice(id, len), 0));
     else Clay__OpenElement();

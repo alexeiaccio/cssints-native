@@ -81,6 +81,7 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | `ui_init_gpu(w, h)` | the same on ThorVG's WebGPU canvas (`--raster thorvg-gpu`); only a `libui.dylib` from `desktop/build-thorvg-gpu.sh solid` |
 | `ui_begin(px, py, down, dt)` | pointer for this frame, then Clay's scroll containers move by the wheel this frame took (`Clay_UpdateScrollContainers(false, delta, dt)`, before the layout), then `Clay_BeginLayout` |
 | `ui_open(id, len, f32[45])` | open an element; `id` NULL for none; the style as below |
+| `ui_image(bytes, len)` | the image of the element the next `ui_open` declares (a `css.image` style): the path as UTF-8, no terminator. Interned once per distinct path, so the renderer's picture cache (keyed by that pointer) sees one address every frame |
 | `ui_text(bytes, len, f32[10])` | a text element; the bytes are copied for the frame |
 | `ui_close()` | close the element |
 | `ui_pointer_over(id, len)` | Clay's `Clay_PointerOver`, on the last frame's layout |
@@ -98,6 +99,14 @@ with an `id`: Clay tells whether the pointer is over it. `onClick` runs on relea
 | `ui_errors()` | Clay errors so far |
 
 Text is measured by ThorVG, as in `host.c`.
+
+An image is the one part of a style that is not a float: `css.image` becomes `d.image.imageData`, a pointer, so
+`frame.ts` calls `ui_image` with the path just before the element's `ui_open` (`pack.ts` keeps the path beside the
+packed box in its variant). `ui.c` interns the path, because Clay's config is that pointer alone and
+`Clay_ThorVG_Picture` caches a picture by it; ThorVG loads one file per path and stretches it into the element's box.
+The packed style does not carry Clay's `aspectRatio`, so `fit: "contain"` is the C header's; `fill` (the default) is what
+a Solid page gets. The SDL renderer path still reads `imageData` as an `SDL_Texture` and does not draw a path: the image
+element is ThorVG-only, as on the C side.
 
 ### `ui_open` fields (`pack.ts` `packBox`, `ui.c` `ui_open`)
 
@@ -419,7 +428,7 @@ on every role that requires one. Mutation: dropping `label` from the disclosure 
 - `plugin.ts` runs the cssints plugin in a Node child (Vite, and `cssints/clay` as sources with the `development`
   condition), so a `styles.ts` costs about a second at start. A file is a style module by its name: `styles.ts` or
   `*.styles.ts`.
-- Not here yet: images, scrolling, reload on save, JSX types for `box` and `text`,
+- Not here yet: reload on save, JSX types for `box` and `text`,
   a click quicker than one poll (the window's 16 ms loop
   keeps the last button state, so a press and a release inside one poll are lost), a menubar on a page (the headless
   `createMenubar` is ported and checked, but no page uses it: the toolbar's menu button is `createMenu`), a vertical

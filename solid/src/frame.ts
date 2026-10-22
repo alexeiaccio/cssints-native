@@ -10,6 +10,9 @@ const encoder = new TextEncoder();
 const ids = new Map<string, Uint8Array>();
 // kept for good: Clay holds the id's pointer in its hash map past the frame
 const idBytes = (id: string) => ids.get(id) ?? (ids.set(id, encoder.encode(id)), ids.get(id)!);
+// an image path, encoded once: ui.c interns it, so the same bytes and the same address every frame
+const paths = new Map<string, Uint8Array>();
+const pathBytes = (path: string) => paths.get(path) ?? (paths.set(path, encoder.encode(path)), paths.get(path)!);
 
 const NONE: State[] = [];
 const HOVER: State[] = [":hover"];
@@ -73,7 +76,10 @@ export function createFrame(root: El, view: View = {}) {
       if (el.props.focused) states = [...states, ":focus"];
     }
     if (id && (el.props.onClick || el.props.onPress)) seen.push(el);
-    ui.open(id, (style && variant(style, view.theme, states).box) || NO_STYLE);
+    const v = style ? variant(style, view.theme, states) : undefined;
+    // an image's path goes in before its element: Clay's image config is a pointer, not a float field
+    if (v?.image) ui.image(pathBytes(v.image));
+    ui.open(id, v?.box || NO_STYLE);
     for (const c of el.children) if (c instanceof El) emit(c, down);
     ui.close();
   }

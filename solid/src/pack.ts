@@ -106,6 +106,8 @@ export function packText(t: Shape): Float32Array {
 export interface Variant {
   box?: Float32Array;
   text?: Float32Array;
+  /** The style's image path (`css.image`): Clay's image config is one pointer, so it travels beside the floats. */
+  image?: string;
 }
 
 const cache = new WeakMap<object, Map<string, Variant>>();
@@ -117,8 +119,8 @@ export function variant(shape: ClayShape, theme?: string, states: State[] = []):
   const key = `${theme}|${states.join("")}`;
   let v = byKey.get(key);
   if (!v) {
-    const { text, ...decl } = resolve(shape, theme, states);
-    byKey.set(key, (v = { box: Object.keys(decl).length ? packBox(decl) : undefined, text: text && packText(text) }));
+    const { text, image, ...decl } = resolve(shape, theme, states);
+    byKey.set(key, (v = { box: Object.keys(decl).length ? packBox(decl) : undefined, text: text && packText(text), image: image?.imageData }));
   }
   return v;
 }

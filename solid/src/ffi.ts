@@ -11,6 +11,7 @@ const { symbols: s } = dlopen(new URL("../../build/solid/libui.dylib", import.me
   ui_wheel: { args: [T.f32, T.f32], returns: T.void },
   ui_pointer_over: { args: [T.ptr, T.i32], returns: T.i32 },
   ui_open: { args: [T.ptr, T.i32, T.ptr], returns: T.void },
+  ui_image: { args: [T.ptr, T.i32], returns: T.void },
   ui_close: { args: [], returns: T.void },
   ui_text: { args: [T.ptr, T.i32, T.ptr], returns: T.void },
   ui_end: { args: [T.f32], returns: T.i32 },
@@ -46,6 +47,8 @@ export const ui = {
   /** Is the pointer over the element with that id (UTF-8, no terminator) in the layout of the last frame? */
   over: (id: Uint8Array) => s.ui_pointer_over(ptr(id), id.length) !== 0,
   open: (id: Uint8Array | undefined, style: Float32Array) => s.ui_open(id ? ptr(id) : null, id?.length ?? 0, ptr(style)),
+  /** The image of the element the next `open` declares (a css.image style): the path UTF-8, no terminator. */
+  image: (path: Uint8Array) => s.ui_image(ptr(path), path.length),
   close: s.ui_close,
   text: (bytes: Uint8Array, style: Float32Array) => s.ui_text(ptr(bytes), bytes.length, ptr(style)),
   end: s.ui_end,
