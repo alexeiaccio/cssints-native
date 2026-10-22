@@ -273,7 +273,10 @@ Each step ends in a check that fails when it breaks.
    with its subtree, and an open modal dialog's page pruned as a screen reader sees it (not marked hidden); `bounds` is
    `ui.bounds` of the box's id. `a11y(part)` is the other half: the part's `id` and each field as a live getter, spread
    by a page on the box that draws it (`{...bind(part)} {...a11y(part)}`), so a page's boxes are its parts' boxes and a
-   field a page drops is a missing role, name or state in the snapshot. Check: the three pages' bare snapshots
+   field a page drops is a missing role, name or state in the snapshot. Still missing: `controls`/`describedBy` never
+   reach the snapshot (no disclosure→panel, tab→panel or trigger→dialog link), no live regions, no trap order in the
+   snapshot (the keys are tested in `dialog.test.ts`), `tree`/`toolbar`/`tablist`/the checkbox `group` have no accessible
+   name, and the List and Sensors pages are not covered (they are not headless parts). Check: the three pages' bare snapshots
    (`p.snap()`, no table of parts) — the Widgets page (the four checkboxes in their `group`, the
    radiogroup/tablist/toolbar/tree as the page's own boxes with bounds, the mixed and the disabled box, the disabled box
    no Tab stop, the disclosure named `Details` with the `+`/`-` mark outside its name, the toolbar's `Size: Medium` with
