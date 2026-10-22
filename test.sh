@@ -52,6 +52,9 @@ THEME=light ./build/sensors/app --raster sdl --expect examples/sensors/expected-
 THEME=light ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-light.png
 # Units held down: the pressed look (units_active), written while the pointer is still down
 ./build/sensors/app --raster thorvg --press 180 250 --expect examples/sensors/expected-pressed.png
+# IMAGE=1 adds the page's image variant (a 32x32 glyph above the caption): the ThorVG renderer loads it from the path
+# in imageData, once per path, and stretches it into the command's box. A frame of its own: the plain frames stay as they are
+IMAGE=1 ./build/sensors/app --raster thorvg --expect examples/sensors/expected-thorvg-image.png
 # the same page on ThorVG's WebGPU canvas (Metal through wgpu-native): only when its build exists, because brew's
 # thorvg has no GPU engine. Its frame is its own: the shapes and colours are the CPU frame's, the anti-aliasing is not
 if [ -x ./build/sensors/app-gpu ]; then

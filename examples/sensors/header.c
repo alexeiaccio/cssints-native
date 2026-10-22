@@ -2,6 +2,7 @@
 // the colours of styles.ts, the rest of a state is the base's.
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #define CLAY_IMPLEMENTATION
 #include "styles.h"
@@ -15,6 +16,10 @@ int main(void)
     assert(units_hover_light.backgroundColor.g == 235);
     assert(root_light.backgroundColor.r == 244 && root.backgroundColor.r == 16);
     assert(title_text_light.textColor.r == 200 && title_text.fontId == font_Roboto);
+    // the image: Clay 1.0's config is the pointer to the path, and the box is the picture's own 32x32
+    assert(!strcmp((const char *)glyph.image.imageData, "examples/sensors/glyph.png"));
+    assert(glyph.layout.sizing.width.size.minMax.min == 32 && glyph.layout.sizing.height.size.minMax.max == 32);
+    assert(glyph.aspectRatio.aspectRatio == 1 && glyph_light.image.imageData != NULL);
     puts("sensors header: ok");
     return 0;
 }
