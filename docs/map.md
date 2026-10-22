@@ -311,8 +311,8 @@ Each step ends in a check that fails when it breaks.
    by eye: the four frames, zoomed — the bar's underline, the name and handle, the counts' `·`, the avatar discs. Left:
    no fetching or paging (three recorded posts per feed), no thread screen, no post images (a media line), no avatars
    beyond the six committed, no momentum or drag scrolling, the name and handle on two lines because the pair does not
-   fit 312px (Clay has no ellipsis), and an unbreakable URL in a media line drawn to the window's edge (Clay breaks only
-   at spaces, so the Science link runs over the card's gutter before the feed cuts it).
+   fit 312px (Clay has no ellipsis), and media lines that wrap at spaces only, so the Science link shows the embed's host
+   instead of its 60-character URI (the app's own fallback when a link has no title).
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
    **Done: the evaluator** (`generator/page-to-c.ts`, `bun --conditions=development`). It imports `solid/plugin.ts`

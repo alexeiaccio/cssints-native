@@ -199,13 +199,13 @@ function fresh() {
   check("Up comes back", p.offset(), 0);
   p.tap("ArrowDown");
   p.tap("ArrowDown");
-  check("two Downs: -80", p.offset(), -80);
+  check("two Downs clamp at the content (742 - 664): -78", p.offset(), -78);
   p.tap("Home");
   check("Home returns to the top", p.offset(), 0);
   p.tap("End");
-  check("End goes to the last screenful: 778 - 664", p.offset(), -114);
+  check("End goes to the last screenful: 742 - 664", p.offset(), -78);
   p.tap("PageDown");
-  check("PageDown at the end does not pass it", p.offset(), -114);
+  check("PageDown at the end does not pass it", p.offset(), -78);
   p.tap("PageUp");
   check("PageUp a viewport (664) reaches the top from the end", p.offset(), 0);
   p.tap("Home");
@@ -233,7 +233,7 @@ function fresh() {
   check("the status says the feed is empty", p.status(), "News — 0 posts");
   const b0 = p.box("sky-tabs-tab-0");
   const b2 = p.box("sky-tabs-tab-2");
-  check("the bar still holds the three tabs", [b0[0], b2[0]! + b2[2]!].map((v) => Math.round(v! * 100) / 100), [63.89, 275.86]);
+  check("the bar still holds the three tabs", [b0[0], b2[0]! + b2[2]!].map((v) => Math.round(v! * 100) / 100), [71.89, 283.86]);
   p.clickOn("sky-tabs-tab-0");
   check("and Discover comes back", p.card(0).length, 4);
 }

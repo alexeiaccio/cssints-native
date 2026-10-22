@@ -49,7 +49,7 @@ const root = css.cn(css.width("stretch"), css.height("stretch"), css.flexDirecti
 
 // the bar: the wordmark in the accent, then the tablist. The active tab is the accent with the app's 2px underline, and
 // a hover lightens the one under the pointer (Clay draws a border inside the box, so the underline moves no layout).
-const bar = css.cn(css.width("stretch"), css.height(64), css.p(0, 16), css.gap(12), css.alignItems("center"), css.bg(t.color.page));
+const bar = css.cn(css.width("stretch"), css.height(64), css.p(0, 16), css.gap(20), css.alignItems("center"), css.bg(t.color.page));
 const wordmark = css.cn(font.Roboto, css.color(t.color.accent), css.fontSize(24));
 const tablist = css.cn(css.gap(2), css.alignItems("center"));
 const tab = css.cn(
@@ -101,9 +101,9 @@ const meta = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(12), css
 // the text, and only then does Clay wrap it
 const bodyBox = css.cn(css.width("stretch"));
 const body = css.cn(font.Roboto, css.color(t.color.ink), css.fontSize(14), css.lineHeight(20), css.whiteSpace("normal"));
-// a media line wraps at spaces. One unbreakable word (the Science link's URL) is drawn wider than the card: Clay breaks
-// only at spaces, so that line runs over the gutter and is cut by the feed at the window's edge (a clip box of its own
-// collapses a FIT height, so there is no card-edge scissor here; see the README).
+// a media line wraps at spaces. Clay breaks only at spaces, so a media line must not contain a word wider than the card
+// (a sixty-character URL would run over the gutter): the app's own fallback for a link with no title is the host, which
+// is what the Science post carries here.
 const media = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(13), css.lineHeight(18), css.whiteSpace("normal"));
 const counts = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(13), css.lineHeight(18));
 
@@ -233,7 +233,7 @@ const SCIENCE: readonly Post[] = [
     text:
       "Second paper of Marco (open access) on Tc-99m is online, congrats! Good timing for the weekend.\n\n" +
       "www.sciencedirect.com/science/arti...",
-    media: "[link: https://www.sciencedirect.com/science/article/pii/S0168583X26003356 - sciencedirect.com]",
+    media: "[link: sciencedirect.com]", // the app's external embed with no title: the host, not a 60-char URI
     replies: 0,
     reposts: 0,
     likes: 0,

@@ -415,7 +415,7 @@ post count, or the card a click selected.
 | The cards | the panel, radius 12, padding 12, gap 8, the author's 40x40 avatar, the name and the handle with its age, the body, the media line and the counts; the palette is `terminal/sky_styles.ts`'s (the sky dark and light themes, not the web app's Mu theme). A click records the card in a signal (the status line names it) and nothing else: there is no thread screen yet. |
 | The avatars | `css.image(path, { width: 40, height: 40 })` — the six committed 64x64 PNGs of `examples/sky/avatars.py` (a disc in the author's hue, transparent outside it, so the panel shows at the box's corners). The path is a literal per author because a css style is evaluated when its module loads: a page cannot build one from a loop variable. This is the first page that uses `css.image` in the Solid path. |
 | Wrapping | new on this page: a body is a `text` with `whiteSpace("normal")` and `lineHeight(20)` inside a stretch box inside a card of percent width, and Clay wraps it. (A clip element lets its children grow past the viewport for their content, so a card that must wrap cannot take its width from a stretch inside the feed: the card is `width("100%")`.) |
-| Scrolling | the wheel moves the feed under the pointer (Clay's own container, 10px a notch, as on the List page); one Tab stop on the feed takes Down/Up 40px, PageDown/PageUp a viewport and Home/End to the ends through `ui_scroll_to` (clamped by `ui.c`). Discover's three short posts fit the 664px viewport, so the wheel frame and the test scroll **Science** (778px of content). |
+| Scrolling | the wheel moves the feed under the pointer (Clay's own container, 10px a notch, as on the List page); one Tab stop on the feed takes Down/Up 40px, PageDown/PageUp a viewport and Home/End to the ends through `ui_scroll_to` (clamped by `ui.c`). Discover's three short posts fit the 664px viewport, so the wheel frame and the test scroll **Science** (742px of content). |
 
 | Frame | Keys | Shows |
 | --- | --- | --- |
@@ -442,9 +442,9 @@ No thread screen, so a card click only selects. No images in post media — the 
 `[video]`, `[link: …]`), as in the terminal. No avatars beyond the six committed PNGs (a real author's avatar is a remote
 file). No scroll momentum and no drag scrolling (the press belongs to the cards). The name and the handle are two lines,
 not the app's one row: the longest pair does not fit the 312px card and Clay has no ellipsis. A media line wraps at
-spaces, but the Science link's unbreakable URL is drawn wider than the card and clipped by the feed at the window's edge
-(Clay breaks only at spaces; a clip box of its own would not wrap the text, and a FIT clip collapses). And the light
-theme is the TUI palette's light one, not the system's.
+spaces only, so a word wider than the card would run over the gutter: the Science link carries the app's own fallback
+for an embed with no title, the host (`[link: sciencedirect.com]`), not its 60-character URI. And the light theme is the
+TUI palette's light one, not the system's.
 
 ## The accessibility tree
 
