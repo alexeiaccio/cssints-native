@@ -9,14 +9,14 @@
         "solid-js": "2.0.0-rc.13",
       },
       "devDependencies": {
-        "cssints": "^0.4.0",
+        "cssints": "^0.5.0",
         "playwright": "1.64.1",
         "vite": "^8.3.0",
       },
     },
   },
   "packages": {
-    "@cssints/css-grammar": ["@cssints/css-grammar@0.4.0", "", { "dependencies": { "@mdn/browser-compat-data": "8.1.3", "browserslist": "4.29.1", "effect": "4.0.0" } }, "sha512-YqwCPPY/E7B4de5Bx1bQ54vOFPE0FYD1dnZYtVlfCrFGSqZownh/cLxkIFPpJRxgva2ZtfZ0utAOKk7jceZBfQ=="],
+    "@cssints/css-grammar": ["@cssints/css-grammar@0.5.0", "", { "dependencies": { "@mdn/browser-compat-data": "8.1.3", "browserslist": "4.29.1", "effect": "4.0.0" } }, "sha512-lDZFupr3IS/lyNBoc2d38Ed5DuUPbxt0Rl3uBPqWZEzMyOqayNTkWbw+7+R7GYc5Xi2b9Vx0LGrd7QO2kQgsOA=="],
 
     "@emnapi/core": ["@emnapi/core@1.11.3", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.3", "tslib": "^2.4.0" } }, "sha512-zLpS5asjEb7lq8jYLq37N6XKaE41DIexlY1rF/z4/tIl3wo13Sqm28fRyfIsKZD+NZ8mM5RoKkpW/rBcuoSZSg=="],
 
@@ -136,7 +136,7 @@
 
     "caniuse-lite": ["caniuse-lite@1.0.30001818", "", {}, "sha512-XJbgo4adscw7R4MZU4/qVFkoMyPaNUAWmdNY4o/k9x7fFwmv4frIlndI9lWuaxviW9ObiZel9LuncnQPn6hQ5A=="],
 
-    "cssints": ["cssints@0.4.0", "", { "dependencies": { "@cssints/css-grammar": "^0.4.0", "culori": "^4.0.2", "effect": "4.0.0", "happy-dom": "^20.14.5", "lightningcss": "^1.32.0", "magic-string": "^0.30.0", "mdn-data": "2.27.1", "oxc-parser": "^0.149.0" }, "peerDependencies": { "@opencode/client": "^2.0.26", "vite": "^8.3.0" }, "optionalPeers": ["@opencode/client"] }, "sha512-EbbquGlBIZq38uqrlMFauhfRviYOAJUsUyAha+2vnQsqQvVXfcZzlaUU/0zUNKbYE8QhSqhJLJbG4dspj98y2A=="],
+    "cssints": ["cssints@0.5.0", "", { "dependencies": { "@cssints/css-grammar": "^0.5.0", "culori": "^4.0.2", "effect": "4.0.0", "happy-dom": "^20.14.5", "lightningcss": "^1.32.0", "magic-string": "^0.30.0", "mdn-data": "2.27.1", "oxc-parser": "^0.149.0" }, "peerDependencies": { "@opencode/client": "^2.0.26", "vite": "^8.3.0" }, "optionalPeers": ["@opencode/client"] }, "sha512-zbz+Ar3sMXOsLFJcbJZcblpgjXlDF80nET5OQTC7iSPEVEy8TjMiIGwWFrYDuDSBW51cT3gxMAu318SLNmUriA=="],
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
