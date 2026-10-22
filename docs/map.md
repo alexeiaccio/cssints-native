@@ -352,7 +352,7 @@ Each step ends in a check that fails when it breaks.
    feed) and, in `test.sh`, the accent border's rows in the ANSI of focused/unfocused frames (a click and `ArrowDown`
    move the ring), the bar's wrap, the list leaving at its edge, a click on a control of each screen, and the scroll of
    the thread and of the profile. Breaking the group's wrap, or its leave, fails both a unit test and a page test.
-   Left: **termbox2 is in** (`terminal/tb2.c`: truecolour or 256, keys and the mouse, checked through a pty in
+   Left: **termbox2 is in** (`terminal/vendor/termbox2.h`, upstream master, MIT, sha256 `e019abb9`; `terminal/tb2.c`: truecolour or 256, keys and the mouse, checked through a pty in
    `test.sh`), and so are clicks; what a click cannot do is hover — termbox2 reports no motion events. Still left:
    `csssky-tui`'s own profile and notifications screens (it has neither; the profile here is the web app's), its data
    fetching and paging (every frame is one recorded fixture), images (a media line; counted and reported, not drawn),
