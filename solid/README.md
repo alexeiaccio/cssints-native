@@ -23,10 +23,14 @@ bun solid/main.ts form                           # the Text field page (360x450)
 bun solid/main.ts list                           # the List page (360x400): the wheel scrolls Clay's own container under
                                                  # the pointer, Tab then Up/Down, PageUp/PageDown, Home/End move the
                                                  # selection and scroll it into view
+bun solid/main.ts sky                            # the Sky page (360x760): csssky's feed, the tabs switch the three
+                                                 # feeds, Tab reaches the feed and Up/Down, PageUp/PageDown, Home/End
+                                                 # scroll it (the wheel scrolls it under the pointer)
 bun solid/main.ts widgets --keys Tab,Tab,Space --expect solid/frames/widgets-switch-on.png   # scripted keys, then the frame
 bun solid/main.ts dialog --keys Tab,Enter --expect solid/frames/dialog-open.png             # keyboard, headless
 bun solid/main.ts form --keys Tab,Tab,text:Ada --expect solid/frames/field-typed.png        # typed text, not a key
 bun solid/main.ts list --wheel 32 --expect solid/frames/list-wheel.png      # headless: the pointer onto the list, 32 notches down
+bun solid/main.ts sky --click 180 32 --wheel 8 --wheel-over sky-feed --png out.png   # headless: Science, its feed 8 notches down
 bun solid/main.ts widgets --drag 0.25 0.75 --png out.png                 # headless: press the slider's rail at a quarter, hold, move to three quarters
 bun solid/main.ts --expect examples/sensors/expected-thorvg.png          # one frame against a stored PNG
 bun solid/main.ts --click 180 250 --expect examples/sensors/expected-thorvg-g.png   # host.c's scripted click
@@ -54,9 +58,10 @@ app/Widgets.tsx    the Widgets page: headless button, switch, checkboxes, disclo
 app/Dialog.tsx     the Dialog page: a modal dialog on a backdrop (both Clay root floats) and a menu floated off its trigger
 app/Field.tsx      the Text field page: the headless text field, its caret and selection drawn as runs, and its styles
 app/List.tsx       the List page: thirty rows in a viewport Clay clips and scrolls, the wheel and the keys, and its styles
+app/Sky.tsx        the Sky page: csssky's feed in a phone-sized window, the tablist switching it, drawn avatars, wrapped bodies
 frames/            the Widgets, Dialog and Text field pages' stored frames (the Sensors page's are in examples/sensors)
 main.ts            the host (window and headless)
-test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, list.test.ts   the checks the stored frames cannot make
+test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, list.test.ts, sky.test.ts   the checks the stored frames cannot make
 test.ts, widgets.test.ts, dialog.test.ts, field.test.ts, a11y.test.ts   the checks the stored frames cannot make
 ```
 
@@ -394,6 +399,52 @@ fitting its window.
 **Mutation check.** Dropping `reveal(i)` from `select` (never scroll the selection into view) fails eleven asserts of
 `solid/list.test.ts` (the arrows, PageDown, End and the wheel-then-key move); the file is compared with its backup after
 the revert.
+
+## The Sky page
+
+`bun solid/main.ts sky` is **csssky's feed** (`~/github/css-in-ts-compiler/apps/csssky`) as the first real app on this
+renderer: a phone-shaped 360x760 page whose data is the app's own recorded fixtures, not a fetch. The bar holds the
+wordmark and the three feeds as a **headless tablist** (`createTabs`: one Tab stop on the active tab, Left/Right and
+Home/End move it and switch the feed); the feed is one Clay clip element (`sky-feed`, the rest of the window's height)
+that the wheel scrolls and the keyboard scrolls through `ui_scroll_to`; the status line under it names the feed and its
+post count, or the card a click selected.
+
+| | |
+| --- | --- |
+| The posts | the same six `terminal/sky.c` carries, verbatim from `home-discover-1.json` (Michael Warburton, Titania, alexjungle), `home-science-1.json` (Erik Strub, David Blanchflower BSc, Jason GRIZZLED Bittel) and the app's empty News feed. `created` in seconds against the fixtures' capture moment (`SKY_NOW = 1790955571`), so `ago()` and a frame read the same today as when recorded; the counts are the app's compact numbers (`310`, `3.5K`), with words instead of the app's icons because Roboto has no retweet or heart glyph (`8 replies · 32 reposts · 310 likes`). |
+| The cards | the panel, radius 12, padding 12, gap 8, the author's 40x40 avatar, the name and the handle with its age, the body, the media line and the counts; the palette is `terminal/sky_styles.ts`'s (the sky dark and light themes, not the web app's Mu theme). A click records the card in a signal (the status line names it) and nothing else: there is no thread screen yet. |
+| The avatars | `css.image(path, { width: 40, height: 40 })` — the six committed 64x64 PNGs of `examples/sky/avatars.py` (a disc in the author's hue, transparent outside it, so the panel shows at the box's corners). The path is a literal per author because a css style is evaluated when its module loads: a page cannot build one from a loop variable. This is the first page that uses `css.image` in the Solid path. |
+| Wrapping | new on this page: a body is a `text` with `whiteSpace("normal")` and `lineHeight(20)` inside a stretch box inside a card of percent width, and Clay wraps it. (A clip element lets its children grow past the viewport for their content, so a card that must wrap cannot take its width from a stretch inside the feed: the card is `width("100%")`.) |
+| Scrolling | the wheel moves the feed under the pointer (Clay's own container, 10px a notch, as on the List page); one Tab stop on the feed takes Down/Up 40px, PageDown/PageUp a viewport and Home/End to the ends through `ui_scroll_to` (clamped by `ui.c`). Discover's three short posts fit the 664px viewport, so the wheel frame and the test scroll **Science** (778px of content). |
+
+| Frame | Keys | Shows |
+| --- | --- | --- |
+| `sky` | | Discover: the bar, three cards (Michael, Titania, alexjungle), the status `Discover — 3 posts` |
+| `sky-science` | a click on `(180, 32)` | Science: Erik's four-line body and its link line, David, Jason (cut at the feed's bottom), the ring on the clicked tab |
+| `sky-light` | `THEME=light` | the same Discover feed in the palette's light theme |
+| `sky-scrolled` | the Science click, `--wheel 8 --wheel-over sky-feed` | the Science feed 80px down: Erik's card cut at the top, Jason's at the bottom, the bar and status unmoved |
+
+Checked by `bun solid/sky.test.ts`: `ago()`/`num()`, the bar 64 / feed 664 / status 32 layout with 8px card gaps, the
+avatars' pixels (the panel at the box's corner where the PNG is transparent, the head's tint at the middle, the author's
+exact hue in the disc — `74 132 214` for michaelwarburton, `126 108 200` for erikstrub — and the change of author with
+the tab), the body and media wrapping (Erik's body four 20px lines, Titania's card one media line taller than
+Michael's), hover on a card and a tab, the wheel moving Clay's offset 10px a notch with the bar and status still, the
+keyboard (Down/Up 40, PageDown a viewport, Home/End, all clamped), the feed's focus ring's pixels, the tabs switching the
+feed, News' empty box and its centred muted line, the status naming a clicked card, and the page fitting 360x760.
+
+**Mutations.** Dropping `css.image` from Michael's avatar box (a bare 40x40 box) fails the two disc asserts (the middle
+and the body are the panel `[23,27,32]`, not `[99,178,255]`/`[74,132,214]`). Making the body `nowrap` fails the wrap
+asserts (alexjungle's body 20px, Erik's 60, David's 20) and, because the Science content then shrinks to 678, the scroll
+asserts too (the offset stops at -14). Both files are compared with their backup after the revert.
+
+**What is not here.** No fetching and no paging: one recorded fixture per feed (three posts), News empty as in the app.
+No thread screen, so a card click only selects. No images in post media — the media is a line (`[image]`, `[image: …]`,
+`[video]`, `[link: …]`), as in the terminal. No avatars beyond the six committed PNGs (a real author's avatar is a remote
+file). No scroll momentum and no drag scrolling (the press belongs to the cards). The name and the handle are two lines,
+not the app's one row: the longest pair does not fit the 312px card and Clay has no ellipsis. A media line wraps at
+spaces, but the Science link's unbreakable URL is drawn wider than the card and clipped by the feed at the window's edge
+(Clay breaks only at spaces; a clip box of its own would not wrap the text, and a FIT clip collapses). And the light
+theme is the TUI palette's light one, not the system's.
 
 ## The accessibility tree
 

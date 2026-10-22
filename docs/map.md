@@ -290,6 +290,29 @@ Each step ends in a check that fails when it breaks.
    disclosure, dialog or menu exposes them), live regions, the focus trap in the snapshot (the dialog's Tab cycle is
    `dialog.test.ts`'s, not the tree's), the `tree`/`toolbar`/`tablist` containers unnamed (the page has no caption for
    them), and the List page, which is no headless part and so has no roles at all yet.
+   **Done: the first real app** (`solid/app/Sky.tsx`, `bun solid/main.ts sky`). csssky's home feed at phone size
+   (360x760): the wordmark and the three feeds as a headless tablist, a Clay clip element (664px of the window) that the
+   wheel scrolls and that one Tab stop scrolls with Down/Up 40px, PageDown/PageUp a viewport and Home/End, and six cards
+   from the app's own recorded fixtures — three Discover, three Science, News empty — with the author's name and
+   `@handle · age` (`ago()` pinned to the fixture's capture moment, not the clock), a body (14px/20) that **wraps** (the
+   first page where text does: the body is a stretch text inside the card's percent width, because a clip element lets
+   its children grow past the viewport for their content), the media as the terminal's line, the TUI's sky palette, counts in words
+   (`8 replies · 32 reposts · 310 likes`, `3.5K` from 3,500) because Roboto has no retweet or heart glyph, and a **drawn
+   avatar** per post: `css.image` over the six committed 64x64 PNGs, so the Solid path's image support (`5cf6477`) now
+   carries a real screen. A card hovers to the next panel tone, a click records the selection in a signal (the status
+   line names it; there is no thread screen), and the bar and status line are the feed's siblings, so they do not move.
+   Check: four stored frames (Discover, Science after a click on its tab, the light theme, Science 8 notches down) and
+   `solid/sky.test.ts` (the avatars' pixels — the panel at the box's transparent corner, the author's hue in the disc,
+   michaelwarburton `74 132 214` and erikstrub `126 108 200`, and the change with the tab; Erik's body four 20px lines
+   and the media line that makes Titania's card 18px taller than Michael's; hover on a card and a tab; the wheel's 10px
+   with the bar and status still; the keyboard's 40px a Down, a viewport a Page, and the clamps; the feed's ring pixels;
+   the tabs switching the feed and News' empty centred muted line; the page fitting). Mutations: a bare 40x40 avatar box
+   fails the disc asserts, and a `nowrap` body fails the wrap asserts and (the content then short) the scroll ones. Seen
+   by eye: the four frames, zoomed — the bar's underline, the name and handle, the counts' `·`, the avatar discs. Left:
+   no fetching or paging (three recorded posts per feed), no thread screen, no post images (a media line), no avatars
+   beyond the six committed, no momentum or drag scrolling, the name and handle on two lines because the pair does not
+   fit 312px (Clay has no ellipsis), and an unbreakable URL in a media line drawn to the window's edge (Clay breaks only
+   at spaces, so the Science link runs over the card's gutter before the feed cuts it).
 5. **JSX to C.** The same component evaluated at build time to C calls, for targets with no JS. Check: its render
    commands equal step 4's for the same state.
    **Done: the evaluator** (`generator/page-to-c.ts`, `bun --conditions=development`). It imports `solid/plugin.ts`
