@@ -22,7 +22,7 @@ if [ "$GENERATED" = 1 ]; then
   FLAGS="-DPAGE_STATES -DPAGE_STATE_PREFIX=$NAME"
 fi
 mkdir -p "$OUT"
-node --conditions=development "$ROOT/generator/clay-header.ts" "$EX/styles.ts" "$OUT/styles.h"
+node "$ROOT/generator/clay-header.js" "$EX/styles.ts" "$OUT/styles.h"
 cc -std=c11 -O2 -Wall -Wno-unused-function -Wno-missing-field-initializers -Wno-unused-variable \
   -I "$OUT" -I "$ROOT/vendor/clay" -I "$ROOT/generator" -I "$BREW/include" -I "$BREW/include/thorvg-1" \
   -DFONT_PATH="\"$ROOT/vendor/fonts/Roboto-Regular.ttf\"" $FLAGS \

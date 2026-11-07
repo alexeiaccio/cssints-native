@@ -18,7 +18,7 @@ DEPS="${TMPDIR:-/tmp}/thorvg-deps"
   sh "$ROOT/desktop/build-thorvg-gpu.sh" examples/sensors >/dev/null
 
 mkdir -p "$OUT"
-node --conditions=development "$ROOT/generator/clay-header.ts" "$ROOT/examples/sensors/styles.ts" "$OUT/styles.h"
+node "$ROOT/generator/clay-header.js" "$ROOT/examples/sensors/styles.ts" "$OUT/styles.h"
 cc -std=c11 -O2 -Wall -Wno-unused-function -Wno-unused-variable -Wno-missing-field-initializers \
   -I "$OUT" -I "$ROOT/vendor/clay" -I "$BREW/include" -I "$PREFIX/include/thorvg-1" -I "$DEPS/include" \
   -DFONT_PATH="\"$ROOT/vendor/fonts/Roboto-Regular.ttf\"" \

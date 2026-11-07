@@ -31,7 +31,7 @@ plugin({
       const code = await Bun.file(path).text();
       if (!code.includes("cssints"))
         return { contents: transform(code, { filename: path, moduleName: renderer, generate: "universal" }).code, loader: "ts" };
-      const run = Bun.spawnSync(["node", "--conditions=development", compileTsx, path]);
+      const run = Bun.spawnSync([process.execPath, "--conditions=development", compileTsx, path]);
       if (!run.success) throw new Error(`cssints: ${path}\n${run.stderr}`);
       // `ts`, not `js`: Solid's compiler compiles JSX but leaves the types for the loader to strip
       return { contents: run.stdout.toString(), loader: "ts" };
@@ -39,7 +39,7 @@ plugin({
     // the cssints plugin runs on Vite, which runs on Node here: a `styles.ts` (or `x.styles.ts`) is compiled by a child
     // process. (A Bun onLoad cannot decline a file, so the name says which modules are styles.)
     build.onLoad({ filter: /(^|[/.])styles\.ts$/ }, ({ path }) => {
-      const run = Bun.spawnSync(["node", "--conditions=development", compileStyles, path]);
+      const run = Bun.spawnSync([process.execPath, "--conditions=development", compileStyles, path]);
       if (!run.success) throw new Error(`cssints: ${path}\n${run.stderr}`);
       return { contents: run.stdout.toString(), loader: "js" };
     });

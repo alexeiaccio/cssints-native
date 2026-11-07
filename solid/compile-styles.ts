@@ -1,5 +1,5 @@
 // Node: a module of cssints/clay styles, compiled by the cssints plugin through Vite, printed as plain JS.
-// Run: node --conditions=development solid/compile-styles.ts <styles.ts>   (plugin.ts does it for Bun)
+// Run: bun --conditions=development solid/compile-styles.ts <styles.ts>   (plugin.ts does it for Bun)
 import { basename, dirname, resolve } from "node:path";
 
 import cssints from "cssints/vite";

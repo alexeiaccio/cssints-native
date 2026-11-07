@@ -33,23 +33,14 @@
     "focus/README.md",
     "headless/src",
     "headless/README.md",
-    "solid/src",
-    "solid/app",
-    "solid/native",
-    "solid/stories",
-    "solid/main.ts",
-    "solid/plugin.ts",
-    "solid/watch.ts",
-    "solid/compile-styles.ts",
-    "solid/compile.tsx.ts",
-    "solid/README.md",
     "browser",
     "terminal",
     "vendor",
     "examples",
     "docs",
     "dump-check.ts",
-    "README.md"
+    "README.md",
+    "solid"
   ],
   "peerDependencies": {
     "cssints": "^0.35.0",
@@ -58,7 +49,8 @@
   "dependencies": {
     "@cssints/stories": "^0.35.0",
     "@solidjs/compiler": "2.0.0-rc.21",
-    "@solidjs/universal": "2.0.0-rc.21"
+    "@solidjs/universal": "2.0.0-rc.21",
+    "vite": "^8.3.0"
   },
   "devDependencies": {
     "@quint-machine/core": "0.1.0",

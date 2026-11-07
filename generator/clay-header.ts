@@ -1,5 +1,5 @@
 // styles.ts -> styles.h: a module of cssints/clay styles, compiled by the cssints plugin, printed as C initializers.
-// Run: node --conditions=development generator/clay-header.ts <styles.ts> <styles.h>
+// Run: node generator/clay-header.js <styles.ts> <styles.h>
 import { mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 

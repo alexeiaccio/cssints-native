@@ -62,7 +62,7 @@ if [ "$EX" = solid ]; then
   echo "$OUT/libui.dylib"
   exit 0
 fi
-node --conditions=development "$ROOT/generator/clay-header.ts" "$EX/styles.ts" "$OUT/styles.h"
+node "$ROOT/generator/clay-header.js" "$EX/styles.ts" "$OUT/styles.h"
 cc -std=c11 -O2 -Wall -Wno-unused-function -Wno-missing-field-initializers -Wno-unused-variable \
   -DCLAY_THORVG_WG \
   -I "$OUT" -I "$ROOT/vendor/clay" -I "$BREW/include" -I "$PREFIX/include/thorvg-1" -I "$DEPS/include" \

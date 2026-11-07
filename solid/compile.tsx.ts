@@ -1,6 +1,6 @@
 // Node: a .tsx module compiled for Bun, in two stages: Solid's JSX compiler makes plain JS (types gone, JSX calls),
 // then the cssints Vite plugin compiles the `with { type: "cssints" }` import and the style sites on that JS.
-// Run: node --conditions=development solid/compile.tsx.ts <InlineDemo.tsx>   (plugin.ts does it for Bun)
+// Run: bun --conditions=development solid/compile.tsx.ts <InlineDemo.tsx>   (plugin.ts does it for Bun)
 //
 // Two stages because neither tool can absorb the other: Bun's onLoad cannot run a Vite plugin, and Vite's
 // import-analysis rejects JSX while its esbuild pass would compile JSX with the wrong runtime. So stage 1 here, stage 2
