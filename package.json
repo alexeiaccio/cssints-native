@@ -1,6 +1,6 @@
 {
   "name": "cssints-native",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A native UI framework on cssints styles and Clay: Solid 2 on a desktop GPU through bun:ffi, the same page as C.",
   "license": "MIT",
   "type": "module",
