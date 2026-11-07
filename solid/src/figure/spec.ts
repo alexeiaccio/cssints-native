@@ -19,7 +19,9 @@
 //     or a column heading as it is drawn."), and a tone that is not one of the three;
 //   — `sample`, which is `true` or absent: `true` draws the SAMPLE DATA stamp every layout puts above its title
 //     (`./kinds/shared.ts`'s `finish`);
-//   — `data: "@path"`, a file beside the spec, read and substituted by `parse` before `check` sees it (below).
+//   — `data: "@path"`, a file beside the spec, read and substituted by `parse` before `check` sees it (below);
+//   — `label`: one line of text, non-empty after trim and at most 200 characters, and `lang`: a language tag like
+//     "pt-BR" (letters, digits and `-`, a 2–3 letter first subtag), `en` when absent.
 //
 // A kind's own data rule — the funnel's "a funnel never grows", a branch's `no`, the path's transitions, the tree's one
 // root, a journey's range, the palette's direction, a pair's ratio against its own colours, a scale that grows, an
@@ -124,6 +126,10 @@ interface Base {
   focus?: Focus;
   /** `true` when the data is a sample and not this repository's own: the figure then stamps itself SAMPLE DATA. */
   sample?: true;
+  /** The figure's accessible name for a screen reader: one line, at most 200 characters. Not drawn. */
+  label?: string;
+  /** The document's language tag (`en`, `pt-BR`); `en` when the spec does not say. */
+  lang?: string;
 }
 
 export interface BarChartSpec extends Base {
@@ -1058,6 +1064,31 @@ const widthProblem = (options: unknown): string[] => {
     : [`options.width must be a whole number of cells above zero: it is ${say(width)}.`];
 };
 
+/** The ceiling on a label: one line a screen reader reads before the figure, not a document. */
+const LABEL_MAX = 200;
+/** A language tag: a 2–3 letter primary subtag, then alphanumeric subtags, as BCP 47 writes `pt-BR`. */
+const LANG = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]+)*$/;
+
+/** The label's checks: one line of text, non-empty after trim, at most 200 characters. */
+function labelProblems(label: unknown): string[] {
+  if (label === undefined || label === null) return [];
+  if (typeof label !== "string") return [`A figure's label is one line of text, not ${say(label)}.`];
+  if (!label.trim()) return ["A figure's label is one line of text: it is empty."];
+  if (/[\r\n]/.test(label)) return ["A figure's label is one line of text: it has a newline in it."];
+  const length = [...label].length;
+  return length > LABEL_MAX
+    ? [`A figure's label is one line of text: it is ${length} characters, over the ${LABEL_MAX} a screen reader reads.`]
+    : [];
+}
+
+/** The lang's check: a language tag like `en`, `ru`, `ja` or `pt-BR`; absent is the default, `en`. */
+function langProblems(lang: unknown): string[] {
+  if (lang === undefined || lang === null) return [];
+  return typeof lang === "string" && LANG.test(lang)
+    ? []
+    : [`A figure's lang is a language tag like "pt-BR", not ${say(lang)}.`];
+}
+
 /** The kit's focus checks: `on` is required, a tone is one of three, and every name is drawn. */
 function focusProblems(focus: unknown, names: readonly string[]): string[] {
   if (focus === undefined || focus === null) return [];
@@ -1094,6 +1125,7 @@ export function check(input: unknown): string[] {
   if (hasNumbers(input.data) && !String(input.source ?? "").trim())
     problems.push("These numbers need a source: where did they come from?");
   problems.push(...widthProblem(input.options));
+  problems.push(...labelProblems(input.label), ...langProblems(input.lang));
   problems.push(...checkOf(kind, input.data, input.options));
   // a kind's own names when the data's row labels are not what a focus may point at; its rows otherwise
   const names = namesOf(kind, input.data, input.options) ?? rowsOf(input.data).map((row, i) => labelOf(row, i));

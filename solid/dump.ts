@@ -16,7 +16,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 import type { Drag } from "./app/Widgets.tsx";
-import type { Loader } from "./app/Sky.tsx";
 import type { A11yNode } from "./a11y.ts";
 import type { Motion } from "./src/entry.ts";
 import type { Input } from "./src/input.ts";
@@ -57,6 +56,9 @@ export const PAGES = {
 
 export type PageName = keyof typeof PAGES;
 
+/** A page's loader (the Sky page's `load`): a screen already at hand answers on the frame it is asked. */
+export type Loader = (uri: string) => unknown;
+
 /** The pages, imported once per process (the plugin compiles them on the way in). */
 const apps: Record<string, unknown> = {};
 const EXPORT = {
@@ -74,7 +76,9 @@ async function app(name: PageName): Promise<unknown> {
       import("./app/Sensors.tsx"),
       import("./app/Widgets.tsx"),
       import("./app/List.tsx"),
-      import("./app/Sky.tsx"),
+      // the Sky page is not in this package (it needs the web app's API and thread models), so a tree without it still
+      // dumps the other pages
+      import("./app/Sky.tsx").catch(() => undefined),
       import("./app/Dialog.tsx"),
       import("./app/Sheet.tsx"),
       import("./app/Figure.tsx"),
@@ -82,12 +86,15 @@ async function app(name: PageName): Promise<unknown> {
     apps.Sensors = sensors.Sensors;
     apps.Widgets = widgets.Widgets;
     apps.List = list.List;
-    apps.Sky = sky.Sky;
+    apps.Sky = sky?.Sky;
     apps.Dialog = dialog.Dialog;
     apps.Sheet = sheet.Sheet;
     apps.Figure = figure.Figure;
   }
-  return apps[EXPORT[name]];
+  const page = apps[EXPORT[name]];
+  if (page === undefined)
+    throw new Error(`the ${name} page is not in this package: it needs the web app's sources, which ship elsewhere.`);
+  return page;
 }
 
 // what a second capture in one process needs: ui_init again is a fresh Clay arena and a fresh canvas; the font and the

@@ -194,7 +194,11 @@ export function finish(
   if (focus && focusLine)
     out.push({ items: [textItem("fig-focus", focusLine, w, focus.tone === "plain" ? "ink" : focus.tone)] });
   const numbered = out.map((line, i) => (line.id === undefined ? { ...line, id: `fig-line-${i}` } : line));
-  return { kind, width: w, lines: numbered, bars, labels, boxes, connectors, swatches, pairs, focus };
+  // the two fields a screen reader reads, not a row: the label is the name the title gives when absent, and the page is
+  // English unless the spec says otherwise
+  const label = spec.label ?? spec.title ?? "A figure";
+  const lang = spec.lang ?? "en";
+  return { kind, width: w, lines: numbered, bars, labels, boxes, connectors, swatches, pairs, focus, label, lang };
 }
 
 /** A bar row: the label's cell, the track (with its fill), and the number's cell. */
