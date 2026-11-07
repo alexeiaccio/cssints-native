@@ -13,6 +13,7 @@ import {
 } from "../../headless/src/index.ts";
 import { ui } from "../src/ffi.ts";
 import { a11y } from "../a11y.ts";
+import { pageEntry, type Motion } from "../src/entry.ts";
 import type { Bind, Input } from "../src/input.ts";
 
 const t = css.createTokens({
@@ -138,9 +139,10 @@ function Content(props: { field: TextField; id: string }) {
  * Backspace and Delete are the field's keys. `t` flips the theme only while no field has focus: while one does, a
  * letter is a character, not a shortcut.
  */
-export function Field(props: { input: Input }) {
+export function Field(props: { input: Input; motion?: Motion }) {
   const { input } = props;
   const [count, setCount] = createSignal(0);
+  pageEntry(props.motion);
   const [submitted, setSubmitted] = createSignal<string | null>(null);
 
   const press = createButton({ id: "press", onClick: () => setCount((n) => n + 1) });

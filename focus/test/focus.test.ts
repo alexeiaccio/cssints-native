@@ -182,6 +182,15 @@ test("focusDisabled: disabled members of the group stay focusable and reachable"
   assert.equal(f.focus("b"), false);
 });
 
+test("an id comes back to its order after unregistering and registering again", () => {
+  const f = row(plain);
+  // a subtree that unmounts and remounts (its ids unregister and register again) keeps its place in the document
+  f.unregister("a");
+  f.register("c");
+  f.register("a");
+  assert.deepEqual(f.tabOrder(), ["a", "m1", "b", "c"]);
+});
+
 test("tabIndex below 0 keeps an entry out of the Tab order and the arrows, not out of focus(id)", () => {
   const f = row(plain);
   f.register("m2", { group: "g", tabIndex: -1 });

@@ -38,14 +38,58 @@ export interface View {
   /** The theme of the styles (`"light"`), or none for the base. */
   theme?: string;
   /**
-   * The pointer this frame, once, before the tree is declared: `down` is the button. A page that drags keeps its own
-   * flag (`onPress` sets it, `down` false clears it) and follows x while it holds.
+   * The pointer this frame, once, before the tree is declared: `down` is the button, `touch` says the pointer is a
+   * finger's (a mouse and a finger are one pointer). A page that drags keeps its own flag (`onPress` sets it, `down`
+   * false clears it) and follows x while it holds.
    */
-  onPointer?: (x: number, y: number, down: boolean) => void;
+  onPointer?: (x: number, y: number, down: boolean, touch: boolean) => void;
   /** A press (the button going down) that no element with `onPress` was under: a click on empty space. */
   onPressMiss?: () => void;
+  /** The wheel the host polled since the last frame, before this one: SDL's delta, positive y away from the user. */
+  onWheel?: (dx: number, dy: number) => void;
+  /** Called once a frame with the elapsed seconds, after the frame's events and before the tree is declared: a page's
+   *  motion ticks here, so a headless frame (dt = 1/60) and a window frame (the real dt) take the same path. */
+  tick?: (dt: number) => void;
   /** Each frame pushes its nanoseconds: [events and Solid's flush, the tree declared, layout, draw]. */
   stats?: [number, number, number, number][];
+}
+
+/** A frame: the pointer (x, y, the button, and whether it is a finger's), the elapsed seconds, whether to draw, and the
+ *  touch flag again for the page (the drawer passes it through). */
+export type Frame = (
+  px: number,
+  py: number,
+  down: boolean,
+  dt: number,
+  render?: boolean,
+  touch?: boolean,
+) => number;
+
+/**
+ * A frame loop's draw decision. The frame is declared and laid out every iteration — that is what a page's tick reads
+ * and writes, and it catches a timer or a track — but `ui_draw` runs only when the packed frame changed (`ui_hash`)
+ * or the iteration carried a discrete input (a key, typed text, a press or release, a wheel): at rest it draws and
+ * presents nothing, so a static page costs a layout and no pixels. A pointer move is not by itself an input here: it
+ * draws through the hash when it changes a hover, and not at all once the hover has settled. Returns whether it drew.
+ *
+ * `stats` is the view's own (`View.stats`): the draw is this loop's, not `frame`'s, so its time is written into the last
+ * frame's entry — a panel that reads the phases then has a draw to show.
+ */
+export function createDrawer(frame: Frame, stats?: View["stats"]) {
+  let last: bigint | undefined;
+  return (px: number, py: number, down: boolean, dt: number, discrete = false, touch = false): boolean => {
+    frame(px, py, down, dt, false, touch);
+    const hash = ui.hash();
+    const draw = discrete || hash !== last;
+    last = hash;
+    if (draw) {
+      const t = Bun.nanoseconds();
+      ui.draw();
+      const entry = stats?.[stats.length - 1];
+      if (entry) entry[3] = Bun.nanoseconds() - t;
+    }
+    return draw;
+  };
 }
 
 /**
@@ -66,7 +110,9 @@ export function createFrame(root: El, view: View = {}) {
   function emit(el: El, down: boolean) {
     const style = el.props.style;
     if (el.tag === "text") {
-      ui.text(bytesOf(el), (style && variant(style, view.theme).text) || WHITE_14);
+      // a text with an id can have its colour moved (the value channel's fields 51..54), so the id goes in with it
+      const tid = el.props.id ? idBytes(el.props.id) : undefined;
+      ui.text(tid, bytesOf(el), (style && variant(style, view.theme).text) || WHITE_14);
       return;
     }
     const id = el.props.id ? idBytes(el.props.id) : undefined;
@@ -79,6 +125,15 @@ export function createFrame(root: El, view: View = {}) {
     const v = style ? variant(style, view.theme, states) : undefined;
     // an image's path goes in before its element: Clay's image config is a pointer, not a float field
     if (v?.image) ui.image(pathBytes(v.image));
+    // ... and so does a shadow: no Clay field holds one, so it rides the renderer's table by the element's id
+    const shadow = v?.shadow;
+    if (shadow)
+      ui.shadow(shadow.x, shadow.y, shadow.blur, shadow.color.r, shadow.color.g, shadow.color.b, shadow.color.a);
+    // a backdrop too: the renderer blurs the pixels under the element, before the element's own commands
+    if (v?.backdrop) ui.backdrop(v.backdrop.blur);
+    // a gradient is a fill, not an effect: it lands in the element's first rectangle, over the shadow and any blurred page
+    const gradient = v?.backgroundImage;
+    if (gradient) ui.backgroundImage(gradient.kind, gradient.angle, gradient.count, gradient.stops);
     ui.open(id, v?.box || NO_STYLE);
     for (const c of el.children) if (c instanceof El) emit(c, down);
     ui.close();
@@ -100,11 +155,12 @@ export function createFrame(root: El, view: View = {}) {
   }
 
   /** Returns the number of render commands. `render: false` stops after the layout. */
-  return (px: number, py: number, down: boolean, dt: number, render = true): number => {
+  return (px: number, py: number, down: boolean, dt: number, render = true, touch = false): number => {
     const t0 = Bun.nanoseconds();
     ui.begin(px, py, down ? 1 : 0, dt);
     events(down, px, py);
-    view.onPointer?.(px, py, down);
+    view.onPointer?.(px, py, down, touch);
+    view.tick?.(dt);
     flush();
     const t1 = Bun.nanoseconds();
     seen = [];

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="552" height="96" viewBox="0 0 552 96" role="img" aria-label="One declaration, three targets">
+<title>One declaration, three targets</title>
+<desc>The pipeline this repository actually has, from a page&apos;s declaration to the pixels, the cells or the canvas. — native/docs/map.md, the contract</desc>
+<rect class="fig-page" x="0" y="0" width="552" height="96" fill="#101316"/>
+<text id="fig-sample" class="fig-text fig-muted" x="16" y="28" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">+========================= SAMPLE DATA =========================+</text>
+<text id="fig-title" class="fig-text fig-ink fig-title" x="16" y="46" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="16" fill="#e6e9ec" xml:space="preserve">One declaration, three targets</text>
+<rect id="fig-box-0" class="fig-box fig-box--step" x="16" y="48" width="104" height="16" fill="#1b2026"/>
+<text id="fig-box-text-0" class="fig-text fig-ink" x="24" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">declaration</text>
+<text id="fig-arrow-0" class="fig-text fig-muted" x="120" y="60" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve"> ► </text>
+<rect id="fig-box-1" class="fig-box fig-box--step" x="144" y="48" width="48" height="16" fill="#1b2026"/>
+<text id="fig-box-text-1" class="fig-text fig-ink" x="152" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">Clay</text>
+<text id="fig-arrow-1" class="fig-text fig-muted" x="192" y="60" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve"> ► </text>
+<rect id="fig-box-2" class="fig-box fig-box--step" x="216" y="48" width="80" height="16" fill="#1b2026"/>
+<text id="fig-box-text-2" class="fig-text fig-ink" x="224" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">commands</text>
+<text id="fig-arrow-2" class="fig-text fig-muted" x="296" y="60" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve"> ► </text>
+<rect id="fig-box-3" class="fig-box fig-box--step" x="320" y="48" width="216" height="16" fill="#1b2026"/>
+<text id="fig-box-text-3" class="fig-text fig-ink" x="328" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">ThorVG / cells / Canvas2D</text>
+<text id="fig-source" class="fig-text fig-muted" x="16" y="76" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">native/docs/map.md, the contract</text>
+</svg>

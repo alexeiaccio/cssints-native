@@ -5,14 +5,24 @@
 //   host --png out.png      one frame headless (the software renderer on a surface), written to out.png
 //   host --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                           ref.png.actual.png on a difference
+//   host --dump out.json    the same frame as JSON (desktop/clay_dump.c, the one emitter on every target): the commands
+//                           with their fields and the host's effect tables (this host has none: an empty table each).
+//                           It is the C page's command stream for a golden; the layout is the raster's own, so dump a
+//                           ThorVG frame to compare with a Solid golden
 //   --click X Y             headless: a press and a release at X,Y before the frame that is written
 //   --press X Y             headless: a press at X,Y held down, the frame written while still pressed
+//   --scene file.json       headless: replay a scene (desktop/scene.c: the JSON of solid/scenes/*.json, pointer/settle/
+//                           frame steps) and write or compare its last frame
 //   --raster thorvg|thorvg-gpu|sdl
 //                           clay_renderer_thorvg.c into a buffer that is the frame headless and a texture in the
 //                           window (the default), the same scene on ThorVG's WebGPU canvas read back into that
 //                           buffer (only a build with CLAY_THORVG_WG, desktop/build-thorvg-gpu.sh), or Clay's
 //                           SDL3 renderer
 //   --bench N               headless: draw the last frame N more times and print the raster's ms a frame
+//
+// Built with PAGE_STATES (`desktop/build.sh examples/sensors --generated`), the page is a generated state machine: the
+// host keeps the current state, asks `<prefix>_next` on each press and release over an element with a handler, and
+// draws `<prefix>_frame(state, light)`. Without it the page keeps its own signals, as page.c does.
 #define CLAY_IMPLEMENTATION
 #include "clay.h"
 
@@ -23,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "clay_dump.c"
 #include "clay_renderer_SDL3.c"
 #include "clay_renderer_thorvg.c"
 
@@ -38,7 +49,30 @@ typedef struct { int unused; } Clay_WgTarget; // --raster thorvg-gpu: only the W
 #endif
 
 void app_frame(bool down);
+#ifdef PAGE_STATES
+// page_generated_events.c: the page as a state machine (generator/page-to-c.ts), named by its --events-name
+#include "events.h"
+#include "scene.h"
+#include "scene.c"
+#define PAGE_NAME2(a, b) a##b
+#define PAGE_NAME(a, b) PAGE_NAME2(a, b)
+#define PAGE_STATE(name) PAGE_NAME(PAGE_STATE_PREFIX, name)
+int PAGE_STATE(_state_count)(void);
+int PAGE_STATE(_next)(int state, uint32_t id, int event);
+int PAGE_STATE(_handler_count)(void);
+uint32_t PAGE_STATE(_handler_id)(int index);
+const char *PAGE_STATE(_state_name)(int state);
+void PAGE_STATE(_frame)(int state, int light);
+#ifndef PAGE_NAME_STRING
+#define PAGE_STRINGIFY2(x) #x
+#define PAGE_STRINGIFY(x) PAGE_STRINGIFY2(x)
+#define PAGE_NAME_STRING PAGE_STRINGIFY(PAGE_STATE_PREFIX)
+#endif
+static int page_state, page_rest, page_light, page_was_down;
+static uint32_t page_pressed;
+#else
 void app_key(int key); // a key press in the window: the SDL keycode (a letter is its ASCII code)
+#endif
 
 static Clay_Dimensions measure(Clay_StringSlice text, Clay_TextElementConfig *config, void *user)
 {
@@ -94,9 +128,154 @@ static void draw(bool thorvg, Clay_WgTarget *wg, Clay_ThorVGRendererData *tvg, U
     SDL_Clay_RenderClayCommands(sdl, cmds);
 }
 
+/** The frame as JSON at `path`, through desktop/clay_dump.c (the schema is there). The C page has no shadows, backdrops,
+ *  gradients or groups, so those tables are empty; it keeps no id strings either, so a command's `element` is null and a
+ *  differ resolves it by id from the golden of the same page. 0 on success. */
+static int write_dump(const char *path, Clay_RenderCommandArray cmds, Clay_ThorVGRendererData *tvg)
+{
+    const ClayDumpFrame frame = {.commands = cmds,
+                                 .width = APP_W,
+                                 .height = APP_H,
+                                 .scale = tvg->scale,
+                                 .hash = 0, // the frame's hash is the Solid host's (ui_hash)
+                                 .textWeight = tvg->textWeight};
+    const ClayDump dump = Clay_DumpFrame(&frame);
+    if (!dump.bytes) return -1;
+    FILE *f = fopen(path, "wb");
+    if (!f) {
+        Clay_DumpFree(dump);
+        return -1;
+    }
+    const int wrote = fwrite(dump.bytes, 1, (size_t)dump.length, f) == (size_t)dump.length;
+    Clay_DumpFree(dump);
+    return fclose(f) == 0 && wrote ? 0 : -1;
+}
+
+/** The last frame: written, dumped and/or compared. Returns the process's status. */
+static int finish(SDL_Surface *got, const char *png, const char *expect, const char *dump, Clay_RenderCommandArray cmds,
+                  Clay_ThorVGRendererData *tvg)
+{
+    int status = errors ? 1 : 0;
+    if (png) IMG_SavePNG(got, png);
+    if (dump && write_dump(dump, cmds, tvg)) {
+        fprintf(stderr, "%s: cannot write the frame\n", dump);
+        status = 1;
+    }
+    if (expect) {
+        SDL_Surface *ref0 = IMG_Load(expect);
+        SDL_Surface *ref = ref0 ? SDL_ConvertSurface(ref0, SDL_PIXELFORMAT_RGBA32) : NULL;
+        const long n = ref ? differ(got, ref) : -1;
+        if (n) {
+            char out[1024];
+            snprintf(out, sizeof out, "%s.actual.png", expect);
+            IMG_SavePNG(got, out);
+            fprintf(stderr, "%s: %ld pixels differ (-1: missing or another size); this frame is %s\n", expect, n, out);
+            status = 1;
+        } else {
+            printf("%s: identical, %d commands\n", expect, cmds.length);
+        }
+    }
+    return status;
+}
+
+#ifdef PAGE_STATES
+/** The element with a handler under the pointer: Clay's pointerOverIds are the last layout's, as page.c's own
+ *  Clay_PointerOver is. 0 for none. */
+static uint32_t page_hit(void)
+{
+    for (int i = 0; i < PAGE_STATE(_handler_count)(); i++) {
+        const uint32_t id = PAGE_STATE(_handler_id)(i);
+        if (id && Clay_PointerOver((Clay_ElementId){.id = id})) return id;
+    }
+    return 0;
+}
+
+/**
+ * The two edges of a click: a press over an element with a handler asks the table for the state its :active draws, a
+ * release over the element the press was on asks for the state its onClick leads to (with :hover), and a release
+ * anywhere else puts the state back where the press found it. Clay is asked about the *last* frame's boxes, as page.c's
+ * Clay_OnHover is.
+ */
+static void page_dispatch(int down)
+{
+    if (down && !page_was_down) {
+        page_rest = page_state;
+        const uint32_t id = page_hit();
+        if (id) {
+            page_pressed = id;
+            page_state = PAGE_STATE(_next)(page_state, id, CLAY_EVENT_PRESS);
+        }
+    } else if (!down && page_was_down && page_pressed) {
+        const uint32_t id = page_pressed;
+        page_pressed = 0;
+        page_state = Clay_PointerOver((Clay_ElementId){.id = id})
+                         ? PAGE_STATE(_next)(page_state, id, CLAY_EVENT_RELEASE)
+                         : page_rest;
+    }
+    page_was_down = down;
+}
+
+/** What the scene replay draws through: the host's renderer locals, one struct. */
+typedef struct {
+    bool thorvg;
+    Clay_WgTarget *wg;
+    Clay_ThorVGRendererData *tvg;
+    Uint32 *pixels;
+    int n;
+    Clay_SDL3RendererData *sdl;
+    SDL_Renderer *renderer;
+    int tw, th;
+} Target;
+
+/** A scene replayed on the generated page: every frame laid out and drawn, the last one written, dumped or compared. */
+static int run_scene(const Scene *scene, Target t, const char *png, const char *expect, const char *dump)
+{
+    if (strcmp(scene->page, PAGE_NAME_STRING)) {
+        fprintf(stderr, "scene %s: page \"%s\" is not this build's \"%s\"\n", scene->name, scene->page,
+                PAGE_NAME_STRING);
+        return 2;
+    }
+    if (scene->width != APP_W || scene->height != APP_H) {
+        fprintf(stderr, "scene %s: size %dx%d is not this page's %dx%d\n", scene->name, scene->width, scene->height,
+                APP_W, APP_H);
+        return 2;
+    }
+    page_light = scene->light;
+    page_state = 0, page_rest = 0, page_pressed = 0, page_was_down = 0;
+    float px = -1, py = -1;
+    int down = 0;
+    int frames = 1;
+    for (int i = 0; i < scene->count; i++) {
+        const SceneStep *step = &scene->steps[i];
+        const int last = step->kind == SCENE_SETTLE ? step->frame + step->frames : step->frame + 1;
+        if (last > frames) frames = last;
+    }
+    int at = 0;
+    Clay_RenderCommandArray cmds = {0, 0};
+    for (int f = 0; f < frames; f++) {
+        while (at < scene->count && scene->steps[at].frame <= f) {
+            const SceneStep *step = &scene->steps[at++];
+            if (step->kind == SCENE_POINTER) px = step->x, py = step->y, down = step->down;
+        }
+        Clay_SetPointerState((Clay_Vector2){px, py}, down);
+        page_dispatch(down);
+        Clay_SetLayoutDimensions((Clay_Dimensions){APP_W, APP_H});
+        Clay_BeginLayout();
+        PAGE_STATE(_frame)(page_state, page_light);
+        cmds = Clay_EndLayout(1.0f / 60.0f);
+        draw(t.thorvg, t.wg, t.tvg, t.pixels, t.n, t.sdl, &cmds);
+    }
+    printf("scene %s: page %s, %d steps, %d frames, ending state %d \"%s\"\n", scene->name, scene->page, scene->count,
+           frames, page_state, PAGE_STATE(_state_name)(page_state));
+    SDL_Surface *got = t.thorvg ? SDL_CreateSurfaceFrom(t.tw, t.th, SDL_PIXELFORMAT_RGBA32, t.pixels, t.tw * 4)
+                                : frame_pixels(t.renderer);
+    return finish(got, png, expect, dump, cmds, t.tvg);
+}
+#endif
+
 int main(int argc, char **argv)
 {
-    const char *png = NULL, *expect = NULL, *raster = "thorvg";
+    const char *png = NULL, *expect = NULL, *dump = NULL, *raster = "thorvg", *scene = NULL;
     int bench = 0;
     float click_x = -1, click_y = -1;
     bool hold = false;
@@ -108,8 +287,10 @@ int main(int argc, char **argv)
         }
         if (!strcmp(argv[i], "--png")) png = argv[++i];
         else if (!strcmp(argv[i], "--expect")) expect = argv[++i];
+        else if (!strcmp(argv[i], "--dump")) dump = argv[++i];
         else if (!strcmp(argv[i], "--raster")) raster = argv[++i];
         else if (!strcmp(argv[i], "--bench")) bench = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--scene")) scene = argv[++i];
     }
     const bool gpu = !strcmp(raster, "thorvg-gpu");
     const bool thorvg = gpu || !strcmp(raster, "thorvg");
@@ -117,7 +298,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "--raster %s: sdl, thorvg or thorvg-gpu\n", raster);
         return 2;
     }
-    const bool headless = png || expect;
+    const bool headless = png || expect || dump || scene;
     if (!SDL_Init(SDL_INIT_VIDEO) || !TTF_Init()) {
         fprintf(stderr, "init: %s\n", SDL_GetError());
         return 1;
@@ -189,6 +370,33 @@ int main(int argc, char **argv)
 
     if (window) printf("renderer: %s, raster: %s\n", SDL_GetRendererName(renderer), raster);
 
+#ifdef PAGE_STATES
+    // a scene: no window, no clock — every step at its frame, and the last frame written, dumped or compared
+    if (scene) {
+        Scene replay;
+        char err[512];
+        if (scene_read(scene, &replay, err, sizeof err)) {
+            fprintf(stderr, "%s\n", err);
+            return 1;
+        }
+        const Target target = {.thorvg = thorvg,
+                               .wg = wg_target,
+                               .tvg = &tvg,
+                               .pixels = tvg_pixels,
+                               .n = tw * th,
+                               .sdl = &data,
+                               .renderer = renderer,
+                               .tw = tw,
+                               .th = th};
+        return run_scene(&replay, target, png, expect, dump);
+    }
+#else
+    if (scene) {
+        fprintf(stderr, "--scene needs a generated state machine: desktop/build.sh <example> --generated\n");
+        return 2;
+    }
+#endif
+
     bool running = true, down = false;
     float px = -1, py = -1;
     int frame = 0;
@@ -197,7 +405,13 @@ int main(int argc, char **argv)
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT) running = false;
-            if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat) app_key((int)e.key.key);
+            if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat) {
+#ifdef PAGE_STATES
+                if (e.key.key == 't') page_light = !page_light;
+#else
+                app_key((int)e.key.key);
+#endif
+            }
             if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                 e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
                 SDL_ConvertEventToRenderCoordinates(renderer, &e);
@@ -215,9 +429,20 @@ int main(int argc, char **argv)
         const float dt = (now - last) / 1000.0f;
         last = now;
 
+#ifdef PAGE_STATES
+        // the table's edge, after Clay's hit test of this position against the last frame's boxes (as page.c's
+        // Clay_OnHover is) and before the frame it changes
+#endif
         Clay_SetPointerState((Clay_Vector2){px, py}, down);
+#ifdef PAGE_STATES
+        page_dispatch(down ? 1 : 0);
+#endif
         Clay_BeginLayout();
+#ifdef PAGE_STATES
+        PAGE_STATE(_frame)(page_state, page_light);
+#else
         app_frame(down);
+#endif
         Clay_RenderCommandArray cmds = Clay_EndLayout(dt);
 
         draw(thorvg, wg_target, &tvg, tvg_pixels, tw * th, &data, &cmds);
@@ -241,24 +466,7 @@ int main(int argc, char **argv)
         if (headless) {
             SDL_Surface *got = thorvg ? SDL_CreateSurfaceFrom(tw, th, SDL_PIXELFORMAT_RGBA32, tvg_pixels, tw * 4)
                                       : frame_pixels(renderer);
-            int status = errors ? 1 : 0;
-            if (png) IMG_SavePNG(got, png);
-            if (expect) {
-                SDL_Surface *ref0 = IMG_Load(expect);
-                SDL_Surface *ref = ref0 ? SDL_ConvertSurface(ref0, SDL_PIXELFORMAT_RGBA32) : NULL;
-                const long n = ref ? differ(got, ref) : -1;
-                if (n) {
-                    char out[1024];
-                    snprintf(out, sizeof out, "%s.actual.png", expect);
-                    IMG_SavePNG(got, out);
-                    fprintf(stderr, "%s: %ld pixels differ (-1: missing or another size); this frame is %s\n",
-                            expect, n, out);
-                    status = 1;
-                } else {
-                    printf("%s: identical, %d commands\n", expect, cmds.length);
-                }
-            }
-            return status;
+            return finish(got, png, expect, dump, cmds, &tvg);
         }
         SDL_RenderPresent(renderer);
         SDL_Delay(16);

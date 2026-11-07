@@ -6,9 +6,10 @@
 //   dump      the grid as plain text (headless; see cells_dump: '.' is a fill)
 //
 //   demo                            the Sensors page in the terminal, on termbox2; q or Ctrl-C quits
-//   demo --page sky                 apps/csssky-tui's screens (terminal/sky.c, thread.c, profile.c): the feed, and the
-//                                   thread or the profile it opens; Tab/arrows move the focus, enter opens, esc back
-//   demo --page thread|profile      one of those two screens as the bottom of the stack (a snapshot's entry point)
+//   demo --page sky                 apps/csssky-tui's screens (terminal/sky.c, thread.c, profile.c, notify.c): the feed,
+//                                   and the thread, the profile or the notifications it opens; Tab/arrows move the focus,
+//                                   enter opens, esc back
+//   demo --page thread|profile|notifications  one of those screens as the bottom of the stack (a snapshot's entry point)
 //   demo --dump out.txt             one frame headless, written as plain text
 //   demo --ansi out.ansi            the same frame as ANSI (the escapes a terminal gets)
 //   demo --keys Tab,ArrowDown       headless: a frame, then each key with a frame after it (as solid/main.ts)
@@ -154,13 +155,16 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--backend")) backend = argv[++i];
         else if (!strcmp(argv[i], "--page")) {
             const char *name = argv[++i];
-            const Page *root = !strcmp(name, "thread") ? &THREAD_PAGE : !strcmp(name, "profile") ? &PROFILE_PAGE : &SKY_PAGE;
+            const Page *root = !strcmp(name, "thread")          ? &THREAD_PAGE
+                               : !strcmp(name, "profile")       ? &PROFILE_PAGE
+                               : !strcmp(name, "notifications") ? &NOTIFY_PAGE
+                                                                : &SKY_PAGE;
             if (!strcmp(name, "sensors")) page = &SENSORS_PAGE;
-            else if (root == &THREAD_PAGE || root == &PROFILE_PAGE || !strcmp(name, "sky")) {
+            else if (root == &THREAD_PAGE || root == &PROFILE_PAGE || root == &NOTIFY_PAGE || !strcmp(name, "sky")) {
                 shell_reset(root);
                 page = &SHELL_PAGE;
             } else {
-                fprintf(stderr, "unknown page %s (sensors, sky, thread, profile)\n", name);
+                fprintf(stderr, "unknown page %s (sensors, sky, thread, profile, notifications)\n", name);
                 return 2;
             }
         }

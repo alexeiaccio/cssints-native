@@ -6,14 +6,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "bun test --conditions browser",
-    "typecheck": "tsc -p tsconfig.json"
+    "test:native": "bun test --conditions browser",
+    "typecheck:native": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "effect": "4.0.0",
-    "solid-js": "2.0.0-rc.13"
+    "@quint-machine/core": "0.1.0",
+    "effect": "4.0.6",
+    "solid-js": "2.0.0-rc.21"
   },
   "devDependencies": {
+    "@cssints/apg-specs": "workspace:*",
     "@types/bun": "^1.4.3",
     "typescript": "^7.0.2"
   }

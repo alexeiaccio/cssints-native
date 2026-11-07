@@ -1,0 +1,4 @@
+{
+  "menu": [{ "click": "zoom-trigger" }],
+  "dialog": [{ "click": "settings-trigger" }]
+}

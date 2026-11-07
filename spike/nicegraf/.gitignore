@@ -1,0 +1,5 @@
+# the fetched library (a shallow clone, made by build.sh) and what building it makes; run.sh regenerates all of it
+nicegraf/
+build-ngf/
+build-config.log
+out/

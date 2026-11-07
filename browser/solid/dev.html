@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- The Dev page in the browser: the desktop's Solid 2 renderer, src/frame.ts and app/Dev.tsx (the Widgets page in a
+     360px column and a 300px panel beside it), bundled by `bun browser/solid/build.ts`; Clay runs in ui.wasm
+     (browser/ui.c) through browser/solid/ffi-browser.ts and the frame is drawn by browser/draw.js. The panel prints the
+     page's a11y tree, the box under the pointer and the frame's phases and counters when the page changes — so it is the
+     page to watch a frame in. Serve the repo root over HTTP (a browser refuses to fetch a .wasm from file://), click the
+     frame so it has the focus, then Tab, Space, the arrows and the pointer over the page's boxes; Tab also reaches the
+     panel's own three stops after the page's. -->
+<meta charset="utf-8">
+<title>cssints-native, Dev, Solid in the browser</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  canvas { width: 660px; height: 760px; display: block; cursor: default; outline: none; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+</style>
+<canvas id="frame" width="660" height="760" tabindex="0" aria-label="The Dev page: the Widgets page and its panel, over Clay, drawn from Clay's commands"></canvas>
+<div class="bar">
+  <span>click the frame, then the pointer over the page: the panel prints the tree, the hovered box and the frame</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="dev.js"></script>

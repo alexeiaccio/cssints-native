@@ -3,12 +3,12 @@ import {
   disclosureConfig,
   disclosureProbe,
   disclosureSteps,
-} from '../vendor/specs/src/apg/disclosure.bridge';
-import apg from '../vendor/specs/scenarios/apg/disclosure.apg.json';
-import ariakit from '../vendor/specs/scenarios/apg/disclosure.ariakit.json';
-import baseUi from '../vendor/specs/scenarios/apg/disclosure.base-ui.json';
-import definition from '../vendor/specs/src/apg/disclosure.model.generated.json';
-import reactAria from '../vendor/specs/scenarios/apg/disclosure.react-aria.json';
+} from '@cssints/apg-specs/apg/disclosure.bridge';
+import apg from '@cssints/apg-specs/scenarios/apg/disclosure.apg.json';
+import ariakit from '@cssints/apg-specs/scenarios/apg/disclosure.ariakit.json';
+import baseUi from '@cssints/apg-specs/scenarios/apg/disclosure.base-ui.json';
+import definition from '@cssints/apg-specs/apg/disclosure.model.json';
+import reactAria from '@cssints/apg-specs/scenarios/apg/disclosure.react-aria.json';
 import { conformance } from './conformance';
 import { mountDisclosure } from './mounts';
 

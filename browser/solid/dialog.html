@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- The Dialog page in the browser: the desktop's Solid 2 renderer, src/frame.ts and app/Dialog.tsx, bundled by
+     `bun browser/solid/build.ts`; Clay runs in ui.wasm (browser/ui.c) through browser/solid/ffi-browser.ts and the frame —
+     its commands and the effects beside them (the panel's shadow, the groups, the menu's backdrop) — is drawn by
+     browser/draw.js. The two overlays are Clay root floats, and the menu is a float off its trigger. Serve the repo root
+     over HTTP (a browser refuses to fetch a .wasm from file://), click the frame so it has the focus, then Tab to the
+     Open settings button and Enter: Tab cycles the dialog's Cancel and OK, Escape closes it. Tab twice from the page's
+     top and Enter opens the menu, whose panel is glass over the page: Escape closes it. -->
+<meta charset="utf-8">
+<title>cssints-native, Dialog, Solid in the browser</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  canvas { width: 360px; height: 480px; display: block; cursor: default; outline: none; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+</style>
+<canvas id="frame" width="360" height="480" tabindex="0" aria-label="The Dialog page: Solid over Clay, its modal and its glass menu drawn from Clay's commands and the renderer's tables"></canvas>
+<div class="bar">
+  <span>click the frame, then Tab, Enter: the modal; Tab Tab Enter: the glass menu; Escape closes</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="dialog.js"></script>

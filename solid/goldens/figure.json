@@ -1,0 +1,27 @@
+{
+  "a11y": {
+    "children": [],
+    "role": "document",
+    "states": {}
+  },
+  "commands": [
+    { "box": [0, 0, 400, 112], "color": [16, 19, 22, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [16, 16, 126.203125, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 742889473, "letterSpacing": 0, "lineHeight": 16, "size": 16, "text": "A frame, by target", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 32, 46.4648438, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 296316848, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "desktop", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [88, 32, 192, 16], "color": [45, 51, 61, 255], "element": "fig-track-0", "id": 615539687, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [88, 32, 192, 16], "color": [59, 156, 240, 255], "element": "fig-fill-0", "id": 2285240037, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [280, 32, 46.6362305, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 2027140063, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "0.30 ms", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 48, 47.4804688, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 3199350648, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "terminal", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [88, 48, 192, 16], "color": [45, 51, 61, 255], "element": "fig-track-1", "id": 2338992477, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [88, 48, 48, 16], "color": [59, 156, 240, 255], "element": "fig-fill-1", "id": 1979210346, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [280, 48, 53.9360352, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 4126839568, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "0.077 ms", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 64, 46.8647461, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 755720958, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "browser", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [88, 64, 192, 16], "color": [45, 51, 61, 255], "element": "fig-track-2", "id": 3048605172, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [88, 64, 48, 16], "color": [59, 156, 240, 255], "element": "fig-fill-2", "id": 1660892224, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [280, 64, 46.6362305, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 2630587992, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "0.08 ms", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 80, 259.998047, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3732032235, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "native/README.md --bench: 0.30, 0.077, 0.08 ms", "type": "text", "wrap": "none", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 },
+  "scale": 1,
+  "size": [400, 112]
+}

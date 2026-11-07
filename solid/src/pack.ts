@@ -1,7 +1,7 @@
 // A cssints/clay style (a ClayShape literal) as what ui.c takes: a theme and a state picked, then the fields packed
 // into a Float32Array in a fixed order. The picking is what header() does for C (`<name>_<theme>`, `<name>_active`),
 // done at run time; a variant is packed once and kept.
-import type { ClayShape } from "cssints/clay";
+import type { Backdrop, BackgroundImage, ClayShape, Shadow } from "cssints/clay";
 
 type Shape = Record<string, any>;
 
@@ -9,6 +9,48 @@ type Shape = Record<string, any>;
 export const STYLE_FIELDS = 45;
 /** The fields of a text, by index (ui.c's ui_text). */
 export const TEXT_FIELDS = 10;
+
+/**
+ * The fields a page may animate through the value channel (`ui.value`, `ui_open`'s copy of the packed floats), named.
+ * The rest of the 45 are in solid/README.md's table; only these are worth a name, and one of them is not a float at all:
+ * `SHADOW_BLUR` is `ui_shadow`'s argument, the blur of the element's shadow (45, one past the packed array).
+ *
+ * A page writes these from its `View.tick` (before the tree is declared) for the element's `id`. What reads as motion:
+ * `OFFSET_X`/`OFFSET_Y` of a float and `SHADOW_BLUR` (a renderer effect, no layout); `EXPAND_W`/`EXPAND_H` and
+ * `Z_INDEX` too. `WIDTH`/`HEIGHT`, `PADDING`, `GAP` and the colours are legal but move Clay's layout: a field that
+ * changes a box's size re-lays-out its parent and its siblings each frame, so animate a transform-like field, not a size.
+ * `ALPHA` and `SCALE` are the renderer's group of the element's whole subtree (one scene: a text over its own fill fades
+ * as a group, and a scale moves nothing in the layout), and so are `TRANSLATE_X`/`TRANSLATE_Y`: a visual offset of the
+ * subtree, which is how a card arrives without moving the layout it sits in.
+ */
+export const FIELDS = {
+  WIDTH: 0, // 0-2: type, min or percent, max
+  HEIGHT: 3, // 3-5
+  PADDING: 6, // 6-9: left, right, top, bottom
+  GAP: 10,
+  BACKGROUND: 14, // 14-17: r, g, b, a
+  BACKGROUND_ALPHA: 17, // the fourth of the background: the dim of a backdrop
+  RADIUS: 18, // 18-21: top-left, top-right, bottom-right, bottom-left
+  BORDER: 26, // 26-29: r, g, b, a of a border: a tab's 2px underline
+  BORDER_ALPHA: 29, // the fourth of the border colour: an underline fading in or out
+  OFFSET_X: 38, // a float's offset, the field a slide animates
+  OFFSET_Y: 39,
+  EXPAND_W: 40, // 40-41: a float's expand
+  EXPAND_H: 41,
+  Z_INDEX: 42,
+  CAPTURE: 43, // a float's pointer capture: 0 captures the press, 1 lets it through to the page under it
+  SHADOW_BLUR: 45, // ui_shadow's blur, not one of the 45: ui.c's FIELD_SHADOW_BLUR
+  ALPHA: 46, // the element's whole subtree composited at this opacity (0..255): ui.c's FIELD_ALPHA
+  SCALE: 47, // ... and scaled about its box centre (1 = none): ui.c's FIELD_SCALE, a renderer transform
+  TRANSLATE_X: 48, // ... and moved by this many px (0 = none): ui.c's FIELD_TRANSLATE_X, a renderer transform
+  TRANSLATE_Y: 49, // its y, as an entry's 12px drop or a card's arrival: ui.c's FIELD_TRANSLATE_Y
+  GRADIENT_ALPHA: 50, // the opacity of the element's background image (a gradient): ui.c's FIELD_GRADIENT_ALPHA
+  // a text's own colour (its packed fields 0..3), which its parent's box does not hold: `ui.value` on the id of a
+  // `<text id="...">`, read by `ui_text`. A text without an id cannot be named, so its colour is its style's literal:
+  TEXT_COLOR: 51, // 51-54: r, g, b, a; ui.c's FIELD_TEXT_COLOR_R/G/B/A
+  TEXT_COLOR_ALPHA: 54,
+  ROTATE: 55, // degrees, about the element's box centre, beside its group's scale and translate: ui.c's FIELD_ROTATE
+} as const;
 
 const SIZING = { FIT: 0, GROW: 1, PERCENT: 2, FIXED: 3 } as const;
 const ALIGN_X = { LEFT: 0, CENTER: 1, RIGHT: 2 } as const;
@@ -31,8 +73,13 @@ const ATTACH_POINT = {
 const CAPTURE = { CAPTURE: 0, PASSTHROUGH: 1 } as const;
 const CLIP = { NONE: 0, ATTACHED_PARENT: 1 } as const;
 
-// the same merge as header(): a colour or a sizing axis is replaced whole, anything else field by field
-const isLeaf = (v: unknown) => typeof v !== "object" || Object.hasOwn(v as object, "r") || Object.hasOwn(v as object, "type");
+// the same merge as header(): a colour or a sizing axis is replaced whole, anything else field by field. An array (a
+// gradient's stops) is a leaf, as it is there: merging one field by field would make an object of it.
+const isLeaf = (v: unknown) =>
+  typeof v !== "object" ||
+  Array.isArray(v) ||
+  Object.hasOwn(v as object, "r") ||
+  Object.hasOwn(v as object, "type");
 const merge = (a: Shape, b: Shape): Shape => {
   const out = { ...a };
   for (const [k, v] of Object.entries(b)) out[k] = isLeaf(v) || out[k] === undefined ? v : merge(out[k], v);
@@ -108,6 +155,29 @@ export interface Variant {
   text?: Float32Array;
   /** The style's image path (`css.image`): Clay's image config is one pointer, so it travels beside the floats. */
   image?: string;
+  /** The style's gradient (`css.backgroundImage`): no Clay field holds one either, so it travels beside the floats. */
+  backgroundImage?: Gradient;
+  /** The style's shadow (`css.shadow`): no Clay field holds one, so it travels beside the floats too, for `ui.shadow`. */
+  shadow?: Shadow;
+  /** The style's backdrop (`css.backdrop`): the blur of the content under it, for `ui.backdrop`. */
+  backdrop?: Backdrop;
+}
+
+/** ui.c's kind of gradient: only a linear one today. */
+const GRADIENT = { linear: 1 } as const;
+
+/** A gradient packed as `ui.backgroundImage` takes it: `count` stops of five floats (offset, r, g, b, a). */
+export interface Gradient {
+  kind: number;
+  angle: number;
+  count: number;
+  stops: Float32Array;
+}
+
+function packGradient(g: BackgroundImage): Gradient {
+  const stops = new Float32Array(g.stops.length * 5);
+  g.stops.forEach((s, i) => stops.set([s.offset, s.color.r, s.color.g, s.color.b, s.color.a], i * 5));
+  return { kind: GRADIENT[g.kind], angle: g.angle, count: g.stops.length, stops };
 }
 
 const cache = new WeakMap<object, Map<string, Variant>>();
@@ -119,8 +189,18 @@ export function variant(shape: ClayShape, theme?: string, states: State[] = []):
   const key = `${theme}|${states.join("")}`;
   let v = byKey.get(key);
   if (!v) {
-    const { text, image, ...decl } = resolve(shape, theme, states);
-    byKey.set(key, (v = { box: Object.keys(decl).length ? packBox(decl) : undefined, text: text && packText(text), image: image?.imageData }));
+    const { text, image, backgroundImage, shadow, backdrop, ...decl } = resolve(shape, theme, states);
+    byKey.set(
+      key,
+      (v = {
+        box: Object.keys(decl).length ? packBox(decl) : undefined,
+        text: text && packText(text),
+        image: image?.imageData,
+        backgroundImage: backgroundImage && packGradient(backgroundImage),
+        shadow,
+        backdrop,
+      }),
+    );
   }
   return v;
 }

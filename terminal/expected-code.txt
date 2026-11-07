@@ -1,0 +1,38 @@
+// A file pane in cells: the query's captures, one row a line.
+import type { Style } from "cssints";
+
+const MAX_ROWS = 24;
+const pill: Style = css.cn(css.width(200), css.bg(t.color.surface));
+
+export function Units(props: { value: number }) {
+  const label = `${props.value} g`;
+  return <button class="pill" onClick={() => props.onChange(1)}>
+    {label}
+  </button>;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+# colours: index rgb glyphs fills
+0 230,230,230 39 0
+1 16,18,24 0 1920
+2 124,132,150 62 0
+3 198,120,221 49 0
+4 86,182,194 26 0
+5 97,175,239 22 0
+6 229,192,123 8 0
+7 171,178,191 22 0
+8 224,224,224 39 0
+9 152,195,121 19 0
+10 209,154,102 18 0
+11 140,148,165 43 0
+12 224,108,117 12 0

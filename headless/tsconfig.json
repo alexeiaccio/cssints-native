@@ -3,7 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "customConditions": ["browser"],
+    "customConditions": ["browser", "development"],
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
@@ -11,8 +11,7 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    "types": ["bun"],
-    "paths": { "@eoa/quint-machine": ["./vendor/quint-machine/src/index.ts"] }
+    "types": ["bun"]
   },
-  "include": ["src", "test", "vendor"]
+  "include": ["src", "test"]
 }

@@ -1,0 +1,12 @@
+{
+  "name": "sensors-click",
+  "page": "sensors",
+  "size": [360, 360],
+  "theme": "dark",
+  "steps": [
+    { "t": 0, "kind": "pointer", "x": 180, "y": 250, "down": false },
+    { "t": 0.0166667, "kind": "pointer", "x": 180, "y": 250, "down": true },
+    { "t": 0.0333333, "kind": "pointer", "x": 180, "y": 250, "down": false },
+    { "t": 0.05, "kind": "settle", "frames": 30 }
+  ]
+}

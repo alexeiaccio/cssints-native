@@ -1,0 +1,21 @@
+// The List page in the browser: the desktop's List (solid/app/List.tsx, unmodified) with its own Input and its own
+// scroll machine (solid/src/vscroll.ts), bundled by `bun browser/solid/build.ts` over the same modules as the other
+// pages. Clay runs in ui.wasm (browser/ui.c) through browser/solid/ffi-browser.ts, browser/draw.js draws the commands,
+// and the wheel and the keyboard are the page's DOM listeners. Serve the repo root over HTTP (a browser refuses to fetch
+// a .wasm from file://), click the frame so it has the focus, then Tab and the arrows, PageUp/Down, Home/End, or wheel
+// over the viewport.
+<meta charset="utf-8">
+<title>cssints-native, List, Solid in the browser</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  /* tabindex=0 makes the canvas focusable, and its focus is the page's own 2px ring, so no browser outline */
+  canvas { width: 360px; height: 400px; display: block; cursor: default; outline: none; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+</style>
+<canvas id="frame" width="360" height="400" tabindex="0" aria-label="The List page: Solid over Clay, drawn from Clay's commands"></canvas>
+<div class="bar">
+  <span>click the frame, then Tab and the arrows, PageUp/Down, Home/End; wheel over the list</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="list.js"></script>

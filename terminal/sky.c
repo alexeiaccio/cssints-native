@@ -241,6 +241,10 @@ void sky_input(const TermEvent *ev)
         } else if (k[0] >= '1' && k[0] <= '9' && !k[1]) {
             const int i = k[0] - '1';
             if (i < NFEEDS) focus_set(&foc, tab_id[i]);
+        } else if (!strcmp(k, "n")) {
+            // the app's nav (apps/csssky's Shell.tsx) has Home, a profile and Settings, and the feed's bar is the feed's
+            // tabs: a notifications screen has no place in either, so the feed reaches it by this key
+            shell_push(&NOTIFY_PAGE);
         } else if (!strcmp(k, "Enter") || !strcmp(k, "Space")) {
             open_post(focused_post());
         }

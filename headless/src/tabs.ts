@@ -173,7 +173,14 @@ export const createTabs = (options: TabsOptions = {}): Tabs => {
     const id = manager.focused();
     return id === null ? -1 : (indexById.get(id) ?? -1);
   };
+  // The platform's rule (shared/focusgroup.qnt, and `radio.qnt` / `tabs.qnt`): the tab stop
+  // is the focused item while focus is inside the group, and the entry marker (the checked
+  // radio, the selected tab) once it leaves.
   const tabStopIndex = (): number => {
+    const focused = focusedTab();
+    if (focused >= 0) {
+      return focused;
+    }
     const stop = manager.tabOrder().find((id) => indexById.has(id));
     return stop === undefined ? -1 : (indexById.get(stop) ?? -1);
   };
@@ -199,10 +206,16 @@ export const createTabs = (options: TabsOptions = {}): Tabs => {
       return true;
     }
     const name = moveKey(key);
-    if (name === undefined || !manager.key(name)) {
+    if (name === undefined) {
       return false;
     }
-    if (activation() === 'automatic') {
+    const before = focusedTab();
+    if (!manager.key(name)) {
+      return false;
+    }
+    // Selection commits on the move a key causes: a key that lands on the tab that
+    // already had focus moves nothing and selects nothing (`tabs.qnt`, the focusin rule).
+    if (activation() === 'automatic' && focusedTab() !== before) {
       select(focusedTab());
     }
     return true;

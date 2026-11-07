@@ -31,6 +31,32 @@ describe('createControllable (request vs commit)', () => {
     expect(calls).toEqual([true]);
   });
 
+  it('controlled: a host that answers in the same task takes the same request again', () => {
+    // The Widgets page's "Select all": its value is its two children's, and a
+    // child commits at once (its own `local` is fresh), so the parent's value
+    // moves inside the click. The frame loop runs the next click in the same
+    // task, before any microtask, and that click is the user's, not a repeat of
+    // the one before it.
+    let wired = false;
+    let wireless = false;
+    const requested: boolean[] = [];
+    const [all, request] = createControllable<boolean | 'mixed'>({
+      value: () => (wired === wireless ? wired : 'mixed'),
+      initial: false,
+      onChange: () => (next) => {
+        requested.push(next === true);
+        wired = next === true;
+        wireless = next === true;
+      },
+    });
+    request(true); // click: unchecked -> checked
+    expect(all()).toBe(true);
+    wired = false; // the user unchecks one child: the parent is mixed
+    expect(all()).toBe('mixed');
+    request(true); // a mixed select all checks both
+    expect([wired, wireless, requested]).toEqual([true, true, [true, true]]);
+  });
+
   it('controlled: a request only calls onChange; the value prop is the commit', () => {
     const [host, setHost] = createSignal(false);
     const calls: boolean[] = [];

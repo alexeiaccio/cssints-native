@@ -47,6 +47,8 @@ uint8_t cells_color(Cells *g, uint8_t r, uint8_t g_, uint8_t b);
 void cells_clip(Cells *g, int x0, int y0, int x1, int y1);
 /** Text at (col,row), one row, one cell per code point, clipped to the grid and the clip rect. len < 0: strlen. */
 void cells_put(Cells *g, int col, int row, const char *text, int len);
+/** cells_put in a colour of its own: a span of a highlighted line, one cell a code point. */
+void cells_put_color(Cells *g, int col, int row, const char *text, int len, uint8_t fg);
 void cells_fill(Cells *g, int col, int row, int w, int h, uint8_t bg);
 /** A box-drawing frame on the perimeter of the rect; sides is CELLS_TOP|RIGHT|BOTTOM|LEFT. */
 void cells_box(Cells *g, int col, int row, int w, int h, uint8_t fg, int sides);
@@ -57,7 +59,29 @@ void cells_ansi(const Cells *g, FILE *out);
  * grid, "# colours: index rgb glyphs fills" lists every palette colour a cell uses, with how many cells carry it as
  * text and as background: a plain-text frame cannot show a theme change otherwise. */
 void cells_dump(const Cells *g, FILE *out);
+
+/** A growable buffer: a text a sink builds before it is written or read across a wasm boundary. */
+typedef struct {
+    char *bytes;
+    int len, cap;
+} Text;
+
+/**
+ * The grid as a browser `console.log` call: one `%c` run a foreground/background pair, rows joined with a newline, and
+ * every cell printed (a console line is the console's whole width: trailing spaces carry the background). `prev`, when
+ * it is the same size, is the frame before this one: a row byte-identical to it is not printed, a changed row is printed
+ * whole (a console line starts at column 1, so a changed cell cannot be printed on its own), and no changed row writes
+ * `[]`. The output is a JSON array of the call's arguments, `["%c…", "color:#rrggbb;background:#rrggbb", …]`, with a
+ * literal `%` doubled so `console.log` does not read it as a format. Returns the rows written.
+ */
+int cells_console(const Cells *g, const Cells *prev, FILE *out);
+/** The same, into a buffer (overwriting what it held; the capacity is kept): the browser's sink reads it in place. */
+int cells_console_text(const Cells *g, const Cells *prev, Text *out);
+/** A deep copy of a grid: the frame before the next one, for cells_console's diff. */
+void cells_copy(Cells *dst, const Cells *src);
 /** UTF-8 code points in text[0..len), for the measure function: a monospace cell each. */
 int cells_utf8_count(const char *text, int len);
+/** The bytes of the code point at text[i]: the sequence's own length, 1 for a continuation or a truncated one. */
+int cells_utf8_len(const char *text, int i, int len);
 
 #endif

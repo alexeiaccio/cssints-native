@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The blue and grey scales, on the page</title>
+<meta name="description" content="@cssints/tokens&apos; Open Props blue and grey, step by step, with each step&apos;s contrast on the page it is read on.">
+<meta name="color-scheme" content="dark light">
+<style>
+:root {
+  color-scheme: dark light;
+  --page: #101316;
+  --panel: #1b2026;
+  --ink: #e6e9ec;
+  --muted: #8b98a5;
+  --accent: #3b9cf0;
+  --line: #2d333d;
+  --problem: #e63c3c;
+  --good: #5abe78;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+  --page: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #0f1419;
+  --muted: #56636f;
+  --accent: #1170cf;
+  --line: #d5dce4;
+  --problem: #be1e28;
+  --good: #148246;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+main { max-width: 960px; margin: 0 auto; padding: 32px 16px 40px; }
+h1 { margin: 0 0 8px; font-size: 20px; line-height: 1.3; font-weight: 500; }
+.intent { margin: 0 0 24px; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; }
+svg { display: block; max-width: 100%; height: auto; }
+figcaption { margin-top: 12px; color: var(--muted); font-size: 12px; }
+figcaption .focus { color: var(--ink); }
+figcaption .source { display: block; margin-top: 2px; }
+/* The roles: the inline SVG follows the page's palette; the file's own literals are the standalone fallback. */
+.fig-page { fill: var(--page); }
+.fig-box { fill: var(--panel); }
+.fig-track { fill: var(--line); }
+.fig-fill, .fig-fill--plain { fill: var(--accent); }
+.fig-fill--problem { fill: var(--problem); }
+.fig-fill--good { fill: var(--good); }
+.fig-ink { fill: var(--ink); }
+.fig-muted { fill: var(--muted); }
+.fig-problem { fill: var(--problem); }
+.fig-good { fill: var(--good); }
+.fig-marker { fill: var(--good); }
+.fig-swatch { stroke: var(--line); stroke-width: 1; }
+@media print {
+  :root {
+    color-scheme: light;
+  --page: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #0f1419;
+  --muted: #56636f;
+  --accent: #1170cf;
+  --line: #d5dce4;
+  --problem: #be1e28;
+  --good: #148246;
+  }
+  body { background: #fff; }
+  main { max-width: none; padding: 0; }
+  figure { break-inside: avoid; }
+  .fig-swatch { stroke: #000; }
+}
+/* High contrast: the palette is dropped, the numbers (text) and the boxes' outlines keep the meaning. */
+@media (forced-colors: active) {
+  .fig-page, .fig-track { fill: Canvas; }
+  .fig-box, .fig-swatch { fill: Canvas; stroke: CanvasText; stroke-width: 1; }
+  .fig-fill, .fig-fill--plain, .fig-fill--problem, .fig-fill--good, .fig-marker { fill: Highlight; }
+  .fig-ink, .fig-muted, .fig-problem, .fig-good, .fig-title, .fig-specimen { fill: CanvasText; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>The blue and grey scales, on the page</h1>
+<p class="intent">@cssints/tokens&apos; Open Props blue and grey, step by step, with each step&apos;s contrast on the page it is read on.</p>
+</header>
+<figure aria-label="The blue and grey scales, on the page">
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="288" viewBox="0 0 640 288" role="img" aria-label="The blue and grey scales, on the page">
+<title>The blue and grey scales, on the page</title>
+<desc>@cssints/tokens&apos; Open Props blue and grey, step by step, with each step&apos;s contrast on the page it is read on. — packages/tokens/src/open-props.ts (blue, gray; page gray.0); ratio: color.ts</desc>
+<rect class="fig-page" x="0" y="0" width="640" height="288" fill="#101316"/>
+<text id="fig-title" class="fig-text fig-ink fig-title" x="16" y="30" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="16" fill="#e6e9ec" xml:space="preserve">The blue and grey scales, on the page</text>
+<text id="fig-hues" class="fig-text fig-muted" x="16" y="44" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">      Blue                Grey                </text>
+<text id="fig-step-0" class="fig-text fig-ink" x="16" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">0</text>
+<text id="fig-marker-gap-0-0" class="fig-text fig-ink" x="48" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-0" class="fig-swatch" x="64" y="48" width="16" height="16" fill="#e7f5ff" stroke="none"/>
+<text id="fig-swatch-value-0-0" class="fig-text fig-ink" x="80" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-0" class="fig-text fig-ink" x="88" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#e7f5ff</text>
+<text id="fig-ratio-0-0" class="fig-text fig-muted" x="152" y="60" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.05</text>
+<text id="fig-marker-gap-1-0" class="fig-text fig-ink" x="208" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-0" class="fig-swatch" x="224" y="48" width="16" height="16" fill="#f8f9fa" stroke="none"/>
+<text id="fig-swatch-value-1-0" class="fig-text fig-ink" x="240" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-0" class="fig-text fig-ink" x="248" y="60.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#f8f9fa</text>
+<text id="fig-ratio-1-0" class="fig-text fig-muted" x="312" y="60" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.00</text>
+<text id="fig-step-1" class="fig-text fig-ink" x="16" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">1</text>
+<text id="fig-marker-gap-0-1" class="fig-text fig-ink" x="48" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-1" class="fig-swatch" x="64" y="64" width="16" height="16" fill="#d0ebff" stroke="none"/>
+<text id="fig-swatch-value-0-1" class="fig-text fig-ink" x="80" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-1" class="fig-text fig-ink" x="88" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#d0ebff</text>
+<text id="fig-ratio-0-1" class="fig-text fig-muted" x="152" y="76" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.17</text>
+<text id="fig-marker-gap-1-1" class="fig-text fig-ink" x="208" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-1" class="fig-swatch" x="224" y="64" width="16" height="16" fill="#f1f3f5" stroke="none"/>
+<text id="fig-swatch-value-1-1" class="fig-text fig-ink" x="240" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-1" class="fig-text fig-ink" x="248" y="76.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#f1f3f5</text>
+<text id="fig-ratio-1-1" class="fig-text fig-muted" x="312" y="76" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.05</text>
+<text id="fig-step-2" class="fig-text fig-ink" x="16" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">2</text>
+<text id="fig-marker-gap-0-2" class="fig-text fig-ink" x="48" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-2" class="fig-swatch" x="64" y="80" width="16" height="16" fill="#a5d8ff" stroke="none"/>
+<text id="fig-swatch-value-0-2" class="fig-text fig-ink" x="80" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-2" class="fig-text fig-ink" x="88" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#a5d8ff</text>
+<text id="fig-ratio-0-2" class="fig-text fig-muted" x="152" y="92" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.43</text>
+<text id="fig-marker-gap-1-2" class="fig-text fig-ink" x="208" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-2" class="fig-swatch" x="224" y="80" width="16" height="16" fill="#e9ecef" stroke="none"/>
+<text id="fig-swatch-value-1-2" class="fig-text fig-ink" x="240" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-2" class="fig-text fig-ink" x="248" y="92.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#e9ecef</text>
+<text id="fig-ratio-1-2" class="fig-text fig-muted" x="312" y="92" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.12</text>
+<text id="fig-step-3" class="fig-text fig-ink" x="16" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">3</text>
+<text id="fig-marker-gap-0-3" class="fig-text fig-ink" x="48" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-3" class="fig-swatch" x="64" y="96" width="16" height="16" fill="#74c0fc" stroke="none"/>
+<text id="fig-swatch-value-0-3" class="fig-text fig-ink" x="80" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-3" class="fig-text fig-ink" x="88" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#74c0fc</text>
+<text id="fig-ratio-0-3" class="fig-text fig-muted" x="152" y="108" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.86</text>
+<text id="fig-marker-gap-1-3" class="fig-text fig-ink" x="208" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-3" class="fig-swatch" x="224" y="96" width="16" height="16" fill="#dee2e6" stroke="none"/>
+<text id="fig-swatch-value-1-3" class="fig-text fig-ink" x="240" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-3" class="fig-text fig-ink" x="248" y="108.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#dee2e6</text>
+<text id="fig-ratio-1-3" class="fig-text fig-muted" x="312" y="108" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.23</text>
+<text id="fig-step-4" class="fig-text fig-ink" x="16" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">4</text>
+<text id="fig-marker-gap-0-4" class="fig-text fig-ink" x="48" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-4" class="fig-swatch" x="64" y="112" width="16" height="16" fill="#4dabf7" stroke="none"/>
+<text id="fig-swatch-value-0-4" class="fig-text fig-ink" x="80" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-4" class="fig-text fig-ink" x="88" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#4dabf7</text>
+<text id="fig-ratio-0-4" class="fig-text fig-muted" x="152" y="124" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">2.34</text>
+<text id="fig-marker-gap-1-4" class="fig-text fig-ink" x="208" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-4" class="fig-swatch" x="224" y="112" width="16" height="16" fill="#ced4da" stroke="none"/>
+<text id="fig-swatch-value-1-4" class="fig-text fig-ink" x="240" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-4" class="fig-text fig-ink" x="248" y="124.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#ced4da</text>
+<text id="fig-ratio-1-4" class="fig-text fig-muted" x="312" y="124" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.41</text>
+<text id="fig-step-5" class="fig-text fig-ink" x="16" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">5</text>
+<text id="fig-marker-gap-0-5" class="fig-text fig-ink" x="48" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-5" class="fig-swatch" x="64" y="128" width="16" height="16" fill="#339af0" stroke="none"/>
+<text id="fig-swatch-value-0-5" class="fig-text fig-ink" x="80" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-5" class="fig-text fig-ink" x="88" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#339af0</text>
+<text id="fig-ratio-0-5" class="fig-text fig-muted" x="152" y="140" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">2.83</text>
+<text id="fig-marker-gap-1-5" class="fig-text fig-ink" x="208" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-5" class="fig-swatch" x="224" y="128" width="16" height="16" fill="#adb5bd" stroke="none"/>
+<text id="fig-swatch-value-1-5" class="fig-text fig-ink" x="240" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-5" class="fig-text fig-ink" x="248" y="140.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#adb5bd</text>
+<text id="fig-ratio-1-5" class="fig-text fig-muted" x="312" y="140" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">1.96</text>
+<text id="fig-step-6" class="fig-text fig-ink" x="16" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">6</text>
+<text id="fig-marker-gap-0-6" class="fig-text fig-ink" x="48" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-6" class="fig-swatch" x="64" y="144" width="16" height="16" fill="#228be6" stroke="none"/>
+<text id="fig-swatch-value-0-6" class="fig-text fig-ink" x="80" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-6" class="fig-text fig-ink" x="88" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#228be6</text>
+<text id="fig-ratio-0-6" class="fig-text fig-muted" x="152" y="156" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">3.37</text>
+<text id="fig-marker-gap-1-6" class="fig-text fig-ink" x="208" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-6" class="fig-swatch" x="224" y="144" width="16" height="16" fill="#868e96" stroke="none"/>
+<text id="fig-swatch-value-1-6" class="fig-text fig-ink" x="240" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-6" class="fig-text fig-ink" x="248" y="156.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#868e96</text>
+<text id="fig-ratio-1-6" class="fig-text fig-muted" x="312" y="156" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">3.15</text>
+<text id="fig-step-7" class="fig-text fig-ink" x="16" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">7</text>
+<text id="fig-marker-gap-0-7" class="fig-text fig-ink" x="48" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-7" class="fig-swatch" x="64" y="160" width="16" height="16" fill="#1c7ed6" stroke="none"/>
+<text id="fig-swatch-value-0-7" class="fig-text fig-ink" x="80" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-7" class="fig-text fig-ink" x="88" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#1c7ed6</text>
+<text id="fig-ratio-0-7" class="fig-text fig-muted" x="152" y="172" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">3.98</text>
+<polygon id="fig-marker-1-7" class="fig-marker" points="216,164 212,172 220,172" fill="#5abe78"/>
+<rect id="fig-swatch-1-7" class="fig-swatch" x="224" y="160" width="16" height="16" fill="#495057" stroke="none"/>
+<text id="fig-swatch-value-1-7" class="fig-text fig-ink" x="240" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-7" class="fig-text fig-ink" x="248" y="172.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#495057</text>
+<text id="fig-ratio-1-7" class="fig-text fig-muted" x="312" y="172" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">7.75</text>
+<text id="fig-step-8" class="fig-text fig-ink" x="16" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">8</text>
+<polygon id="fig-marker-0-8" class="fig-marker" points="56,180 52,188 60,188" fill="#5abe78"/>
+<rect id="fig-swatch-0-8" class="fig-swatch" x="64" y="176" width="16" height="16" fill="#1971c2" stroke="none"/>
+<text id="fig-swatch-value-0-8" class="fig-text fig-ink" x="80" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-8" class="fig-text fig-ink" x="88" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#1971c2</text>
+<text id="fig-ratio-0-8" class="fig-text fig-muted" x="152" y="188" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">4.76</text>
+<text id="fig-marker-gap-1-8" class="fig-text fig-ink" x="208" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-8" class="fig-swatch" x="224" y="176" width="16" height="16" fill="#343a40" stroke="none"/>
+<text id="fig-swatch-value-1-8" class="fig-text fig-ink" x="240" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-8" class="fig-text fig-ink" x="248" y="188.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#343a40</text>
+<text id="fig-ratio-1-8" class="fig-text fig-muted" x="312" y="188" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">10.91</text>
+<text id="fig-step-9" class="fig-text fig-ink" x="16" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">9</text>
+<text id="fig-marker-gap-0-9" class="fig-text fig-ink" x="48" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-9" class="fig-swatch" x="64" y="192" width="16" height="16" fill="#1864ab" stroke="none"/>
+<text id="fig-swatch-value-0-9" class="fig-text fig-ink" x="80" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-9" class="fig-text fig-ink" x="88" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#1864ab</text>
+<text id="fig-ratio-0-9" class="fig-text fig-muted" x="152" y="204" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">5.77</text>
+<text id="fig-marker-gap-1-9" class="fig-text fig-ink" x="208" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-9" class="fig-swatch" x="224" y="192" width="16" height="16" fill="#212529" stroke="none"/>
+<text id="fig-swatch-value-1-9" class="fig-text fig-ink" x="240" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-9" class="fig-text fig-ink" x="248" y="204.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#212529</text>
+<text id="fig-ratio-1-9" class="fig-text fig-muted" x="312" y="204" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">14.63</text>
+<text id="fig-step-10" class="fig-text fig-ink" x="16" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">10</text>
+<text id="fig-marker-gap-0-10" class="fig-text fig-ink" x="48" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-10" class="fig-swatch" x="64" y="208" width="16" height="16" fill="#145591" stroke="none"/>
+<text id="fig-swatch-value-0-10" class="fig-text fig-ink" x="80" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-10" class="fig-text fig-ink" x="88" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#145591</text>
+<text id="fig-ratio-0-10" class="fig-text fig-muted" x="152" y="220" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">7.27</text>
+<text id="fig-marker-gap-1-10" class="fig-text fig-ink" x="208" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-10" class="fig-swatch" x="224" y="208" width="16" height="16" fill="#16191d" stroke="none"/>
+<text id="fig-swatch-value-1-10" class="fig-text fig-ink" x="240" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-10" class="fig-text fig-ink" x="248" y="220.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#16191d</text>
+<text id="fig-ratio-1-10" class="fig-text fig-muted" x="312" y="220" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">16.72</text>
+<text id="fig-step-11" class="fig-text fig-ink" x="16" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">11</text>
+<text id="fig-marker-gap-0-11" class="fig-text fig-ink" x="48" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-11" class="fig-swatch" x="64" y="224" width="16" height="16" fill="#114678" stroke="none"/>
+<text id="fig-swatch-value-0-11" class="fig-text fig-ink" x="80" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-11" class="fig-text fig-ink" x="88" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#114678</text>
+<text id="fig-ratio-0-11" class="fig-text fig-muted" x="152" y="236" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">9.17</text>
+<text id="fig-marker-gap-1-11" class="fig-text fig-ink" x="208" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-11" class="fig-swatch" x="224" y="224" width="16" height="16" fill="#0d0f12" stroke="none"/>
+<text id="fig-swatch-value-1-11" class="fig-text fig-ink" x="240" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-11" class="fig-text fig-ink" x="248" y="236.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#0d0f12</text>
+<text id="fig-ratio-1-11" class="fig-text fig-muted" x="312" y="236" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">18.20</text>
+<text id="fig-step-12" class="fig-text fig-ink" x="16" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">12</text>
+<text id="fig-marker-gap-0-12" class="fig-text fig-ink" x="48" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-0-12" class="fig-swatch" x="64" y="240" width="16" height="16" fill="#0d375e" stroke="none"/>
+<text id="fig-swatch-value-0-12" class="fig-text fig-ink" x="80" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-0-12" class="fig-text fig-ink" x="88" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#0d375e</text>
+<text id="fig-ratio-0-12" class="fig-text fig-muted" x="152" y="252" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">11.54</text>
+<text id="fig-marker-gap-1-12" class="fig-text fig-ink" x="208" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">  </text>
+<rect id="fig-swatch-1-12" class="fig-swatch" x="224" y="240" width="16" height="16" fill="#030507" stroke="none"/>
+<text id="fig-swatch-value-1-12" class="fig-text fig-ink" x="240" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve"> </text>
+<text id="fig-value-1-12" class="fig-text fig-ink" x="248" y="252.5" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#e6e9ec" xml:space="preserve">#030507</text>
+<text id="fig-ratio-1-12" class="fig-text fig-muted" x="312" y="252" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">19.36</text>
+<text id="fig-source" class="fig-text fig-muted" x="16" y="268" font-family="Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#8b98a5" xml:space="preserve">packages/tokens/src/open-props.ts (blue, gray; page gray.0); ratio: color.ts</text>
+</svg>
+<figcaption>
+<span class="source">packages/tokens/src/open-props.ts (blue, gray; page gray.0); ratio: color.ts</span>
+</figcaption></figure>
+</main>
+</body>
+</html>

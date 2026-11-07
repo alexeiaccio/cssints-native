@@ -1,0 +1,99 @@
+{
+  "a11y": {
+    "children": [
+      {
+        "bounds": [40, 118.3125, 280, 40],
+        "children": [],
+        "hasPopup": "dialog",
+        "name": "Open settings",
+        "role": "button",
+        "states": { "expanded": false }
+      },
+      {
+        "bounds": [40, 197.0625, 280, 37.09375],
+        "children": [],
+        "hasPopup": "menu",
+        "name": "Zoom: 100%",
+        "role": "button",
+        "states": { "expanded": true }
+      },
+      {
+        "bounds": [40, 221.57493591308594, 150, 133],
+        "children": [
+          {
+            "bounds": [46, 227.57493591308594, 138, 28.75],
+            "children": [],
+            "name": "100%",
+            "role": "menuitem",
+            "states": { "focused": true }
+          },
+          {
+            "bounds": [46, 258.324951171875, 138, 28.75],
+            "children": [],
+            "name": "125%",
+            "role": "menuitem",
+            "states": {}
+          },
+          {
+            "bounds": [46, 289.074951171875, 138, 28.75],
+            "children": [],
+            "name": "150%",
+            "role": "menuitem",
+            "states": {}
+          },
+          {
+            "bounds": [46, 319.824951171875, 138, 28.75],
+            "children": [],
+            "name": "200%",
+            "role": "menuitem",
+            "states": {}
+          }
+        ],
+        "name": "Zoom",
+        "role": "menu",
+        "states": {}
+      }
+    ],
+    "role": "document",
+    "states": {}
+  },
+  "commands": [
+    { "box": [0, 0, 360, 480], "color": [16, 18, 24, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [40, 28, 116.71875, 37.5], "color": [230, 60, 60, 255], "element": null, "font": 0, "id": 294208881, "letterSpacing": 0, "lineHeight": 0, "size": 32, "text": "Settings", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [40, 75.5, 252.977539, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 13290005, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "A modal dialog on a dimmed page, and a", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [40, 91.90625, 207.518555, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 4134286680, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "menu that floats under its trigger.", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 118.3125, 280, 40], "color": [36, 40, 52, 255], "element": "settings-trigger", "id": 2134301082, "radii": [20, 20, 20, 20], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [130.820312, 128.9375, 98.359375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2777767902, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Open settings", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 118.3125, 280, 40], "color": [150, 155, 170, 255], "element": null, "id": 3413614514, "radii": [20, 20, 20, 20], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "align": "left", "box": [40, 168.3125, 92.03125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 4012295685, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Volume: 40%", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 197.0625, 280, 37.09375], "color": [36, 40, 52, 255], "element": "zoom-trigger", "id": 2339896710, "radii": [10, 10, 10, 10], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [52, 206.234375, 41.8515625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2852989382, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Zoom", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [103.851562, 205.40625, 53.8378906, 20.40625], "color": [60, 64, 78, 255], "element": null, "id": 4061225623, "radii": [10, 10, 10, 10], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [113.851562, 207.40625, 33.8378906, 16.40625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1576935594, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "100%", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [167.689453, 205.0625, 4.96582031, 21.09375], "color": [240, 140, 50, 255], "element": null, "font": 0, "id": 3369721581, "letterSpacing": 0, "lineHeight": 0, "size": 18, "text": "-", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 197.0625, 280, 37.09375], "color": [150, 155, 170, 255], "element": null, "id": 3703519219, "radii": [10, 10, 10, 10], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "box": [40, 221.574936, 150, 133], "color": [23, 27, 32, 184], "element": "zoom-menu", "id": 1116201754, "radii": [10, 10, 10, 10], "type": "rectangle", "z": 10 },
+    { "align": "left", "box": [54, 232.574936, 38.671875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2073503252, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "100%", "type": "text", "wrap": "words", "z": 10 },
+    { "box": [100.671875, 237.949936, 8, 8], "color": [240, 140, 50, 255], "element": null, "id": 2809963456, "radii": [4, 4, 4, 4], "type": "rectangle", "z": 10 },
+    { "box": [46, 227.574936, 138, 28.75], "color": [90, 170, 255, 255], "element": null, "id": 2497805950, "radii": [6, 6, 6, 6], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [54, 263.324951, 38.671875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3808930264, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "125%", "type": "text", "wrap": "words", "z": 10 },
+    { "align": "left", "box": [54, 294.074951, 38.671875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2887716472, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "150%", "type": "text", "wrap": "words", "z": 10 },
+    { "align": "left", "box": [54, 324.824951, 38.671875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3671485290, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "200%", "type": "text", "wrap": "words", "z": 10 },
+    { "box": [40, 221.574936, 150, 133], "color": [150, 155, 170, 255], "element": null, "id": 1828247747, "radii": [10, 10, 10, 10], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 }
+  ],
+  "effects": {
+    "backdrops": [
+      { "blur": 10, "element": "zoom-menu", "id": 1116201754 }
+    ],
+    "gradients": [],
+    "groups": [
+      { "alpha": 233, "element": "zoom-menu", "node": 11, "rotate": -1.4837364, "scale": 0.970325291, "tx": 0, "ty": 0 }
+    ],
+    "shadows": [
+      { "blur": 3.45224643, "color": [0, 0, 0, 115], "element": "zoom-menu", "id": 1116201754, "x": 0, "y": 6 }
+    ],
+    "textWeight": 0
+  },
+  "scale": 1,
+  "size": [360, 480]
+}

@@ -1,12 +1,12 @@
-import baseUi from '../vendor/specs/scenarios/apg/slider.base-ui.json';
-import definition from '../vendor/specs/src/apg/slider.model.generated.json';
-import reactAria from '../vendor/specs/scenarios/apg/slider.react-aria.json';
+import baseUi from '@cssints/apg-specs/scenarios/apg/slider.base-ui.json';
+import definition from '@cssints/apg-specs/apg/slider.model.json';
+import reactAria from '@cssints/apg-specs/scenarios/apg/slider.react-aria.json';
 import {
   sliderBridge,
   sliderConfig,
   sliderProbe,
   sliderSteps,
-} from '../vendor/specs/src/apg/slider.bridge';
+} from '@cssints/apg-specs/apg/slider.bridge';
 import { conformance } from './conformance';
 import { mountSlider } from './mounts';
 

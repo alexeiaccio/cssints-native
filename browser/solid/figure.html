@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- The Figure page in the browser: app/Figure.tsx over one glyph-kit spec (solid/specs/*.json, chosen by `?spec=`),
+     bundled by `bun browser/solid/build.ts`; Clay runs in ui.wasm (browser/ui.c) through browser/solid/ffi-browser.ts and
+     the frame is drawn by browser/draw.js. The page's size is the spec's layout: the canvas is sized by figure.ts.
+     Nothing takes input: the figure is a figure, and a click on it changes nothing. Serve the repo root over HTTP
+     (a browser refuses to fetch a .wasm from file://). -->
+<meta charset="utf-8">
+<title>cssints-native, a figure from a spec, Solid in the browser</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  canvas { display: block; cursor: default; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+</style>
+<canvas id="frame" width="392" height="112" aria-label="A figure from a glyph-kit spec, drawn from Clay's commands"></canvas>
+<div class="bar">
+  <span>?spec=bars | funnel | compare | pipeline &mdash; solid/specs/&lt;name&gt;.json</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="figure.js"></script>

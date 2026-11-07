@@ -3,7 +3,7 @@ import {
   type Driver,
   type Json,
   Unsupported,
-} from '../vendor/specs/src/scenario';
+} from '@cssints/apg-specs/scenario';
 import { flush } from 'solid-js';
 
 /**

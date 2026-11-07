@@ -1,0 +1,27 @@
+ sky Discover Science News    ..
+┌──────────────────────────────────────────────────────────────────────────────┐
+│.@cleanthinking.wsocial.eu · 11h............................................. │
+│.BILD: "Sachsen stoppt als erstes Bundesland Windkraft-Ausbau." Doppelt...... │
+│.falsch. Gestoppt ist nichts, das Moratorium ist nur geplant. Und............ │
+│.Schleswig-Holstein hatte schon 2015 eins.................................... │
+│............................................................................. │
+│.Die "42.000 Bürger" sind ungeprüfte Unterschriften. Etwa 1,3 Prozent der.... │
+│.Wahlberechtigten............................................................ │
+│.[link: Windkraft in Sachsen: Was die BILD weglässt - cleanthinking.de]...... .
+│.22 replies · 184 reposts · 566 likes........................................ .
+│                                                                              │
+│.Diario Público.............................................................. │
+│.@publico.es · 5h............................................................ │
+│.🔴 DIRECTO | @grufian.bsky.social, a Junts mientras enseña un billete de..... │
+│.50€: "Está es su estelada. Es la bandera que comparten con PP y con Vox".... │
+│.[video]..................................................................... │
+│.12 replies · 166 reposts · 369 likes........................................ │
+└──────────────────────────────────────────────────────────────────────────────┘
+ Discover — 51 posts
+# colours: index rgb glyphs fills
+2 16,19,22 0 287
+3 59,156,240 11 0
+4 139,152,165 226 4
+5 27,32,38 0 1309
+6 230,233,236 421 0
+8 92,176,255 190 0

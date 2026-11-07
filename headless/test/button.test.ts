@@ -3,11 +3,11 @@ import {
   buttonConfig,
   buttonProbe,
   buttonSteps,
-} from '../vendor/specs/src/apg/button.bridge';
-import ariakit from '../vendor/specs/scenarios/apg/button.ariakit.json';
-import baseUi from '../vendor/specs/scenarios/apg/button.base-ui.json';
-import definition from '../vendor/specs/src/apg/button.model.generated.json';
-import reactAria from '../vendor/specs/scenarios/apg/button.react-aria.json';
+} from '@cssints/apg-specs/apg/button.bridge';
+import ariakit from '@cssints/apg-specs/scenarios/apg/button.ariakit.json';
+import baseUi from '@cssints/apg-specs/scenarios/apg/button.base-ui.json';
+import definition from '@cssints/apg-specs/apg/button.model.json';
+import reactAria from '@cssints/apg-specs/scenarios/apg/button.react-aria.json';
 import { conformance } from './conformance';
 import { mountButton } from './mounts';
 

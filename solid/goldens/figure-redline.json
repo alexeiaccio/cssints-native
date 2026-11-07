@@ -1,0 +1,16 @@
+{
+  "commands": [
+    { "box": [0, 0, 536, 128], "color": [16, 19, 22, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [16, 16, 222.21875, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 742889473, "letterSpacing": 0, "lineHeight": 16, "size": 16, "text": "The Wi-Fi switch's row, redlined", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 32, 62.53125, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3060706178, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "row 280x32", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 48, 133.091309, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 4207329469, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "+---------------------------------+", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 64, 3.38964844, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 535383116, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "·", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [24, 64, 32.6967773, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 50661011, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "track-", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [72, 64, 3.38964844, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 1532305509, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "·", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [80, 64, 102.876465, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 725695360, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "label---------------------", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [288, 64, 3.38964844, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 2486397562, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "·", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 80, 363.162109, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 4155165083, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "0,0 10x32 · 10,4 44x24 · 54,0 12x32 · 66,8 204x16 · 270,0 10x32", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 96, 326.701172, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3732032235, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "native/solid/app/Widgets.tsx and solid/goldens/widgets.json", "type": "text", "wrap": "none", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 }
+}

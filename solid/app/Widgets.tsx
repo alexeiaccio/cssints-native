@@ -22,6 +22,7 @@ import {
   type TreeNode,
 } from "../../headless/src/index.ts";
 import { a11y } from "../a11y.ts";
+import { pageEntry, type Motion } from "../src/entry.ts";
 import { ui } from "../src/ffi.ts";
 import type { Bind, Input } from "../src/input.ts";
 
@@ -341,10 +342,14 @@ function Check(props: { cb: Checkbox; bind: Bind; label: string; indented?: bool
   );
 }
 
-/** `disabledSpeeds`: indices of the radios that are disabled (the page has none; the tests mark one). */
-export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?: Drag }) {
+/**
+ * `disabledSpeeds`: indices of the radios that are disabled (the page has none; the tests mark one). `motion`: the host's
+ * hook, for the page's first-mount entry (src/entry.ts) and the slider's drag, which the host's pointer drives.
+ */
+export function Widgets(props: { input: Input; disabledSpeeds?: number[]; drag?: Drag; motion?: Motion }) {
   const { input } = props;
   const [count, setCount] = createSignal(0);
+  pageEntry(props.motion);
 
   const press = createButton({ id: "press", onClick: () => setCount((n) => n + 1) });
   const wifi = createSwitch({ id: "wifi" });

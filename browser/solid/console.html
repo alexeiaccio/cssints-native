@@ -1,0 +1,20 @@
+// The console target in a browser: the Sensors page as the terminal's cells, printed to the browser's console.
+// The canvas is the shell's (it needs one) and stays dark; the display is the console, so open the developer tools.
+// Serve the repo root over HTTP (a browser refuses to fetch a .wasm from file://), open the console, then Tab (the pill's
+// ring), Space or Enter (press it), `p` (print the frame again) or `v` (the page's vitals; `?vitals` prints them once).
+<meta charset="utf-8">
+<title>cssints-native, the console target (Sensors)</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  /* the layout is 80x20 cells of 8x16 px: the canvas is the grid's own size, and it stays dark */
+  canvas { width: 640px; height: 320px; display: block; cursor: default; outline: none; background: #0b0d12; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+  code { color: #e6e9f0; }
+</style>
+<canvas id="frame" width="640" height="320" tabindex="0" aria-label="The console target: the Sensors page as cells, printed in the developer console"></canvas>
+<div class="bar">
+  <span>open the console — Tab moves the ring, Space presses the pill, <code>p</code> prints the frame again, <code>v</code> the page's vitals</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="console.js"></script>

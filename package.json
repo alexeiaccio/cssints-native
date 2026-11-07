@@ -1,18 +1,72 @@
 {
   "name": "cssints-native",
-  "private": true,
+  "version": "0.1.0",
+  "description": "A native UI framework on cssints styles and Clay: Solid 2 on a desktop GPU through bun:ffi, the same page as C.",
+  "license": "MIT",
   "type": "module",
-  "scripts": {
-    "test": "sh test.sh"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexeiaccio/cssints-native.git"
   },
-  "devDependencies": {
-    "cssints": "^0.5.0",
-    "playwright": "1.64.1",
-    "vite": "^8.3.0"
+  "homepage": "https://github.com/alexeiaccio/cssints-native",
+  "keywords": [
+    "cssints",
+    "clay",
+    "solid",
+    "native",
+    "sdl3",
+    "thorvg"
+  ],
+  "exports": {
+    ".": "./package.json",
+    "./desktop/*": "./desktop/*",
+    "./generator/*": "./generator/*",
+    "./focus/*": "./focus/*",
+    "./headless": "./headless/src/index.ts",
+    "./solid/*": "./solid/*",
+    "./vendor/*": "./vendor/*"
+  },
+  "files": [
+    "desktop",
+    "generator",
+    "focus/src",
+    "focus/README.md",
+    "headless/src",
+    "headless/README.md",
+    "solid/src",
+    "solid/app",
+    "solid/native",
+    "solid/stories",
+    "solid/main.ts",
+    "solid/plugin.ts",
+    "solid/watch.ts",
+    "solid/compile-styles.ts",
+    "solid/compile.tsx.ts",
+    "solid/README.md",
+    "browser",
+    "terminal",
+    "vendor",
+    "examples",
+    "docs",
+    "dump-check.ts",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "cssints": "^0.35.0",
+    "solid-js": "2.0.0-rc.21"
   },
   "dependencies": {
-    "@solidjs/compiler": "2.0.0-rc.13",
-    "@solidjs/universal": "2.0.0-rc.13",
-    "solid-js": "2.0.0-rc.13"
+    "@cssints/stories": "^0.35.0",
+    "@solidjs/compiler": "2.0.0-rc.21",
+    "@solidjs/universal": "2.0.0-rc.21"
+  },
+  "devDependencies": {
+    "@quint-machine/core": "0.1.0",
+    "@types/bun": "^1.4.3",
+    "cssints": "^0.35.0",
+    "playwright": "^1.64.1",
+    "solid-js": "2.0.0-rc.21",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
   }
 }

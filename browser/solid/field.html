@@ -1,0 +1,24 @@
+// The Text field page in the browser: the desktop's Text field (solid/app/Field.tsx, unmodified — the headless
+// createTextField with its caret and its selection drawn as runs), with its own Input, bundled by
+// `bun browser/solid/build.ts`. Clay runs in ui.wasm (browser/ui.c) through browser/solid/ffi-browser.ts and
+// browser/draw.js draws the commands. Serve the repo root over HTTP (a browser refuses to fetch a .wasm from file://),
+// click the frame so it has the focus, then Tab twice to the field and type: the characters go to `Input.textInput`.
+//
+// The same call takes an input method's committed string: Chromium's EditContext is on the canvas and a browser without
+// it (WebKit) gets a hidden textarea (`?ime=input` forces that path) — browser/solid/text.ts. Cmd/Ctrl+C, X, V and A are
+// the field's, over `navigator.clipboard`: select with Shift+Home or Ctrl+A, copy, cut and paste.
+<meta charset="utf-8">
+<title>cssints-native, Text field, Solid in the browser</title>
+<style>
+  body { margin: 0; background: #0b0d12; color: #969baa; font: 13px/1.4 system-ui, sans-serif;
+         display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; }
+  /* tabindex=0 makes the canvas focusable, and its focus is the page's own 2px ring, so no browser outline */
+  canvas { width: 360px; height: 450px; display: block; cursor: default; outline: none; }
+  .bar { display: flex; gap: 12px; align-items: center; }
+</style>
+<canvas id="frame" width="360" height="450" tabindex="0" aria-label="The Text field page: Solid over Clay, drawn from Clay's commands"></canvas>
+<div class="bar">
+  <span>click the frame, Tab twice to the field, then type, compose or paste; Shift with the arrows or Home/End selects, Cmd/Ctrl+C/X/V/A are the field's</span>
+  <span id="ms"></span>
+</div>
+<script type="module" src="field.js"></script>

@@ -10,18 +10,18 @@ import {
   parseScenarioFile,
   replayScenario,
   specDriver,
-} from '../vendor/specs/src/scenario';
+} from '@cssints/apg-specs/scenario';
 import {
   type Mounted,
   type NeutralDriverOptions,
   neutralDriver,
 } from './neutral-driver';
-import { decodeDefinition, makeReferenceModel } from '@eoa/quint-machine';
+import { decodeDefinition, makeReferenceModel } from '@quint-machine/core';
 import { describe, expect, it } from 'bun:test';
 
 export interface Conformance<Config> {
   readonly pattern: string;
-  /** Parsed-able scenario documents (`vendor/specs/scenarios/apg/<pattern>.*.json`). */
+  /** Parsed-able scenario documents (`@cssints/apg-specs/scenarios/apg/<pattern>.*.json`). */
   readonly scenarioFiles: ReadonlyArray<unknown>;
   readonly definition: unknown;
   readonly bridge: SpecBridge;

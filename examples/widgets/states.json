@@ -1,0 +1,10 @@
+{
+  "rest": [],
+  "switch": [{ "press": "wifi" }, { "click": "wifi" }],
+  "disclosure": [
+    { "press": "wifi" },
+    { "click": "wifi" },
+    { "press": "more-trigger" },
+    { "click": "more-trigger" }
+  ]
+}

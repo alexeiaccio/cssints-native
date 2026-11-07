@@ -1,0 +1,10 @@
+{
+  "empty": [{ "press": "name" }],
+  "typed": [{ "press": "name" }, { "text": "Ada" }],
+  "selection": [
+    { "press": "name" },
+    { "text": "Ada" },
+    { "key": "Shift+ArrowLeft" },
+    { "key": "Shift+ArrowLeft" }
+  ]
+}

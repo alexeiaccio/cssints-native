@@ -34,6 +34,9 @@ export function keyName(code: number, mod = 0): string | undefined {
   if (mod & CTRL_ALT_GUI) return undefined;
   const name = KEYS[code] ?? (code > 32 && code < 127 ? String.fromCharCode(code) : undefined);
   if (name === "Tab" && mod & SHIFT) return "Shift+Tab";
+  // a letter with Shift keeps its Shift: a page's own chord ("Shift+R", the dev panel's reset-all). The parts take no
+  // shifted letter otherwise (a character comes through `insert`, not `keyDown`), so nothing loses a key to this.
+  if (mod & SHIFT && name !== undefined && name >= "a" && name <= "z") return `Shift+${name.toUpperCase()}`;
   // Shift with an arrow, Home or End is a selection chord, not a move
   if (mod & SHIFT && name && name.length > 1 && name !== "Enter" && name !== "Escape") return undefined;
   return name;
@@ -41,7 +44,8 @@ export function keyName(code: number, mod = 0): string | undefined {
 
 /**
  * `keyName`, keeping Shift on the chords a text field selects with: "Shift+ArrowLeft", "Shift+Home". The focus manager
- * is only ever given Tab and Shift+Tab, so no other part sees a name it did not have before.
+ * is only ever given Tab and Shift+Tab, so no part sees a selection chord it did not have before (a shifted letter has a
+ * name of its own, `keyName`'s "Shift+R").
  */
 export function selectionName(code: number, mod = 0): string | undefined {
   const name = keyName(code, mod);
@@ -64,6 +68,18 @@ export type FocusPart = Pick<PartHandlers, "focus" | "blur" | "keyDown" | "keyUp
   readonly insert?: (text: string) => boolean;
   /** copy and cut return what goes on the clipboard; paste takes it. null when there is nothing to do. */
   readonly clipboard?: (op: "copy" | "cut" | "paste", text: string) => string | null;
+  /** A text field's own text, caret (the moving end) and selection: what a host mirrors to an IME. */
+  readonly value?: string;
+  readonly caret?: number;
+  readonly selection?: { readonly start: number; readonly end: number };
+}
+
+/** A focused text field as a host sees it: the model an IME's context (or a hidden textarea) is a view of. */
+export interface FieldView {
+  readonly id: string;
+  readonly value: string;
+  readonly caret: number;
+  readonly selection: { readonly start: number; readonly end: number };
 };
 
 /** The props of a `box` that make a part's row clickable and focusable: spread them on it, `<box {...input.add(part)}>`. */
@@ -92,6 +108,8 @@ export interface Input {
   editing(): boolean;
   /** Cmd+C, Cmd+X, Cmd+V on the focused part; `undefined` when it is no text field. */
   clipboard(op: "copy" | "cut" | "paste", text: string): string | null | undefined;
+  /** The focused text field's text, caret and selection (a host mirrors it to an IME); undefined for any other part. */
+  field(): FieldView | undefined;
   /** The host's last resort for a key nobody took (the Sensors page's theme key). */
   fallback?: (name: string) => boolean;
   /**
@@ -154,6 +172,12 @@ export function createInput(): Input {
     textInput: (text) => focused()?.insert?.(text) ?? false,
     editing: () => focused()?.editsText === true,
     clipboard: (op, text) => focused()?.clipboard?.(op, text),
+    field() {
+      const part = focused();
+      if (part?.value === undefined || part.caret === undefined || part.selection === undefined)
+        return undefined;
+      return { id: part.id, value: part.value, caret: part.caret, selection: part.selection };
+    },
     pressMiss: () => focus.blur(),
   };
   return input;

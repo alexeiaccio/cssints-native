@@ -1,13 +1,13 @@
-import ariakit from '../vendor/specs/scenarios/apg/tabs.ariakit.json';
-import baseUi from '../vendor/specs/scenarios/apg/tabs.base-ui.json';
-import definition from '../vendor/specs/src/apg/tabs.model.generated.json';
-import reactAria from '../vendor/specs/scenarios/apg/tabs.react-aria.json';
+import ariakit from '@cssints/apg-specs/scenarios/apg/tabs.ariakit.json';
+import baseUi from '@cssints/apg-specs/scenarios/apg/tabs.base-ui.json';
+import definition from '@cssints/apg-specs/apg/tabs.model.json';
+import reactAria from '@cssints/apg-specs/scenarios/apg/tabs.react-aria.json';
 import {
   tabsBridge,
   tabsConfig,
   tabsProbe,
   tabsSteps,
-} from '../vendor/specs/src/apg/tabs.bridge';
+} from '@cssints/apg-specs/apg/tabs.bridge';
 import { conformance } from './conformance';
 import { mountTabs } from './mounts';
 

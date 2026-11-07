@@ -1,12 +1,12 @@
-import type { ActionStep } from '../vendor/specs/src/scenario';
-import apg from '../vendor/specs/scenarios/apg/treeview.apg.json';
+import type { ActionStep } from '@cssints/apg-specs/scenario';
+import apg from '@cssints/apg-specs/scenarios/apg/treeview.apg.json';
 import {
   treeviewBridge,
   treeviewConfig,
   treeviewProbe,
   treeviewSteps,
-} from '../vendor/specs/src/apg/treeview.bridge';
-import definition from '../vendor/specs/src/apg/treeview.model.generated.json';
+} from '@cssints/apg-specs/apg/treeview.bridge';
+import definition from '@cssints/apg-specs/apg/treeview.model.json';
 import { conformance } from './conformance';
 import { mountTreeview } from './mounts';
 

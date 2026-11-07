@@ -21,6 +21,7 @@ extern const Page SENSORS_PAGE; // terminal/page.c: the Sensors page plus a list
 extern const Page SKY_PAGE;     // terminal/sky.c: apps/csssky-tui's home screen
 extern const Page THREAD_PAGE;  // terminal/thread.c: its thread screen
 extern const Page PROFILE_PAGE; // terminal/profile.c: apps/csssky's profile screen
+extern const Page NOTIFY_PAGE;  // terminal/notify.c: apps/csssky's notifications screen
 
 /** 0 dark, 1 light: the theme the three sky screens draw (main.c sets it; `t` flips it in terminal/shell.c). */
 extern int sky_light;

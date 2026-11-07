@@ -1,8 +1,8 @@
 # headless
 
 Headless APG widgets for cssints-native: **state plus a neutral parts description**, with no DOM, no events and no JSX.
-Ported from `@eoa/headless` (effects-of-atmosphere, commit `09f2185`, `packages/headless`) and checked against the
-same Quint specs and ported scenarios. State is Solid 2 signals (`solid-js@2.0.0-rc.13`), which the Solid → Clay
+Ported from the web widgets, `@cssints/headless` in [`packages/headless`](../../packages/headless), and checked against the
+same Quint specs and ported scenarios (`@cssints/apg-specs`). State is Solid 2 signals (`solid-js@2.0.0-rc.13`), which the Solid → Clay
 renderer will read. Focus is the focus manager of `focus/`, which the groups register with.
 
 Ported: `controllable` (request vs commit, verbatim), `button`, `switch`, `checkbox` (with `mixed`), `disclosure`,
@@ -15,8 +15,8 @@ model their own patterns) and `specs/apg/` has no textbox pattern, so there is n
 behind it, and the counts below are unchanged by it.
 
 ```sh
-bun run test        # bun test --conditions browser: scenarios, Quint walks, unit tests
-bun run typecheck   # tsc over src, test and vendor
+bun run test:native        # bun test --conditions browser: scenarios, Quint walks, unit tests
+bun run typecheck:native   # tsc over src and test
 ```
 
 `--conditions browser` matters: bun and node resolve `solid-js` to its **server** build, where a setter applies at once
@@ -279,7 +279,7 @@ The walk configs are eoa's, with four changes, each for a reason the port has:
   `focus`, `leave` and the nine keys, and compares the bar items' `aria-haspopup` / `aria-expanded` / `tabindex`, the
   menus' `hidden`, the focused part, and `visible`. It goes to whichever part holds focus and is a no-op when none does,
   as eoa's parts driver did (the spec's keys are inert outside the widget). The scenario files are named
-  `menubar.*.json` (not `menu-menubar.*.json`); `vendor/sync.sh` copies them under that prefix.
+  `menubar.*.json` (not `menu-menubar.*.json`).
 
 **Divergences** are eoa's maps with their reasons, carried over; each scenario still fails,
 and the test requires it to (a closed gap forces removing the entry). For radio: the native `<input type=radio>` attribute
@@ -320,11 +320,14 @@ after a blur passed every test. The new halves exposed one more divergence on th
 `disabled` (switch and checkbox did), which `test/button.test.ts` now catches; `src/button.ts` watches the option and
 disarms.
 
-## Vendored
+## The specs
 
-`vendor/` holds the spec side, copied **read-only** from effects-of-atmosphere at `09f2185` (`EOA_COMMIT`); see
-[vendor/README.md](vendor/README.md). `sync.sh` reads the files from git at that commit, so the eoa checkout may be on
-another one. `effect@4.0.0` is the one dependency it needs.
+The spec side of the tests is the workspace package [`@cssints/apg-specs`](../../packages/apg-specs) (`workspace:*`): the
+bridges and the scenario replay (`@cssints/apg-specs/scenario`, `.../apg/<pattern>.bridge`), the generated
+models (`.../apg/<pattern>.model.json`) and the ported scenarios (`.../scenarios/apg/`). The model
+evaluator is the npm package `@quint-machine/core` (0.1.0), and `effect@4.0.0` decodes the scenario files and the
+model. `@cssints/apg-specs` resolves to its `src/` here through the `bun` export condition (`development` would also switch `solid-js` to its dev build). `bun run test:native` at the repository root runs `typecheck:native` and `test:native` here.
+Because the specs are shared with the web widgets, a change to a spec is checked by both.
 
 ## Left
 

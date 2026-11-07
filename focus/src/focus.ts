@@ -50,6 +50,9 @@ export function createFocus(): Focus {
   const entries = new Map<string, Entry>();
   const groups = new Map<string, GroupOptions>();
   const memory = new Map<string, string>();
+  // An id's order outlives its unregister: a subtree that unmounts and comes back (the storybook's canvas, keyed on the
+  // story and its args) re-registers its parts where they were, not after the parts that stayed mounted.
+  const orders = new Map<string, number>();
   const restore: string[] = [];
   const listeners = new Set<Listener>();
   let current: string | null = null;
@@ -156,12 +159,13 @@ export function createFocus(): Focus {
     const before = entries.get(id);
     const entry: Entry = {
       id,
-      order: options.order ?? before?.order ?? seq++,
+      order: options.order ?? before?.order ?? orders.get(id) ?? seq++,
       disabled: options.disabled ?? false,
       tabIndex: options.tabIndex ?? 0,
       group: options.group,
     };
     entries.set(id, entry);
+    orders.set(id, entry.order);
     if (current === id && !focusable(entry)) relocate(before ?? entry);
   };
 

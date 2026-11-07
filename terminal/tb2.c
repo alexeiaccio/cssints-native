@@ -1,9 +1,14 @@
 // termbox2 (vendor/termbox2.h, MIT) as the terminal's backend. 32-bit attributes are compiled in so a 24-bit colour
 // fits; which mode is used is decided once, at open.
 #include <ctype.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <time.h>
+#include <unistd.h>
 
 #define TB_OPT_ATTR_W 32
 #define TB_IMPL
@@ -124,11 +129,14 @@ static const char *key_of(const struct tb_event *e, char *one)
     return one;
 }
 
-Tb2Status term_tb2_poll(TermEvent *ev)
+Tb2Status term_tb2_poll(TermEvent *ev) { return term_tb2_poll_ms(ev, -1); }
+
+Tb2Status term_tb2_poll_ms(TermEvent *ev, int ms)
 {
     if (!started) return TB2_QUIT;
     struct tb_event e;
-    const int rv = tb_poll_event(&e);
+    const int rv = ms < 0 ? tb_poll_event(&e) : tb_peek_event(&e, ms);
+    if (rv == TB_ERR_NO_EVENT) return TB2_NONE;
     if (rv != TB_OK) return TB2_QUIT;
     ev->key = NULL;
     ev->down = ev->up = 0;
@@ -160,3 +168,64 @@ void term_tb2_close(void)
 }
 
 const char *term_tb2_error(void) { return tb_strerror(last_error); }
+
+// How long the terminal is given to answer the colour query (OSC 10, 11, 4 and CSI ? 996 n, from @cssints/tui/system's
+// QUERY) before the host falls back: an answering terminal is a couple of ms, a silent one is this cost once.
+#define ASK_QUIET_MS 15
+
+int term_tb2_ask(const char *query, char *out, int cap, int ms)
+{
+    if (!out || cap < 2 || !query) return 0;
+    out[0] = 0;
+    // the terminal itself, not stdin: a host whose stdout is a file or a pipe still has a /dev/tty (no controlling
+    // terminal at all -- a dumb pipe, CI without a pty -- leaves the answer at 0 and the caller at its fallback)
+    const int fd = open("/dev/tty", O_RDWR | O_NOCTTY | O_NONBLOCK); // non-blocking: a read after select cannot block
+    if (fd < 0) return 0;
+    struct termios saved, raw;
+    const int have = tcgetattr(fd, &saved) == 0;
+    if (have) {
+        raw = saved;
+        cfmakeraw(&raw); // no echo, no line discipline: a reply is ESC ] ... BEL/ST, and it must not be echoed
+        raw.c_cc[VMIN] = 1;
+        raw.c_cc[VTIME] = 0;
+        tcsetattr(fd, TCSANOW, &raw);
+    }
+    size_t off = 0;
+    const size_t qlen = strlen(query);
+    while (off < qlen) {
+        const ssize_t n = write(fd, query + off, qlen - off);
+        if (n <= 0) break;
+        off += (size_t)n;
+    }
+    int len = 0;
+    struct timespec start;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (;;) {
+        // the first byte waits up to `ms`; once an answer starts arriving, a quiet gap ends the read (the 16 OSC 4
+        // answers can come in one write or several, and the host should not spend the whole timeout on a success)
+        int wait = len > 0 ? ASK_QUIET_MS : ms;
+        if (ms >= 0) {
+            struct timespec now;
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            const long spent = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec - start.tv_nsec) / 1000000;
+            const long left = ms - spent;
+            if (wait > left) wait = (int)left;
+            if (wait <= 0) break;
+        }
+        struct timeval tv = {.tv_sec = wait / 1000, .tv_usec = (wait % 1000) * 1000};
+        fd_set readable;
+        FD_ZERO(&readable);
+        FD_SET(fd, &readable);
+        // select, not poll: poll on this tty fd reports POLLNVAL (0x20) while the read has data, so it cannot be the
+        // wait; select's 0 is the timeout and its ready set is the reply
+        if (select(fd + 1, &readable, NULL, NULL, wait < 0 ? NULL : &tv) <= 0) break;
+        const ssize_t n = read(fd, out + len, (size_t)(cap - 1 - len));
+        if (n <= 0) break;
+        len += (int)n;
+        if (len >= cap - 1) break;
+    }
+    out[len] = 0;
+    if (have) tcsetattr(fd, TCSANOW, &saved);
+    close(fd);
+    return len;
+}

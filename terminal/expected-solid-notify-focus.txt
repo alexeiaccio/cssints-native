@@ -1,0 +1,33 @@
+ sky Discover Science News    ..
+ .Back.. Notifications
+ .Erik Strub mentioned you.· now..............................................
+ .Second paper of Marco (open access) on Tc-99m is online, congrats! Good.....
+ .timing for the weekend......................................................
+
+ .Titania reposted.· 40m......................................................
+ .The Witch's Cat (1955) by Hilda Boswell.....................................
+ ┌───────────────────────────────────────────────────────────────────────────┐
+ │Michael Warburton liked your post.· 1h.....................................│
+ │René Magritte at work in his living room in 1964...........................│
+ └───────────────────────────────────────────────────────────────────────────┘
+
+ .jlp2024.bsky.social replied.· Sep 10........................................
+ .Unfortunately you ban and flag acco7nts in accurately. But, yeah, you're....
+ .better than Twitter.... incredible achievement..............................
+ .Mina Kimes followed you.· Sep 10............................................
+
+
+
+
+
+
+
+
+
+# colours: index rgb glyphs fills
+2 16,19,22 0 1070
+3 59,156,240 169 0
+4 139,152,165 341 2
+5 27,32,38 0 700
+6 230,233,236 140 0
+7 34,40,49 0 308

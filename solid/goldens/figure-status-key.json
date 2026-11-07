@@ -1,0 +1,17 @@
+{
+  "commands": [
+    { "box": [0, 0, 648, 112], "color": [16, 19, 22, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [16, 16, 219.273438, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 742889473, "letterSpacing": 0, "lineHeight": 16, "size": 16, "text": "What the map's statuses mean", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [16, 32, 8, 16], "color": [90, 190, 120, 255], "element": "fig-mark-0", "id": 3049699613, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [32, 32, 29.9990234, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 296316848, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "Done", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [112, 32, 309.128906, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 2289505411, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "the step's heading says Done, and its check runs in test.sh", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [16, 48, 8, 16], "color": [90, 190, 120, 255], "element": "fig-mark-1", "id": 3415205039, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [32, 48, 22.6420898, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 3199350648, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "Left", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [112, 48, 218.085938, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3014160041, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "its Left: line lists what the step did not do", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [16, 64, 8, 16], "color": [90, 190, 120, 255], "element": "fig-mark-2", "id": 3109634114, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [32, 64, 46.2744141, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 755720958, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "Blocked", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [112, 64, 338.273438, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 1973765095, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "it waits on something outside the plan; no step is Blocked today", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 80, 355.582031, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3732032235, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "native/docs/map.md's 'Done:'/'Left:' lines; 'Blocked': 'a blocked poll'", "type": "text", "wrap": "none", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 }
+}
