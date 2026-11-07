@@ -180,6 +180,10 @@ export interface Layout {
   /** A contrast figure's pairs, one a row. */
   pairs: Pair[];
   focus?: { on: string[]; tone: Tone; say?: string };
+  /** The figure's accessible name: the spec's `label`, else its title, else "A figure". Not drawn. */
+  label: string;
+  /** The document's language tag: the spec's `lang`, else `en`. */
+  lang: string;
 }
 
 /**

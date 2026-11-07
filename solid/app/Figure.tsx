@@ -117,8 +117,11 @@ export function size(spec: Spec): { width: number; height: number } {
 export function Figure(props: { spec: Spec; motion?: Motion }) {
   const l = layoutOf(props.spec);
   apply(l, props.motion);
+  // a labelled spec names the whole frame for a screen reader: one role-`img` node around it, and none when the spec has
+  // no label, so an unlabelled figure's a11y tree stays empty
+  const named = props.spec.label === undefined ? {} : { role: "img", label: props.spec.label };
   return (
-    <box id="Root" style={s.s.root}>
+    <box id="Root" style={s.s.root} {...named}>
       <For each={l.lines}>
         {(line) => (
           <box id={line.id} style={s.s.line}>

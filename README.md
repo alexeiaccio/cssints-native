@@ -3034,17 +3034,19 @@ that file; (3) a spec in `solid/specs` when this repository draws the figure. No
 `text.ts`, the terminal host and the browser declare what `layoutOf` returns, which is why `journeyMap` and `tree` needed
 no change in any of them.
 
-| Field                     | What it is                                    | Here                                                                                     |
-| ------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `kind`                    | one of the types                              | `barChart`, `branchFlow`, `compare`, `flow`, `funnel`, `stateMachine` (glyph-kit has 34) |
-| `title`                   | a short name, drawn above the rows            | optional                                                                                 |
-| `intent`                  | why the figure exists                         | optional, carried, not drawn (it is a document's line, as the kit's)                     |
-| `source`                  | where the numbers came from                   | **required when the data holds a number**; drawn under the figure                        |
-| `data`                    | the kind's rows, or `"@<path>"`               | a JSON file beside the spec, read and substituted at parse time (below)                  |
-| `sample`                  | `true` when the data is not this repository's | the SAMPLE DATA band above the title (below)                                             |
-| `options`                 | widths and scales in cells                    | `width` (track cells), `max` (bar chart), `headers` (compare)                            |
-| `focus`                   | `{ on, tone, say }`                           | a row's label, `problem` / `good` / `plain`, and the `►` line                            |
-| `label`, `motion`, `lang` | the kit's                                     | not here (no screen reader line, no motion, one locale)                                  |
+| Field     | What it is                                                     | Here                                                                                                                                                                                     |
+| --------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`    | one of the types                                               | `barChart`, `branchFlow`, `compare`, `flow`, `funnel`, `stateMachine` (glyph-kit has 34)                                                                                                 |
+| `title`   | a short name, drawn above the rows                             | optional                                                                                                                                                                                 |
+| `intent`  | why the figure exists                                          | optional, carried, not drawn (it is a document's line, as the kit's)                                                                                                                     |
+| `source`  | where the numbers came from                                    | **required when the data holds a number**; drawn under the figure                                                                                                                        |
+| `data`    | the kind's rows, or `"@<path>"`                                | a JSON file beside the spec, read and substituted at parse time (below)                                                                                                                  |
+| `sample`  | `true` when the data is not this repository's                  | the SAMPLE DATA band above the title (below)                                                                                                                                             |
+| `options` | widths and scales in cells                                     | `width` (track cells), `max` (bar chart), `headers` (compare)                                                                                                                            |
+| `focus`   | `{ on, tone, say }`                                            | a row's label, `problem` / `good` / `plain`, and the `►` line                                                                                                                            |
+| `label`   | the figure's accessible name: one line, at most 200 characters | optional, falls back to `title`; the layout holds it, and the SVG's `role="img"`/`aria-label`/`<title>`, the HTML's and the deck's `aria-label`, and a role-`img` a11y node on the frame |
+| `lang`    | the document's language tag (`en`, `ru`, `ja`, `pt-BR`)        | optional, `en` when absent; the SVG's `lang` and the HTML/deck's `<html lang>`                                                                                                           |
+| `motion`  | the kit's                                                      | not here (a spec has no motion; the motion *kinds* are below)                                                                                                                            |
 
 **A spec's data in a file.** `data` may be `"@data/funnel.json"`: a path **relative to the spec's own directory**, which
 `parse(text, { dir })` reads and substitutes for the string before `check` sees it. The CLI, `dump.ts`, `text.ts`'s
@@ -3064,6 +3066,14 @@ the author's, and any other value (a string, a number, `false`) is refused. `fun
 `journey-map.json` and `pipeline.json` — the kit's own examples, adapted — set `sample: true`, because that data is not
 this repository's; our own specs (`bars.json`, `palette.json`, `cohort.json`, …) do not, and their first line is the
 title.
+
+**The label and the language.** `label` is the figure's accessible name — one line, non-empty, at most 200 characters — and
+`lang` is the document's language tag (`en` when absent). Both live on the **layout**, beside `focus`, so a renderer reads
+them and not each entry point: the standalone SVG carries `role="img"`, the label in `aria-label` and a `<title>`, and
+`lang`; the HTML page's `<html>` and `<figure>` carry the same; the deck (and the PDF through it) names each slide's
+figure and takes the first slide's lang. The desktop frame declares one role-`img` node around the figure **only when a
+spec sets a label**, so an unlabelled figure's a11y tree stays empty. The text half draws nothing for either: they are for
+the reader who cannot see the figure.
 
 The six kinds and their layout: **barChart** is a row of `{ label, value, text? }`, one track each, the fill
 `value/max` of it, at least one cell for a positive value and `"+"` on a number past `options.max`; **branchFlow** is a
@@ -3123,11 +3133,11 @@ metrics need (worst box 0.55 px) and a click to leaving it byte-identical; `figu
 measurements (native/README.md's `--bench`), `pipeline.json` is the pipeline this repository has (declaration → Clay →
 commands → ThorVG / cells / Canvas2D), and `funnel.json` and `compare.json` are glyph-kit's own examples, adapted.
 
-**Not here** (and honest about it): the kit's `lang` and its `label`. The text
-renderer, the exports (SVG, HTML, a deck as a page and as PDF, PNG) and the 42 kinds below are here; each section says what
-its half still cannot carry. The kit's `@file` data and its SAMPLE DATA stamp are here too — because the four examples
-adapted from its docs carry data that is not this repository's, they set `sample: true`; a figure whose data is this
-repository's does not.
+**Not here** (and honest about it): `motion` as a spec field — a figure is a still, and the motion *kinds* are drawn, not
+animated. The kit's `@file` data and its SAMPLE DATA stamp are here, and its `label` and `lang` are carried: the layout
+holds them, the exports write them, and `solid/figure-label-lang.test.ts` holds the defaults, the refusals and every
+export's markup. The text renderer, the exports (SVG, HTML, a deck as a page and as PDF, PNG) and the 42 kinds below are
+here; each section says what its half still cannot carry.
 
 **The two flow kinds.** `branchFlow` and `stateMachine` are `solid/specs/branch-flow.json` and `state-machine.json`, one
 stored frame each (`solid/frames/figure-branch-flow.png`, `figure-state-machine.png`) and one command golden each

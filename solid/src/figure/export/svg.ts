@@ -94,11 +94,12 @@ export function svg(spec: Spec, options: SvgOptions = {}): string {
   const scale = options.scale ?? 1;
   const width = options.width ?? size.width * scale;
   const height = (width / size.width) * size.height;
-  const label = spec.title ?? spec.source ?? "A figure";
+  const label = l.label;
   const desc = [spec.intent, spec.source].filter((line): line is string => Boolean(line)).join(" — ");
   const out: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${px(width)}" height="${px(height)}" ` +
-      `viewBox="0 0 ${px(size.width)} ${px(size.height)}" role="img" aria-label="${escapeXml(label)}">`,
+      `viewBox="0 0 ${px(size.width)} ${px(size.height)}" role="img" aria-label="${escapeXml(label)}" ` +
+      `lang="${escapeXml(l.lang)}">`,
     `<title>${escapeXml(label)}</title>`,
   ];
   if (desc) out.push(`<desc>${escapeXml(desc)}</desc>`);

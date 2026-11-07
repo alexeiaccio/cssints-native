@@ -127,7 +127,7 @@ export function html(spec: Spec): string {
     .filter(Boolean)
     .join("\n");
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeXml(l.lang)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -144,7 +144,7 @@ ${STYLE}
 <h1>${escapeXml(title)}</h1>
 ${spec.intent ? `<p class="intent">${escapeXml(spec.intent)}</p>` : ""}
 </header>
-<figure aria-label="${escapeXml(title)}">
+<figure role="img" aria-label="${escapeXml(l.label)}">
 ${figure}${caption ? `<figcaption>\n${caption}\n</figcaption>` : ""}</figure>
 </main>
 </body>

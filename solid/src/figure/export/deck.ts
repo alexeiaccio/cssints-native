@@ -135,7 +135,7 @@ function slide(spec: Spec, index: number, count: number, deckTitle: string): str
 ${index === 0 && deckTitle !== title ? `<h1 class="deck-title">${escapeXml(deckTitle)}</h1>\n` : ""}<p class="count">Slide ${index + 1} of ${count}</p>
 <h2 id="${id}-title">${escapeXml(title)}</h2>
 ${spec.intent ? `<p class="intent">${escapeXml(spec.intent)}</p>` : ""}</header>
-<figure aria-label="${escapeXml(title)}">
+<figure role="img" aria-label="${escapeXml(layoutOf(spec).label)}">
 ${svg(spec)}${captionHtml ? `<figcaption>\n${captionHtml}\n</figcaption>` : ""}</figure>
 <nav class="slide-nav" aria-label="Slides">
 <a class="prev" href="#${previous}" rel="prev">‹ Previous</a>
@@ -151,11 +151,12 @@ ${svg(spec)}${captionHtml ? `<figcaption>\n${captionHtml}\n</figcaption>` : ""}<
 export function deck(specs: readonly Spec[], options: DeckOptions = {}): string {
   const first = specs[0];
   const title = options.title ?? first?.title ?? "A figure deck";
+  const lang = first ? layoutOf(first).lang : "en";
   const description = `${specs.length} figure${specs.length === 1 ? "" : "s"}: ${specs
     .map((spec) => spec.title ?? spec.source ?? "A figure")
     .join("; ")}`;
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeXml(lang)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
