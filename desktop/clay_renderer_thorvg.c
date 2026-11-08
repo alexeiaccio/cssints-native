@@ -192,8 +192,12 @@ static Tvg_Paint Clay_ThorVG_Picture(Clay_ThorVGRendererData *d, const void *ima
     if (!path) return NULL;
     for (int i = 0; i < d->imageCount; i++)
         if (d->images[i].imageData == imageData) return d->images[i].picture;
-    // ponytail: 32 images, no eviction; a scene past that needs a list that grows
-    if (d->imageCount == (int)(sizeof d->images / sizeof *d->images)) return NULL;
+    // a photo grid scrolls past 32 distinct pictures: evict the oldest slot instead of going blank
+    if (d->imageCount == (int)(sizeof d->images / sizeof *d->images)) {
+        tvg_paint_rel(d->images[0].picture);
+        memmove(&d->images[0], &d->images[1], sizeof d->images[0] * (size_t)(d->imageCount - 1));
+        d->imageCount--;
+    }
     Tvg_Paint p = tvg_picture_new();
     if (tvg_picture_load(p, path) != TVG_RESULT_SUCCESS) {
         fprintf(stderr, "image not loaded: %s\n", path);
