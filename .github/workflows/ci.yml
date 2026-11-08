@@ -1,0 +1,68 @@
+# Everything that needs no drawing: the C headers and the C against them, the Solid pages evaluated at build time to C
+# and compared byte for byte with the C in git (check.sh), the focus manager's walk, and the headless widgets against
+# their Quint scenarios. Any machine with node, bun and cc runs it — no SDL3, no ThorVG, no browser. The targets that
+# draw (the stored frames, the terminal's, the browser's canvas) run on a Mac with brew's SDL3 and ThorVG: `sh test.sh`,
+# not here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.c"
+      - "**/*.h"
+      - "**/*.json"
+      - "**/*.sh"
+      - "solid/**"
+      - "generator/**"
+      - "headless/**"
+      - "focus/**"
+      - "examples/**"
+      - "terminal/**"
+      - "browser/**"
+      - "desktop/**"
+      - "vendor/**"
+      - .github/workflows/ci.yml
+  pull_request:
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.c"
+      - "**/*.h"
+      - "**/*.json"
+      - "**/*.sh"
+      - "solid/**"
+      - "generator/**"
+      - "headless/**"
+      - "focus/**"
+      - "examples/**"
+      - "terminal/**"
+      - "browser/**"
+      - "desktop/**"
+      - "vendor/**"
+      - .github/workflows/ci.yml
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      # the C headers, the C against them, and the generated pages compared with the C in git
+      - run: sh check.sh
+      # the focus manager's walk, and the headless widgets against their Quint scenarios
+      - run: node focus/test/focus.test.ts
+      - run: cd headless && bun run typecheck:native && bun run test:native
