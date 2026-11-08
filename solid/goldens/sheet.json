@@ -1,0 +1,25 @@
+{
+  "a11y": {
+    "children": [],
+    "role": "document",
+    "states": {}
+  },
+  "commands": [
+    { "box": [0, 0, 440, 564], "color": [16, 18, 24, 255], "element": null, "id": 1806997583, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [16, 20, 115.671875, 37.5], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3318978753, "letterSpacing": 0, "lineHeight": 0, "size": 32, "text": "Sensors", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 64, 197.636719, 28.125], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 554397938, "letterSpacing": 0, "lineHeight": 0, "size": 24, "text": "Network & Sharing", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 108, 176.09375, 23.4375], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3480872277, "letterSpacing": 0, "lineHeight": 0, "size": 20, "text": "+1.16  -0.72  +10.04", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 152, 169.658203, 23.4375], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 86887951, "letterSpacing": 0, "lineHeight": 0, "size": 20, "text": "Wm ¼ ⅓ — “quotes”", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 196, 54.7353516, 19.921875], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2030787466, "letterSpacing": 0, "lineHeight": 0, "size": 17, "text": "18.3 °C", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 240, 65.5078125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1714251591, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Room A1", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 284, 143.976562, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1883591839, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "The quick brown fox", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 328, 68.0927734, 16.40625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 287027561, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "switch to g", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 372, 66.9443359, 16.40625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3231654775, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "accel m/s²", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 416, 41.8564453, 15.234375], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 870521143, "letterSpacing": 0, "lineHeight": 0, "size": 13, "text": "18.3 °C", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 460, 99.1816406, 14.0625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2323774408, "letterSpacing": 0, "lineHeight": 0, "size": 12, "text": "gjpqy 0123456789", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [16, 504, 39.2680664, 12.890625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1326110490, "letterSpacing": 0, "lineHeight": 0, "size": 11, "text": "settings", "type": "text", "wrap": "words", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 },
+  "scale": 1,
+  "size": [440, 564]
+}

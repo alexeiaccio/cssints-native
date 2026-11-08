@@ -1,0 +1,31 @@
+{
+  "kind": "nowNextLater",
+  "title": "What the map has left, now, next, later",
+  "intent": "The map's own Left: lists, grouped by the map's order of targets: the terminal's remaining work is now, the desktop's pages are next, and Rune's untested relations are later.",
+  "source": "native/docs/map.md's Left: lines (step 4, step 6, and Rune's item 3)",
+  "data": {
+    "now": ["what a click cannot do is hover — termbox2 reports no motion events"],
+    "next": [
+      "JSX types, the window checked by eye",
+      "the menubar, other overlays, tree type-ahead",
+      "bidi",
+      "grapheme clusters (an index is a UTF-16 unit)",
+      "wrapping and multiline",
+      "undo",
+      "IME composition state",
+      "drag-select",
+      "the caret's 1px layout cost",
+      "scrolling the page itself when the wheel is outside the viewport",
+      "`aria-controls`/`describedBy` in the tree",
+      "live regions",
+      "the focus trap in the snapshot",
+      "the `tree`/`toolbar`/`tablist` containers unnamed",
+      "the List page, which is no headless part"
+    ],
+    "later": [
+      "scale equivariance (a 2x render downsampled against 1x)",
+      "order independence of non-overlapping siblings",
+      "the springs' time-split relation"
+    ]
+  }
+}

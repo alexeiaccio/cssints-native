@@ -1,0 +1,93 @@
+{
+  "kind": "intentCard",
+  "title": "The feed's third card, in",
+  "intent": "The Sky feed's card entry as one card: the preset whose fields it moves, the two properties and the values they run between, the 100ms it waits its turn, and the frames the page actually took — a bar each, from the group's own alpha and y.",
+  "source": "solid/app/Sky.tsx's card entry, its frames captured by specs/from-frames.ts",
+  "data": {
+    "label": "the feed's card 3",
+    "page": "Sky",
+    "trigger": "the feed's first mount",
+    "preset": "slide-in-up",
+    "duration": 300,
+    "delay": 100,
+    "properties": [
+      {
+        "name": "opacity",
+        "from": 0,
+        "to": 255,
+        "unit": "of 255"
+      },
+      {
+        "name": "translate y",
+        "from": 12,
+        "to": 0,
+        "unit": "px"
+      }
+    ],
+    "frames": [
+      {
+        "ms": 16.67,
+        "values": [
+          0,
+          12
+        ]
+      },
+      {
+        "ms": 33.33,
+        "values": [
+          0,
+          12
+        ]
+      },
+      {
+        "ms": 66.67,
+        "values": [
+          0,
+          12
+        ]
+      },
+      {
+        "ms": 116.67,
+        "values": [
+          0,
+          12
+        ]
+      },
+      {
+        "ms": 166.67,
+        "values": [
+          40,
+          10.14
+        ]
+      },
+      {
+        "ms": 233.33,
+        "values": [
+          158,
+          4.57
+        ]
+      },
+      {
+        "ms": 333.33,
+        "values": [
+          235,
+          0.94
+        ]
+      },
+      {
+        "ms": 500,
+        "values": [
+          254,
+          0.05
+        ]
+      },
+      {
+        "ms": 666.67,
+        "values": [
+          255,
+          0
+        ]
+      }
+    ]
+  }
+}

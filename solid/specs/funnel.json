@@ -1,0 +1,10 @@
+{
+  "kind": "funnel",
+  "title": "Signup to paid, last 30 days",
+  "intent": "Find the step where most people leave.",
+  "source": "Sample: glyph-kit's reference funnel (areas/metrics.md)",
+  "sample": true,
+  "data": "@data/funnel.json",
+  "options": { "width": 30 },
+  "focus": { "on": ["paid"], "tone": "problem", "say": "One in twenty visitors pays." }
+}

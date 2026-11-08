@@ -1,0 +1,14 @@
+{
+  "name": "widgets-switch-on",
+  "page": "widgets",
+  "size": [360, 760],
+  "theme": "dark",
+  "steps": [
+    { "t": 0.5, "kind": "key", "name": "Tab", "down": true },
+    { "t": 0.5, "kind": "key", "name": "Tab", "down": false },
+    { "t": 0.5166667, "kind": "key", "name": "Tab", "down": true },
+    { "t": 0.5166667, "kind": "key", "name": "Tab", "down": false },
+    { "t": 0.5333333, "kind": "key", "name": "Space", "down": true },
+    { "t": 0.5333333, "kind": "key", "name": "Space", "down": false }
+  ]
+}

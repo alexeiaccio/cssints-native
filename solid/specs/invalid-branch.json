@@ -1,0 +1,10 @@
+{
+  "kind": "branchFlow",
+  "title": "A decision with no branch",
+  "source": "Sample: it must be refused",
+  "data": [
+    { "label": "read the spec" },
+    { "label": "check the data", "type": "decision" },
+    { "label": "a frame" }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "kind": "forecast",
+  "title": "A release a day, and the next week projected",
+  "intent": "This repository's own release cadence from CHANGELOG.md: the days as columns, then the next 7 at the mean of the last 14 with their band. A projection of a count, not a promise.",
+  "source": "CHANGELOG.md's dated releases; the next 7 at the mean of the last 14 ± 1 sd",
+  "data": {
+    "samples": [
+      {
+        "date": "2026-10-10",
+        "value": 1
+      },
+      {
+        "date": "2026-10-11",
+        "value": 1
+      },
+      {
+        "date": "2026-10-12",
+        "value": 2
+      },
+      {
+        "date": "2026-10-13",
+        "value": 0
+      },
+      {
+        "date": "2026-10-14",
+        "value": 0
+      },
+      {
+        "date": "2026-10-15",
+        "value": 0
+      },
+      {
+        "date": "2026-10-16",
+        "value": 0
+      },
+      {
+        "date": "2026-10-17",
+        "value": 0
+      },
+      {
+        "date": "2026-10-18",
+        "value": 0
+      },
+      {
+        "date": "2026-10-19",
+        "value": 0
+      },
+      {
+        "date": "2026-10-20",
+        "value": 0
+      },
+      {
+        "date": "2026-10-21",
+        "value": 1
+      },
+      {
+        "date": "2026-10-22",
+        "value": 1
+      },
+      {
+        "date": "2026-10-23",
+        "value": 3
+      },
+      {
+        "date": "2026-10-24",
+        "value": 0
+      },
+      {
+        "date": "2026-10-25",
+        "value": 3
+      },
+      {
+        "date": "2026-10-26",
+        "value": 1
+      },
+      {
+        "date": "2026-10-27",
+        "value": 1
+      },
+      {
+        "date": "2026-10-28",
+        "value": 1
+      },
+      {
+        "date": "2026-10-29",
+        "value": 2
+      },
+      {
+        "date": "2026-10-30",
+        "value": 9
+      },
+      {
+        "date": "2026-10-31",
+        "value": 6
+      },
+      {
+        "date": "2026-11-01",
+        "value": 1
+      },
+      {
+        "date": "2026-11-02",
+        "value": 2
+      },
+      {
+        "date": "2026-11-03",
+        "value": 3
+      },
+      {
+        "date": "2026-11-04",
+        "value": 2
+      }
+    ],
+    "projection": [
+      {
+        "date": "2026-11-05",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-06",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-07",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-08",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-09",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-10",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      },
+      {
+        "date": "2026-11-11",
+        "value": 2.5,
+        "low": 0.20871215252208009,
+        "high": 4.7912878474779195
+      }
+    ],
+    "horizon": 7,
+    "window": 14,
+    "mean": 2.5,
+    "sd": 2.29128784747792,
+    "model": "the mean of the last 14 days, ± 1 population sd, clamped at zero, for the next 7 days"
+  }
+}

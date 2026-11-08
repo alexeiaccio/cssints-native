@@ -1,0 +1,16 @@
+{
+  "name": "storybook-switch",
+  "page": "storybook",
+  "story": "widgets--switch",
+  "size": [720, 560],
+  "theme": "dark",
+  "reducedMotion": true,
+  "steps": [
+    { "t": 0, "kind": "settle", "frames": 30 },
+    { "t": 0.6, "kind": "key", "name": "Tab", "down": true },
+    { "t": 0.6, "kind": "key", "name": "Tab", "down": false },
+    { "t": 0.7, "kind": "key", "name": " ", "down": true },
+    { "t": 0.7, "kind": "key", "name": " ", "down": false },
+    { "t": 0.8, "kind": "settle", "frames": 20 }
+  ]
+}

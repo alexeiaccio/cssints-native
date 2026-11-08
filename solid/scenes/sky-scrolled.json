@@ -1,0 +1,21 @@
+{
+  "name": "sky-scrolled",
+  "page": "sky",
+  "size": [360, 760],
+  "theme": "dark",
+  "steps": [
+    { "t": 0, "kind": "pointer", "x": 180, "y": 32, "down": false },
+    { "t": 0.0166667, "kind": "pointer", "x": 180, "y": 32, "down": true },
+    { "t": 0.0333333, "kind": "pointer", "x": 180, "y": 32, "down": false },
+    { "t": 0.0666667, "kind": "pointer", "x": 180, "y": 396, "down": false },
+    { "t": 0.0833333, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.1, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.1166667, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.1333333, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.15, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.1666667, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.1833333, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.2, "kind": "wheel", "dx": 0, "dy": -1 },
+    { "t": 0.2166667, "kind": "settle", "frames": 90 }
+  ]
+}

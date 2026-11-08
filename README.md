@@ -3011,6 +3011,16 @@ glyph shaping, a shadow's raster or a gradient's dither: the raster stays the fi
 
 ## Figures from specs: one figure, three targets
 
+**What is here, and what is not.** The format, all **42 kinds** and their refusals are in this package, with **43 specs**,
+**45 command goldens** and **120 stored frames**, and 18 tests that draw them. Fifteen of those specs are **generated
+here** and compared byte for byte by `sh solid/figure-handoff.sh` (`cmp`): the two pages' frames, the Widgets page's cut,
+the pages' style modules, the motion table and the app's curves, the Jetstream recording, and `docs/map.md`'s Targets table
+and plan. The rest is **stored data**: the design-system kinds come from the web app's token file and `forecast` from the
+release `CHANGELOG`, both in the [cssints repository](https://github.com/alexeiaccio/css-in-ts-compiler), so their
+generators and their `cmp` live there. Four kinds have **no spec here** because their data is the web app's Sky page —
+`responsivePair`, `appShell`, `cardGrid`, `listDetail` — and `intentCard`'s is the same page's card; the kinds are in the
+format and draw whatever spec they are given.
+
 A **figure** here is a JSON _spec_, and every target draws that one file. The format is [glyph-kit](https://github.com/alextraykov/glyph-kit)'s
 (MIT): `skills/glyph-kit/reference/spec.md`, its `areas/metrics.md` and `areas/flows.md` are the reference, and **no code
 is taken** from it — the shape of the object, the six kinds' data and the sentences of its refusals are ported by hand,

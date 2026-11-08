@@ -1,0 +1,158 @@
+{
+  "kind": "tokenTable",
+  "title": "The docs' tokens, in one table",
+  "intent": "The documentation site's 30 length and number tokens in 7 groups, each value as the token file resolves it (the scale the file declares applied to its calc() forms).",
+  "source": "apps/docs/src/tokens.json (the dimension, length and weight groups)",
+  "data": [
+    {
+      "group": "space",
+      "name": "xs",
+      "value": "4px"
+    },
+    {
+      "group": "space",
+      "name": "sm",
+      "value": "8px"
+    },
+    {
+      "group": "space",
+      "name": "md",
+      "value": "12px"
+    },
+    {
+      "group": "space",
+      "name": "lg",
+      "value": "16px"
+    },
+    {
+      "group": "space",
+      "name": "xl",
+      "value": "24px"
+    },
+    {
+      "group": "space",
+      "name": "2xl",
+      "value": "32px"
+    },
+    {
+      "group": "space",
+      "name": "3xl",
+      "value": "48px"
+    },
+    {
+      "group": "radius",
+      "name": "xs",
+      "value": "4px"
+    },
+    {
+      "group": "radius",
+      "name": "sm",
+      "value": "6px"
+    },
+    {
+      "group": "radius",
+      "name": "md",
+      "value": "10px"
+    },
+    {
+      "group": "radius",
+      "name": "lg",
+      "value": "16px"
+    },
+    {
+      "group": "fontSize",
+      "name": "xs",
+      "value": "12px"
+    },
+    {
+      "group": "fontSize",
+      "name": "sm",
+      "value": "14px"
+    },
+    {
+      "group": "fontSize",
+      "name": "md",
+      "value": "16px"
+    },
+    {
+      "group": "fontSize",
+      "name": "lg",
+      "value": "18px"
+    },
+    {
+      "group": "fontSize",
+      "name": "xl",
+      "value": "22px"
+    },
+    {
+      "group": "fontSize",
+      "name": "2xl",
+      "value": "28px"
+    },
+    {
+      "group": "fontSize",
+      "name": "3xl",
+      "value": "40px"
+    },
+    {
+      "group": "lineHeight",
+      "name": "tight",
+      "value": "1.2"
+    },
+    {
+      "group": "lineHeight",
+      "name": "snug",
+      "value": "1.4"
+    },
+    {
+      "group": "lineHeight",
+      "name": "relaxed",
+      "value": "1.7"
+    },
+    {
+      "group": "fontWeight",
+      "name": "normal",
+      "value": "400"
+    },
+    {
+      "group": "fontWeight",
+      "name": "medium",
+      "value": "500"
+    },
+    {
+      "group": "fontWeight",
+      "name": "semiBold",
+      "value": "600"
+    },
+    {
+      "group": "fontWeight",
+      "name": "bold",
+      "value": "700"
+    },
+    {
+      "group": "border",
+      "name": "width",
+      "value": "1px"
+    },
+    {
+      "group": "layout",
+      "name": "headerHeight",
+      "value": "56px"
+    },
+    {
+      "group": "layout",
+      "name": "sidebarWidth",
+      "value": "264px"
+    },
+    {
+      "group": "layout",
+      "name": "contentWidth",
+      "value": "760px"
+    },
+    {
+      "group": "layout",
+      "name": "outlineWidth",
+      "value": "232px"
+    }
+  ]
+}

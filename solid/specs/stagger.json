@@ -1,0 +1,25 @@
+{
+  "kind": "stagger",
+  "title": "The feed's three cards, 50ms apart",
+  "intent": "The Sky feed's first mount: each card 12px low and at 0 opacity, settling on its literals in 300ms, each waiting 50ms longer than the one above it so the feed fills in rather than popping.",
+  "source": "solid/app/Sky.tsx (spatial(0.3), 50ms a card); README",
+  "data": {
+    "items": [
+      {
+        "label": "card 1",
+        "delay": 0,
+        "duration": 300
+      },
+      {
+        "label": "card 2",
+        "delay": 50,
+        "duration": 300
+      },
+      {
+        "label": "card 3",
+        "delay": 100,
+        "duration": 300
+      }
+    ]
+  }
+}

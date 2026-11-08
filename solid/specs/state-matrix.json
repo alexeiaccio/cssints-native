@@ -1,0 +1,138 @@
+{
+  "kind": "stateMatrix",
+  "title": "The pages' states, a style a row",
+  "intent": "The 17 styles of the Widgets, List and Sensors pages that declare a state, and which of the three they declare: the pages' own style modules, not a list typed here.",
+  "source": "solid/app's and examples/sensors' styles, their :hover/:focus/:active",
+  "data": {
+    "columns": [
+      "hover",
+      "focus",
+      "active"
+    ],
+    "rows": [
+      {
+        "name": "list.row",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "list.rowSelected",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "list.rowWide",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "list.rowWideSelected",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "sensors.units",
+        "states": [
+          "hover",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.button",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.choice",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.menuItem",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.node",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.nodeSelected",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.rail",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "widgets.row",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.rowIndented",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.tab",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.tabOn",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      },
+      {
+        "name": "widgets.tabPanel",
+        "states": [
+          "focus"
+        ]
+      },
+      {
+        "name": "widgets.tool",
+        "states": [
+          "hover",
+          "focus",
+          "active"
+        ]
+      }
+    ]
+  }
+}

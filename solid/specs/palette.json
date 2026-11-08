@@ -1,0 +1,125 @@
+{
+  "kind": "palette",
+  "title": "The blue and grey scales, on the page",
+  "intent": "@cssints/tokens' Open Props blue and grey, step by step, with each step's contrast on the page it is read on.",
+  "source": "packages/tokens/src/open-props.ts (blue, gray; page gray.0); ratio: color.ts",
+  "data": {
+    "page": "#f8f9fa",
+    "hues": [
+      {
+        "name": "Blue",
+        "steps": [
+          {
+            "name": "0",
+            "value": "#e7f5ff"
+          },
+          {
+            "name": "1",
+            "value": "#d0ebff"
+          },
+          {
+            "name": "2",
+            "value": "#a5d8ff"
+          },
+          {
+            "name": "3",
+            "value": "#74c0fc"
+          },
+          {
+            "name": "4",
+            "value": "#4dabf7"
+          },
+          {
+            "name": "5",
+            "value": "#339af0"
+          },
+          {
+            "name": "6",
+            "value": "#228be6"
+          },
+          {
+            "name": "7",
+            "value": "#1c7ed6"
+          },
+          {
+            "name": "8",
+            "value": "#1971c2"
+          },
+          {
+            "name": "9",
+            "value": "#1864ab"
+          },
+          {
+            "name": "10",
+            "value": "#145591"
+          },
+          {
+            "name": "11",
+            "value": "#114678"
+          },
+          {
+            "name": "12",
+            "value": "#0d375e"
+          }
+        ]
+      },
+      {
+        "name": "Grey",
+        "steps": [
+          {
+            "name": "0",
+            "value": "#f8f9fa"
+          },
+          {
+            "name": "1",
+            "value": "#f1f3f5"
+          },
+          {
+            "name": "2",
+            "value": "#e9ecef"
+          },
+          {
+            "name": "3",
+            "value": "#dee2e6"
+          },
+          {
+            "name": "4",
+            "value": "#ced4da"
+          },
+          {
+            "name": "5",
+            "value": "#adb5bd"
+          },
+          {
+            "name": "6",
+            "value": "#868e96"
+          },
+          {
+            "name": "7",
+            "value": "#495057"
+          },
+          {
+            "name": "8",
+            "value": "#343a40"
+          },
+          {
+            "name": "9",
+            "value": "#212529"
+          },
+          {
+            "name": "10",
+            "value": "#16191d"
+          },
+          {
+            "name": "11",
+            "value": "#0d0f12"
+          },
+          {
+            "name": "12",
+            "value": "#030507"
+          }
+        ]
+      }
+    ]
+  }
+}

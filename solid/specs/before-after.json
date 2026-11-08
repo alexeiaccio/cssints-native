@@ -1,0 +1,42 @@
+{
+  "kind": "beforeAfter",
+  "title": "The Wi-Fi switch, off and on",
+  "intent": "One component, twice: the track's colour and the thumb's x are the commands that differ between the two stored frames, so the figure's numbers are the page's.",
+  "source": "solid/specs/from-frames.ts, two frames of the Widgets page's switch",
+  "data": {
+    "before": {
+      "caption": "off",
+      "box": {
+        "width": 44,
+        "height": 24
+      },
+      "measures": [
+        {
+          "label": "the track",
+          "value": "60,64,78"
+        },
+        {
+          "label": "the thumb",
+          "value": "2px"
+        }
+      ]
+    },
+    "after": {
+      "caption": "on",
+      "box": {
+        "width": 44,
+        "height": 24
+      },
+      "measures": [
+        {
+          "label": "the track",
+          "value": "240,140,50"
+        },
+        {
+          "label": "the thumb",
+          "value": "22px"
+        }
+      ]
+    }
+  }
+}

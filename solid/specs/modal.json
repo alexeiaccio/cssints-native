@@ -1,0 +1,169 @@
+{
+  "kind": "modal",
+  "title": "The Dialog, open",
+  "intent": "The Dialog page's frame with its modal open — the scrim over the whole page and the panel inside it — cut to the cell grid, with the panel's own box under the drawing.",
+  "source": "solid/specs/from-frames.ts, the Dialog's modal frame (Tab, Enter, settled)",
+  "data": {
+    "page": "dialog",
+    "keys": [
+      "Tab",
+      "Enter"
+    ],
+    "settle": 40,
+    "width": 360,
+    "height": 480,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 480
+      },
+      {
+        "x": 40,
+        "y": 118.3125,
+        "width": 280,
+        "height": 40
+      },
+      {
+        "x": 40,
+        "y": 118.3125,
+        "width": 280,
+        "height": 40
+      },
+      {
+        "x": 40,
+        "y": 197.0625,
+        "width": 280,
+        "height": 37.09375
+      },
+      {
+        "x": 103.851562,
+        "y": 205.40625,
+        "width": 53.8378906,
+        "height": 20.40625
+      },
+      {
+        "x": 40,
+        "y": 197.0625,
+        "width": 280,
+        "height": 37.09375
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 480
+      },
+      {
+        "x": 40,
+        "y": 163.875,
+        "width": 280,
+        "height": 152.25
+      },
+      {
+        "x": 58,
+        "y": 258.125,
+        "width": 117,
+        "height": 40
+      },
+      {
+        "x": 58,
+        "y": 258.125,
+        "width": 117,
+        "height": 40
+      },
+      {
+        "x": 185,
+        "y": 258.125,
+        "width": 117,
+        "height": 40
+      },
+      {
+        "x": 185,
+        "y": 258.125,
+        "width": 117,
+        "height": 40
+      },
+      {
+        "x": 40,
+        "y": 163.875,
+        "width": 280,
+        "height": 152.25
+      }
+    ],
+    "texts": [
+      {
+        "x": 40,
+        "y": 28,
+        "text": "Settings"
+      },
+      {
+        "x": 40,
+        "y": 75.5,
+        "text": "A modal dialog on a dimmed page, and a"
+      },
+      {
+        "x": 40,
+        "y": 91.90625,
+        "text": "menu that floats under its trigger."
+      },
+      {
+        "x": 130.820312,
+        "y": 128.9375,
+        "text": "Open settings"
+      },
+      {
+        "x": 40,
+        "y": 168.3125,
+        "text": "Volume: 40%"
+      },
+      {
+        "x": 52,
+        "y": 206.234375,
+        "text": "Zoom"
+      },
+      {
+        "x": 113.851562,
+        "y": 207.40625,
+        "text": "100%"
+      },
+      {
+        "x": 167.689453,
+        "y": 205.0625,
+        "text": "+"
+      },
+      {
+        "x": 58,
+        "y": 181.875,
+        "text": "Set the volume"
+      },
+      {
+        "x": 58,
+        "y": 215.3125,
+        "text": "OK sets it to 55%. Cancel or Escape"
+      },
+      {
+        "x": 58,
+        "y": 231.71875,
+        "text": "leaves it at 40%."
+      },
+      {
+        "x": 92.1601562,
+        "y": 268.75,
+        "text": "Cancel"
+      },
+      {
+        "x": 232.984375,
+        "y": 268.75,
+        "text": "OK"
+      }
+    ],
+    "panel": {
+      "x": 40,
+      "y": 163.875,
+      "width": 280,
+      "height": 152.25
+    }
+  }
+}

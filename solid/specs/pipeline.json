@@ -1,0 +1,9 @@
+{
+  "kind": "flow",
+  "title": "One declaration, three targets",
+  "intent": "The pipeline this repository actually has, from a page's declaration to the pixels, the cells or the canvas.",
+  "source": "native/docs/map.md, the contract",
+  "sample": true,
+  "data": ["declaration", "Clay", "commands", "ThorVG / cells / Canvas2D"],
+  "options": { "width": 72 }
+}

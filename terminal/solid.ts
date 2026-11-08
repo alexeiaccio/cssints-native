@@ -55,7 +55,7 @@
 //   --click X,Y                            headless: the frame, a press over that cell with a frame, a release with a frame
 //   --theme light                          the light theme (also THEME=light)
 //   --system-theme                         the page's colours from the terminal's own (also THEME=system): OSC 11, OSC 10
-//                                          and OSC 4;0..15 through @cssints/tui/system's parser and solver; `s` re-asks
+//                                          and OSC 4;0..15 through ./system.ts's parser and ./theme.ts's solver; `s` re-asks
 //   --cols N --rows N                      the grid (80x20 by default: the C pages' size in test.sh)
 //   --bench N                              headless: N frames, printing the ms a frame and the cells as ANSI
 //   --mutate scroll|tab|open|back          a deliberately broken host, for terminal/test.sh's mutation lines: `scroll`
@@ -98,7 +98,7 @@ import type { ClayShape } from "cssints/clay";
 
 import type { Motion } from "../solid/src/entry.ts";
 import type { State, Variant } from "../solid/src/pack.ts";
-import type { Report } from "../../packages/tui/src/system.ts";
+import type { Report } from "./system.ts";
 
 // The page's own module (`src/entry.ts`, `pageEntry`) writes its entry motion through `solid/src/ffi.ts`, which on this
 // target is libterm: the alias is here, before the page is imported. The motion's fields (a subtree's opacity and
@@ -218,11 +218,10 @@ const data = skyPage
     })
   : undefined;
 
-// The system theme is the tui package's, not a second copy of it: `scan` takes OSC 10/11/4 and `CSI ? 997 n` out of a
-// chunk of input, and `createSystemTheme` (./theme.ts) solves the page's tokens from what it found. The package prints a
-// deprecation notice from its index (this host is the target it points at); the flag is that file's own, set first.
-(globalThis as Record<symbol, boolean>)[Symbol.for("cssints.tui.deprecated")] = true;
-const { QUERY, scan } = await import("../../packages/tui/src/system.ts");
+// The system theme is this host's: `scan` (./system.ts) takes OSC 10/11/4 and `CSI ? 997 n` out of a chunk of input, and
+// `solve` (./theme.ts) folds the page's tokens from what it found. The wire came from `@cssints/tui`'s system module,
+// which is deprecated — the target that replaces it cannot depend on it.
+const { QUERY, scan } = await import("./system.ts");
 const { forget, repaint, solve } = await import("./theme.ts");
 
 // A cell is 8x16 (terminal/cells.h): the terminal's own unit, and the re-cut below is in it.

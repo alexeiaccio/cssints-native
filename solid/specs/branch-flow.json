@@ -1,0 +1,21 @@
+{
+  "kind": "branchFlow",
+  "title": "One spec, from its file to a frame",
+  "intent": "The checks and the draws a figure's spec goes through here, including the two ways it can be refused or redrawn.",
+  "source": "native/solid/src/figure/spec.ts and kinds.ts",
+  "data": [
+    { "label": "read the spec" },
+    {
+      "label": "check the data",
+      "type": "decision",
+      "no": { "label": "refuse it", "to": "end" }
+    },
+    { "label": "lay it out in cells" },
+    {
+      "label": "draw it",
+      "type": "decision",
+      "no": { "label": "a cell is off", "to": "lay it out in cells" }
+    },
+    { "label": "a frame" }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "kind": "motionTiming",
+  "title": "The dialog out, the menu in",
+  "intent": "Two of the Dialog's tracks as the solver presents them, a bar a sample: the panel's exit (0.2s, no bounce) and the menu's slide (-10 → -20px, 0.22s, a light bounce), with the row the settle rule snaps marked.",
+  "source": "solid/src/motion.ts at 1/60 (Track.at); README's motion chapter",
+  "data": {
+    "tracks": [
+      {
+        "label": "the panel, out",
+        "start": 163.88,
+        "target": 177.88,
+        "motion": {
+          "kind": "spatial",
+          "duration": 200,
+          "bounce": 0
+        },
+        "samples": [
+          {
+            "ms": 0,
+            "value": 163.88
+          },
+          {
+            "ms": 50,
+            "value": 170.4
+          },
+          {
+            "ms": 100,
+            "value": 175.37
+          },
+          {
+            "ms": 150,
+            "value": 177.16
+          },
+          {
+            "ms": 200,
+            "value": 177.69
+          },
+          {
+            "ms": 250,
+            "value": 177.83
+          },
+          {
+            "ms": 300,
+            "value": 177.88
+          }
+        ]
+      },
+      {
+        "label": "the menu, in",
+        "start": -10,
+        "target": -20,
+        "motion": {
+          "kind": "spatial",
+          "duration": 220,
+          "bounce": 0.1
+        },
+        "samples": [
+          {
+            "ms": 0,
+            "value": -10
+          },
+          {
+            "ms": 50,
+            "value": -14.42
+          },
+          {
+            "ms": 100,
+            "value": -18.26
+          },
+          {
+            "ms": 150,
+            "value": -19.64
+          },
+          {
+            "ms": 200,
+            "value": -19.97
+          },
+          {
+            "ms": 250,
+            "value": -20
+          }
+        ]
+      }
+    ]
+  }
+}

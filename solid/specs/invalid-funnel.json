@@ -1,0 +1,9 @@
+{
+  "kind": "funnel",
+  "title": "A funnel that grows",
+  "source": "Sample: it must be refused",
+  "data": [
+    { "label": "visited", "value": 12400 },
+    { "label": "signed up", "value": 12600 }
+  ]
+}

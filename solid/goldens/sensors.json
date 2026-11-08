@@ -1,0 +1,22 @@
+{
+  "a11y": {
+    "children": [],
+    "role": "document",
+    "states": {}
+  },
+  "commands": [
+    { "box": [0, 0, 360, 360], "color": [16, 18, 24, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [122.164062, 40, 115.671875, 37.5], "color": [230, 60, 60, 255], "element": null, "font": 0, "id": 1503750332, "letterSpacing": 0, "lineHeight": 0, "size": 32, "text": "Sensors", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [146.527832, 85.5, 66.9443359, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 13290005, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "accel m/s²", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [91.953125, 109.90625, 176.09375, 23.4375], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 836677627, "letterSpacing": 0, "lineHeight": 0, "size": 20, "text": "+1.16  -0.72  +10.04", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [155.558105, 141.34375, 48.8837891, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 4012295685, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "gyro °/s", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [111.503906, 165.75, 136.992188, 23.4375], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3277418918, "letterSpacing": 0, "lineHeight": 0, "size": 20, "text": "+2.2  +4.8  +0.0", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [117.93457, 197.1875, 124.130859, 23.4375], "color": [240, 140, 50, 255], "element": null, "font": 0, "id": 2685258275, "letterSpacing": 0, "lineHeight": 0, "size": 20, "text": "|a| 10.14 m/s²", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [80, 228.625, 200, 38], "color": [36, 40, 52, 255], "element": "Units", "id": 3516868942, "radii": [19, 19, 19, 19], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [145.953613, 239.421875, 68.0927734, 16.40625], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 234384054, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "switch to g", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [80, 228.625, 200, 38], "color": [150, 155, 170, 255], "element": null, "id": 545630851, "radii": [19, 19, 19, 19], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 },
+  "scale": 1,
+  "size": [360, 360]
+}

@@ -1,0 +1,106 @@
+{
+  "kind": "colourRoles",
+  "title": "The docs' roles, in both modes",
+  "intent": "The pairs the documentation site sets text and marks in, light and dark: each mode's two colours, its ratio (the engine's own) and its verdict against the floor the role promises.",
+  "source": "apps/docs/src/palettes.ts (open-props, light and dark); ratio: color.ts",
+  "data": [
+    {
+      "label": "text on bg",
+      "min": 7,
+      "light": {
+        "fg": "#030507",
+        "bg": "#f8f9fa",
+        "ratio": 19.367157844172993
+      },
+      "dark": {
+        "fg": "#f1f3f5",
+        "bg": "#030507",
+        "ratio": 18.353123759224058
+      }
+    },
+    {
+      "label": "textMedium on bgMuted",
+      "min": 4.5,
+      "light": {
+        "fg": "#343a40",
+        "bg": "#e9ecef",
+        "ratio": 9.702303484710495
+      },
+      "dark": {
+        "fg": "#dee2e6",
+        "bg": "#16191d",
+        "ratio": 13.541841775654827
+      }
+    },
+    {
+      "label": "textLow on bgSubtle",
+      "min": 4.5,
+      "light": {
+        "fg": "#495057",
+        "bg": "#f1f3f5",
+        "ratio": 7.350506004417869
+      },
+      "dark": {
+        "fg": "#adb5bd",
+        "bg": "#0d0f12",
+        "ratio": 9.250075559006872
+      }
+    },
+    {
+      "label": "link on bgSubtle",
+      "min": 4.5,
+      "light": {
+        "fg": "#1971c2",
+        "bg": "#f1f3f5",
+        "ratio": 4.51389948656367
+      },
+      "dark": {
+        "fg": "#74c0fc",
+        "bg": "#0d0f12",
+        "ratio": 9.76817188734179
+      }
+    },
+    {
+      "label": "accent on bg",
+      "min": 3,
+      "light": {
+        "fg": "#1c7ed6",
+        "bg": "#f8f9fa",
+        "ratio": 3.980636306214746
+      },
+      "dark": {
+        "fg": "#4dabf7",
+        "bg": "#030507",
+        "ratio": 8.247524337079128
+      }
+    },
+    {
+      "label": "onAccent on accent",
+      "min": 4.5,
+      "light": {
+        "fg": "#000000",
+        "bg": "#1c7ed6",
+        "ratio": 5.00472497570891
+      },
+      "dark": {
+        "fg": "#000000",
+        "bg": "#4dabf7",
+        "ratio": 8.483800163288949
+      }
+    },
+    {
+      "label": "accentStrong on accentSoft",
+      "min": 4.5,
+      "light": {
+        "fg": "#145591",
+        "bg": "#e7f5ff",
+        "ratio": 6.903824437759413
+      },
+      "dark": {
+        "fg": "#a5d8ff",
+        "bg": "#0d375e",
+        "ratio": 8.037364781294892
+      }
+    }
+  ]
+}

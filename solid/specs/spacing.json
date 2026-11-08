@@ -1,0 +1,15 @@
+{
+  "kind": "spacingScale",
+  "title": "The docs' spacing scale",
+  "intent": "apps/docs' space tokens, drawn to their own length: a cell is 8px, so a 4px step is half a cell and a 48px step is six.",
+  "source": "apps/docs/src/tokens.json (space); a cell is native/terminal/cells.h's 8px",
+  "data": [
+    { "name": "space.xs", "value": 4 },
+    { "name": "space.sm", "value": 8 },
+    { "name": "space.md", "value": 12 },
+    { "name": "space.lg", "value": 16 },
+    { "name": "space.xl", "value": 24 },
+    { "name": "space.2xl", "value": 32 },
+    { "name": "space.3xl", "value": 48 }
+  ]
+}

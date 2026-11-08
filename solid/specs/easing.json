@@ -1,0 +1,177 @@
+{
+  "kind": "easing",
+  "title": "Effect and spatial, one travel",
+  "intent": "The Dialog's panel entry (spatial(0.22, 0.1) from 149.88 to 163.88) and the same travel on effect(0.22): a dot a sample, the instants across and the values down, one scale for both.",
+  "source": "solid/src/motion.ts at 1/60 (Track.at), a sample a frame",
+  "data": {
+    "curves": [
+      {
+        "label": "the panel in",
+        "start": 149.88,
+        "target": 163.88,
+        "motion": {
+          "kind": "spatial",
+          "duration": 220,
+          "bounce": 0.1
+        },
+        "samples": [
+          {
+            "ms": 0,
+            "value": 149.88
+          },
+          {
+            "ms": 16.67,
+            "value": 151.07
+          },
+          {
+            "ms": 33.33,
+            "value": 153.49
+          },
+          {
+            "ms": 50,
+            "value": 156.07
+          },
+          {
+            "ms": 66.67,
+            "value": 158.33
+          },
+          {
+            "ms": 83.33,
+            "value": 160.12
+          },
+          {
+            "ms": 100,
+            "value": 161.44
+          },
+          {
+            "ms": 116.67,
+            "value": 162.37
+          },
+          {
+            "ms": 133.33,
+            "value": 162.99
+          },
+          {
+            "ms": 150,
+            "value": 163.38
+          },
+          {
+            "ms": 166.67,
+            "value": 163.62
+          },
+          {
+            "ms": 183.33,
+            "value": 163.77
+          },
+          {
+            "ms": 200,
+            "value": 163.84
+          },
+          {
+            "ms": 216.67,
+            "value": 163.88
+          },
+          {
+            "ms": 233.33,
+            "value": 163.9
+          },
+          {
+            "ms": 250,
+            "value": 163.88
+          }
+        ]
+      },
+      {
+        "label": "the panel in, on effect",
+        "start": 149.88,
+        "target": 163.88,
+        "motion": {
+          "kind": "effect",
+          "duration": 220
+        },
+        "samples": [
+          {
+            "ms": 0,
+            "value": 149.88
+          },
+          {
+            "ms": 16.67,
+            "value": 151.04
+          },
+          {
+            "ms": 33.33,
+            "value": 153.33
+          },
+          {
+            "ms": 50,
+            "value": 155.73
+          },
+          {
+            "ms": 66.67,
+            "value": 157.82
+          },
+          {
+            "ms": 83.33,
+            "value": 159.5
+          },
+          {
+            "ms": 100,
+            "value": 160.78
+          },
+          {
+            "ms": 116.67,
+            "value": 161.71
+          },
+          {
+            "ms": 133.33,
+            "value": 162.39
+          },
+          {
+            "ms": 150,
+            "value": 162.86
+          },
+          {
+            "ms": 166.67,
+            "value": 163.19
+          },
+          {
+            "ms": 183.33,
+            "value": 163.42
+          },
+          {
+            "ms": 200,
+            "value": 163.57
+          },
+          {
+            "ms": 216.67,
+            "value": 163.67
+          },
+          {
+            "ms": 233.33,
+            "value": 163.74
+          },
+          {
+            "ms": 250,
+            "value": 163.79
+          },
+          {
+            "ms": 266.67,
+            "value": 163.82
+          },
+          {
+            "ms": 283.33,
+            "value": 163.84
+          },
+          {
+            "ms": 300,
+            "value": 163.85
+          },
+          {
+            "ms": 316.67,
+            "value": 163.88
+          }
+        ]
+      }
+    ]
+  }
+}

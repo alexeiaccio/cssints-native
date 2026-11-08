@@ -1,0 +1,10 @@
+{
+  "kind": "stateMachine",
+  "title": "A path that skips a transition",
+  "source": "Sample: it must be refused",
+  "data": {
+    "states": ["happened", "paid", "refunded"],
+    "transitions": [{ "from": "paid", "to": "refunded", "on": "refund" }]
+  },
+  "options": { "path": ["happened", "paid", "refunded"] }
+}

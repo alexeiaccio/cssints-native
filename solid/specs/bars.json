@@ -1,0 +1,12 @@
+{
+  "kind": "barChart",
+  "title": "A frame, by target",
+  "intent": "One frame's own work on each of the three targets, as native/README.md measured it.",
+  "source": "native/README.md --bench: 0.30, 0.077, 0.08 ms",
+  "data": [
+    { "label": "desktop", "value": 0.3, "text": "0.30 ms" },
+    { "label": "terminal", "value": 0.077, "text": "0.077 ms" },
+    { "label": "browser", "value": 0.08, "text": "0.08 ms" }
+  ],
+  "options": { "width": 24, "max": 0.3 }
+}

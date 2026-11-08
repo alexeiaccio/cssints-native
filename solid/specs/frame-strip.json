@@ -1,0 +1,88 @@
+{
+  "kind": "frameStrip",
+  "title": "The panel's drop, the feed's fling",
+  "intent": "The panel's entry a frame of it every fourth of a sixtieth — the README's recorded y list — and the feed's drag released at 11.48px, a row every 200ms of its decay to 54.95.",
+  "source": "solid/src/motion.ts (Track.at, Decay.at); README's lists",
+  "data": {
+    "strips": [
+      {
+        "label": "the panel's drop",
+        "start": 149.88,
+        "target": 163.88,
+        "motion": {
+          "kind": "spatial",
+          "duration": 220,
+          "bounce": 0.1
+        },
+        "frames": [
+          {
+            "ms": 0,
+            "value": 149.88
+          },
+          {
+            "ms": 66.67,
+            "value": 158.33
+          },
+          {
+            "ms": 133.33,
+            "value": 162.99
+          },
+          {
+            "ms": 200,
+            "value": 163.84
+          },
+          {
+            "ms": 250,
+            "value": 163.88
+          }
+        ]
+      },
+      {
+        "label": "the feed's fling",
+        "start": 11.48,
+        "motion": {
+          "kind": "decay",
+          "velocity": 87.03
+        },
+        "frames": [
+          {
+            "ms": 0,
+            "value": 11.48
+          },
+          {
+            "ms": 200,
+            "value": 25.82
+          },
+          {
+            "ms": 400,
+            "value": 35.43
+          },
+          {
+            "ms": 600,
+            "value": 41.87
+          },
+          {
+            "ms": 800,
+            "value": 46.19
+          },
+          {
+            "ms": 1000,
+            "value": 49.08
+          },
+          {
+            "ms": 1200,
+            "value": 51.02
+          },
+          {
+            "ms": 1400,
+            "value": 52.32
+          },
+          {
+            "ms": 1433.33,
+            "value": 54.95
+          }
+        ]
+      }
+    ]
+  }
+}

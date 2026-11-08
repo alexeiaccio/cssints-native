@@ -1,0 +1,184 @@
+{
+  "kind": "cohort",
+  "title": "The firehose's minute cohorts",
+  "intent": "Bluesky's public Jetstream for twenty minutes: the accounts that posted in one minute, and the share of them that posted again one to five minutes later. A cell is a whole percent; a row's n is its cohort. 17,354 accounts posted 33,551 posts in the window, and the 15 cohorts count 20,126 accounts between them — an account that posted in three minutes is in three rows.",
+  "source": "Jetstream, app.bsky.feed.post, 20 minutes from 2026-11-07T06:11Z",
+  "data": {
+    "window": 20,
+    "lags": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "cohorts": [
+      {
+        "label": "0m",
+        "size": 1389,
+        "values": [
+          13,
+          11,
+          13,
+          9,
+          9
+        ]
+      },
+      {
+        "label": "1m",
+        "size": 1343,
+        "values": [
+          13,
+          13,
+          10,
+          11,
+          11
+        ]
+      },
+      {
+        "label": "2m",
+        "size": 1335,
+        "values": [
+          14,
+          13,
+          11,
+          10,
+          10
+        ]
+      },
+      {
+        "label": "3m",
+        "size": 1500,
+        "values": [
+          11,
+          12,
+          11,
+          10,
+          10
+        ]
+      },
+      {
+        "label": "4m",
+        "size": 1336,
+        "values": [
+          13,
+          11,
+          11,
+          11,
+          10
+        ]
+      },
+      {
+        "label": "5m",
+        "size": 1342,
+        "values": [
+          13,
+          11,
+          12,
+          10,
+          11
+        ]
+      },
+      {
+        "label": "6m",
+        "size": 1302,
+        "values": [
+          13,
+          13,
+          11,
+          11,
+          10
+        ]
+      },
+      {
+        "label": "7m",
+        "size": 1307,
+        "values": [
+          13,
+          12,
+          12,
+          11,
+          11
+        ]
+      },
+      {
+        "label": "8m",
+        "size": 1416,
+        "values": [
+          12,
+          12,
+          11,
+          10,
+          11
+        ]
+      },
+      {
+        "label": "9m",
+        "size": 1289,
+        "values": [
+          14,
+          12,
+          12,
+          11,
+          10
+        ]
+      },
+      {
+        "label": "10m",
+        "size": 1334,
+        "values": [
+          13,
+          13,
+          13,
+          10,
+          8
+        ]
+      },
+      {
+        "label": "11m",
+        "size": 1336,
+        "values": [
+          14,
+          14,
+          13,
+          11,
+          10
+        ]
+      },
+      {
+        "label": "12m",
+        "size": 1333,
+        "values": [
+          13,
+          13,
+          10,
+          10,
+          10
+        ]
+      },
+      {
+        "label": "13m",
+        "size": 1283,
+        "values": [
+          14,
+          13,
+          13,
+          12,
+          11
+        ]
+      },
+      {
+        "label": "14m",
+        "size": 1281,
+        "values": [
+          12,
+          14,
+          12,
+          11,
+          10
+        ]
+      }
+    ]
+  },
+  "options": {}
+}
