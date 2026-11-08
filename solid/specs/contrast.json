@@ -1,0 +1,50 @@
+{
+  "kind": "contrast",
+  "title": "The docs' colour roles, on their pages",
+  "intent": "The pairs the documentation site sets text and marks in, each held to WCAG's floor: the ratio is the engine's own.",
+  "source": "apps/docs/src/palettes.ts (open-props, light); ratio: cssints/src/color.ts",
+  "data": [
+    {
+      "label": "text on bg",
+      "fg": "#030507",
+      "bg": "#f8f9fa",
+      "min": 7,
+      "ratio": 19.367157844172993
+    },
+    {
+      "label": "textMedium on bgMuted",
+      "fg": "#343a40",
+      "bg": "#e9ecef",
+      "min": 4.5,
+      "ratio": 9.702303484710495
+    },
+    {
+      "label": "textLow on bgSubtle",
+      "fg": "#495057",
+      "bg": "#f1f3f5",
+      "min": 4.5,
+      "ratio": 7.350506004417869
+    },
+    {
+      "label": "link on bgSubtle",
+      "fg": "#1971c2",
+      "bg": "#f1f3f5",
+      "min": 4.5,
+      "ratio": 4.51389948656367
+    },
+    {
+      "label": "accent on bg",
+      "fg": "#1c7ed6",
+      "bg": "#f8f9fa",
+      "min": 3,
+      "ratio": 3.980636306214746
+    },
+    {
+      "label": "onAccent on accent",
+      "fg": "#000000",
+      "bg": "#1c7ed6",
+      "min": 4.5,
+      "ratio": 5.00472497570891
+    }
+  ]
+}

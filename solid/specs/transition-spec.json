@@ -1,0 +1,58 @@
+{
+  "kind": "transitionSpec",
+  "title": "The Dialog's menu, in",
+  "intent": "The menu's arrival as one transition: the box the frame draws at the entry's start and at its settle, and the five properties that move between them — the offset, the group's alpha, scale and tilt, and the shadow's blur.",
+  "source": "solid/app/Dialog.tsx's springs, two frames of the dialog-menu scene",
+  "data": {
+    "label": "the menu",
+    "page": "dialog",
+    "scene": "dialog-menu",
+    "trigger": "Enter on the Zoom control",
+    "from": {
+      "x": 40,
+      "y": 224.16,
+      "width": 150,
+      "height": 133
+    },
+    "to": {
+      "x": 40,
+      "y": 214.16,
+      "width": 150,
+      "height": 133
+    },
+    "properties": [
+      {
+        "name": "offset y",
+        "from": 224.16,
+        "to": 214.16,
+        "unit": "px"
+      },
+      {
+        "name": "alpha",
+        "from": 225,
+        "to": 255,
+        "unit": "of 255"
+      },
+      {
+        "name": "scale",
+        "from": 96,
+        "to": 100,
+        "unit": "%"
+      },
+      {
+        "name": "rotate",
+        "from": -2,
+        "to": 0,
+        "unit": "deg"
+      },
+      {
+        "name": "shadow blur",
+        "from": 0,
+        "to": 14,
+        "unit": "px"
+      }
+    ],
+    "duration": 220,
+    "delay": 0
+  }
+}

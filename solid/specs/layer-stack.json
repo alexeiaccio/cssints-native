@@ -1,0 +1,59 @@
+{
+  "kind": "layerStack",
+  "title": "The Dialog's layers, back to front",
+  "intent": "The page and the three surfaces the Dialog stacks over it, each read from its own frame: the scrim's alpha, the dialog's shadow and the menu's glass are the page's, not a z scale's.",
+  "source": "solid/specs/from-frames.ts, the Dialog's modal and menu frames (settled)",
+  "data": [
+    {
+      "name": "the page",
+      "z": 0,
+      "box": {
+        "width": 360,
+        "height": 480
+      },
+      "alpha": 1,
+      "radius": 0
+    },
+    {
+      "name": "the dialog's scrim",
+      "z": 1,
+      "box": {
+        "width": 360,
+        "height": 480
+      },
+      "alpha": 0.5490196078431373,
+      "radius": 0
+    },
+    {
+      "name": "the dialog",
+      "z": 2,
+      "box": {
+        "width": 280,
+        "height": 152.25
+      },
+      "alpha": 1,
+      "radius": 12,
+      "shadow": {
+        "x": 0,
+        "y": 12,
+        "blur": 32
+      }
+    },
+    {
+      "name": "the menu",
+      "z": 10,
+      "box": {
+        "width": 150,
+        "height": 133
+      },
+      "alpha": 0.7215686274509804,
+      "radius": 10,
+      "blur": 10,
+      "shadow": {
+        "x": 0,
+        "y": 6,
+        "blur": 14
+      }
+    }
+  ]
+}

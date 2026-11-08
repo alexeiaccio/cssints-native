@@ -1,0 +1,17 @@
+{
+  "kind": "stateMachine",
+  "title": "A dialog's presence, one open",
+  "intent": "The states the Dialog page's panel goes through between the key that opens it and the frame its exit is over.",
+  "source": "native/solid/src/motion.ts, presence(); native/solid/app/Dialog.tsx",
+  "data": {
+    "states": ["closed", "opening", "open", "closing"],
+    "transitions": [
+      { "from": "closed", "to": "opening", "on": "open" },
+      { "from": "opening", "to": "open", "on": "settled" },
+      { "from": "open", "to": "closing", "on": "close" },
+      { "from": "closing", "to": "closed", "on": "gone" },
+      { "from": "closing", "to": "opening", "on": "reopen" }
+    ]
+  },
+  "options": { "path": ["closed", "opening", "open", "closing", "closed"] }
+}

@@ -1,0 +1,6 @@
+{
+  "kind": "journeyMap",
+  "title": "A feeling off the scale",
+  "source": "native/solid/figure.test.ts",
+  "data": [{ "label": "Import", "feeling": 3 }]
+}

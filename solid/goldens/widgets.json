@@ -1,0 +1,275 @@
+{
+  "a11y": {
+    "children": [
+      {
+        "bounds": [40, 71.5, 280, 40],
+        "children": [],
+        "name": "Presses: 0",
+        "role": "button",
+        "states": {}
+      },
+      {
+        "bounds": [40, 117.5, 280, 32],
+        "children": [],
+        "name": "Wi-Fi",
+        "role": "switch",
+        "states": { "checked": false }
+      },
+      {
+        "children": [
+          {
+            "bounds": [40, 155.5, 280, 28],
+            "children": [],
+            "name": "Select all",
+            "role": "checkbox",
+            "states": { "checked": false }
+          },
+          {
+            "bounds": [40, 189.5, 280, 28],
+            "children": [],
+            "name": "Wired",
+            "role": "checkbox",
+            "states": { "checked": false }
+          },
+          {
+            "bounds": [40, 223.5, 280, 28],
+            "children": [],
+            "name": "Wireless",
+            "role": "checkbox",
+            "states": { "checked": false }
+          },
+          {
+            "bounds": [40, 257.5, 280, 28],
+            "children": [],
+            "name": "Beta (disabled)",
+            "role": "checkbox",
+            "states": { "checked": false, "disabled": true }
+          }
+        ],
+        "role": "group",
+        "states": {}
+      },
+      {
+        "bounds": [40, 291.5, 280, 29.09375],
+        "children": [],
+        "name": "Details",
+        "role": "button",
+        "states": { "expanded": false }
+      },
+      {
+        "bounds": [40, 326.59375, 280, 26.75],
+        "children": [
+          {
+            "bounds": [118, 326.59375, 58.9140625, 26.75],
+            "children": [],
+            "name": "1x",
+            "role": "radio",
+            "states": { "checked": true }
+          },
+          {
+            "bounds": [180.9140625, 326.59375, 58.9140625, 26.75],
+            "children": [],
+            "name": "4x",
+            "role": "radio",
+            "states": { "checked": false }
+          },
+          {
+            "bounds": [243.828125, 326.59375, 67.8984375, 26.75],
+            "children": [],
+            "name": "16x",
+            "role": "radio",
+            "states": { "checked": false }
+          }
+        ],
+        "name": "Speed",
+        "role": "radiogroup",
+        "states": {}
+      },
+      {
+        "bounds": [40, 359.34375, 228.3828125, 32.75],
+        "children": [
+          {
+            "bounds": [40, 359.34375, 96.7734375, 32.75],
+            "children": [],
+            "name": "Overview",
+            "role": "tab",
+            "states": { "selected": true }
+          },
+          {
+            "bounds": [138.7734375, 359.34375, 68.8984375, 32.75],
+            "children": [],
+            "name": "Stats",
+            "role": "tab",
+            "states": { "selected": false }
+          },
+          {
+            "bounds": [209.671875, 359.34375, 58.7109375, 32.75],
+            "children": [],
+            "name": "Log",
+            "role": "tab",
+            "states": { "selected": false }
+          }
+        ],
+        "role": "tablist",
+        "states": {}
+      },
+      {
+        "bounds": [40, 392.09375, 280, 58],
+        "children": [],
+        "name": "Overview",
+        "role": "tabpanel",
+        "states": {}
+      },
+      {
+        "bounds": [118, 456.09375, 188, 24],
+        "children": [],
+        "name": "Volume",
+        "role": "slider",
+        "states": {},
+        "value": "40%"
+      },
+      {
+        "bounds": [40, 486.09375, 280, 34.75],
+        "children": [
+          {
+            "bounds": [50, 486.09375, 55.9921875, 34.75],
+            "children": [],
+            "name": "Bold",
+            "role": "button",
+            "states": {}
+          },
+          {
+            "bounds": [111.9921875, 486.09375, 58.421875, 34.75],
+            "children": [],
+            "name": "Italic",
+            "role": "button",
+            "states": {}
+          },
+          {
+            "bounds": [176.4140625, 486.09375, 119.8125, 34.75],
+            "children": [],
+            "hasPopup": "menu",
+            "name": "Size: Medium",
+            "role": "button",
+            "states": { "expanded": false }
+          }
+        ],
+        "role": "toolbar",
+        "states": {}
+      },
+      {
+        "bounds": [40, 526.84375, 280, 123.75],
+        "children": [
+          {
+            "bounds": [40, 526.84375, 280, 24.75],
+            "children": [],
+            "level": 1,
+            "name": "Network",
+            "role": "treeitem",
+            "states": { "expanded": true, "selected": false }
+          },
+          {
+            "bounds": [40, 551.59375, 280, 24.75],
+            "children": [],
+            "level": 2,
+            "name": "Wi-Fi",
+            "role": "treeitem",
+            "states": { "selected": false }
+          },
+          {
+            "bounds": [40, 576.34375, 280, 24.75],
+            "children": [],
+            "level": 2,
+            "name": "Bluetooth",
+            "role": "treeitem",
+            "states": { "selected": false }
+          },
+          {
+            "bounds": [40, 601.09375, 280, 24.75],
+            "children": [],
+            "level": 1,
+            "name": "Display",
+            "role": "treeitem",
+            "states": { "expanded": false, "selected": false }
+          },
+          {
+            "bounds": [40, 625.84375, 280, 24.75],
+            "children": [],
+            "level": 1,
+            "name": "Storage",
+            "role": "treeitem",
+            "states": { "selected": false }
+          }
+        ],
+        "role": "tree",
+        "states": {}
+      }
+    ],
+    "role": "document",
+    "states": {}
+  },
+  "commands": [
+    { "box": [0, 0, 360, 760], "color": [16, 18, 24, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [40, 28, 116.0625, 37.5], "color": [230, 60, 60, 255], "element": null, "font": 0, "id": 294208881, "letterSpacing": 0, "lineHeight": 0, "size": 32, "text": "Widgets", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 71.5, 280, 40], "color": [36, 40, 52, 255], "element": "press", "id": 2700925997, "radii": [20, 20, 20, 20], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [142.984375, 82.125, 74.03125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1407100485, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Presses: 0", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 71.5, 280, 40], "color": [150, 155, 170, 255], "element": null, "id": 1902957166, "radii": [20, 20, 20, 20], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "box": [50, 121.5, 44, 24], "color": [60, 64, 78, 255], "element": null, "id": 2453485283, "radii": [12, 12, 12, 12], "type": "rectangle", "z": 0 },
+    { "box": [52, 123.5, 20, 20], "color": [255, 255, 255, 255], "element": null, "id": 24881335, "radii": [10, 10, 10, 10], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [106, 124.125, 35.21875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3385859947, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Wi-Fi", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [50, 159.5, 20, 20], "color": [150, 155, 170, 255], "element": null, "id": 2616304323, "radii": [4, 4, 4, 4], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [82, 160.125, 64.359375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 509185989, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Select all", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [74, 193.5, 20, 20], "color": [150, 155, 170, 255], "element": null, "id": 2891623632, "radii": [4, 4, 4, 4], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [106, 194.125, 40.9921875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 923834063, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Wired", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [74, 227.5, 20, 20], "color": [150, 155, 170, 255], "element": null, "id": 2482328556, "radii": [4, 4, 4, 4], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [106, 228.125, 60.828125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 4038341106, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Wireless", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [50, 261.5, 20, 20], "color": [88, 92, 106, 255], "element": null, "id": 371256644, "radii": [4, 4, 4, 4], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [82, 262.125, 107.578125, 18.75], "color": [88, 92, 106, 255], "element": null, "font": 0, "id": 4035149529, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Beta (disabled)", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [50, 295.5, 10.2041016, 21.09375], "color": [240, 140, 50, 255], "element": null, "font": 0, "id": 2000015200, "letterSpacing": 0, "lineHeight": 0, "size": 18, "text": "+", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [72.2041016, 296.671875, 48.9140625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3366217434, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Details", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [50, 330.59375, 44.4453125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2132808302, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Speed", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [131, 335.96875, 8, 8], "color": [240, 140, 50, 255], "element": null, "id": 2293095557, "radii": [4, 4, 4, 4], "type": "rectangle", "z": 0 },
+    { "box": [126, 330.96875, 18, 18], "color": [240, 140, 50, 255], "element": null, "id": 3252113115, "radii": [9, 9, 9, 9], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [152, 330.59375, 16.9140625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1138226325, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "1x", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [188.914062, 330.96875, 18, 18], "color": [150, 155, 170, 255], "element": null, "id": 4284962597, "radii": [9, 9, 9, 9], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [214.914062, 330.59375, 16.9140625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3405719194, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "4x", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [251.828125, 330.96875, 18, 18], "color": [150, 155, 170, 255], "element": null, "id": 2771052451, "radii": [9, 9, 9, 9], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "align": "left", "box": [277.828125, 330.59375, 25.8984375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 31302001, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "16x", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 359.34375, 96.7734375, 32.75], "color": [36, 40, 52, 255], "element": "tabs-tab-0", "id": 2306546346, "radii": [8, 8, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [56, 366.34375, 64.7734375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2749443306, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Overview", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 359.34375, 96.7734375, 32.75], "color": [240, 140, 50, 255], "element": null, "id": 1886958977, "radii": [8, 8, 0, 0], "type": "border", "widths": [0, 0, 0, 2, 0], "z": 0 },
+    { "align": "left", "box": [154.773438, 366.34375, 36.8984375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2902141723, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Stats", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [225.671875, 366.34375, 26.7109375, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3224200283, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Log", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [40, 392.09375, 280, 58], "color": [36, 40, 52, 255], "element": "tabs-tabpanel-0", "id": 572960274, "radii": [8, 8, 8, 8], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [54, 402.09375, 152.810547, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 3271835066, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "Three tabs, three panels.", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [54, 420.5, 195.829102, 16.40625], "color": [150, 155, 170, 255], "element": null, "font": 0, "id": 2923674713, "letterSpacing": 0, "lineHeight": 0, "size": 14, "text": "Left and Right move and select.", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [50, 458.71875, 54.5078125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3777435754, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Volume", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [118, 466.09375, 49.5999985, 4], "color": [240, 140, 50, 255], "element": null, "id": 2983651797, "radii": [2, 2, 2, 2], "type": "rectangle", "z": 0 },
+    { "box": [167.600006, 460.09375, 16, 16], "color": [255, 255, 255, 255], "element": "volume-knob", "id": 3148128551, "radii": [8, 8, 8, 8], "type": "rectangle", "z": 0 },
+    { "box": [167.600006, 460.09375, 16, 16], "color": [150, 155, 170, 255], "element": null, "id": 899701816, "radii": [8, 8, 8, 8], "type": "border", "widths": [2, 2, 2, 2, 0], "z": 0 },
+    { "box": [183.600006, 466.09375, 74.4000015, 4], "color": [60, 64, 78, 255], "element": null, "id": 2548905474, "radii": [2, 2, 2, 2], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [276.3125, 458.71875, 29.6875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 374976087, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "40%", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [50, 486.09375, 55.9921875, 34.75], "color": [36, 40, 52, 255], "element": "format-item-0", "id": 3744314154, "radii": [8, 8, 8, 8], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [62, 491.09375, 31.9921875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 338942181, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Bold", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [62, 512.84375, 31.9921875, 3], "color": [60, 64, 78, 255], "element": null, "id": 1820438216, "radii": [2, 2, 2, 2], "type": "rectangle", "z": 0 },
+    { "box": [50, 486.09375, 55.9921875, 34.75], "color": [150, 155, 170, 255], "element": null, "id": 1261562929, "radii": [8, 8, 8, 8], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "box": [111.992188, 486.09375, 58.421875, 34.75], "color": [36, 40, 52, 255], "element": "format-item-1", "id": 425830289, "radii": [8, 8, 8, 8], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [123.992188, 491.09375, 34.421875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 1197745808, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Italic", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [123.992188, 512.84375, 34.421875, 3], "color": [60, 64, 78, 255], "element": null, "id": 459524519, "radii": [2, 2, 2, 2], "type": "rectangle", "z": 0 },
+    { "box": [111.992188, 486.09375, 58.421875, 34.75], "color": [150, 155, 170, 255], "element": null, "id": 728132012, "radii": [8, 8, 8, 8], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "box": [176.414062, 486.09375, 119.8125, 34.75], "color": [36, 40, 52, 255], "element": "format-item-2", "id": 164595821, "radii": [8, 8, 8, 8], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [188.414062, 491.09375, 95.8125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 109786706, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Size: Medium", "type": "text", "wrap": "words", "z": 0 },
+    { "box": [188.414062, 512.84375, 95.8125, 3], "color": [60, 64, 78, 255], "element": null, "id": 1641170686, "radii": [2, 2, 2, 2], "type": "rectangle", "z": 0 },
+    { "box": [176.414062, 486.09375, 119.8125, 34.75], "color": [150, 155, 170, 255], "element": null, "id": 2081258356, "radii": [8, 8, 8, 8], "type": "border", "widths": [1, 1, 1, 1, 0], "z": 0 },
+    { "align": "left", "box": [48, 529.84375, 4.4140625, 18.75], "color": [240, 140, 50, 255], "element": null, "font": 0, "id": 742620561, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "-", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [64, 529.84375, 59.78125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3614145220, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Network", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [82, 554.59375, 35.21875, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 49792925, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Wi-Fi", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [82, 579.34375, 68.65625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 3079622664, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Bluetooth", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [48, 604.09375, 9.0703125, 18.75], "color": [240, 140, 50, 255], "element": null, "font": 0, "id": 80979623, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "+", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [64, 604.09375, 51.7578125, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 2770089139, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Display", "type": "text", "wrap": "words", "z": 0 },
+    { "align": "left", "box": [64, 628.84375, 55.4140625, 18.75], "color": [235, 235, 240, 255], "element": null, "font": 0, "id": 896064424, "letterSpacing": 0, "lineHeight": 0, "size": 16, "text": "Storage", "type": "text", "wrap": "words", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 },
+  "scale": 1,
+  "size": [360, 760]
+}

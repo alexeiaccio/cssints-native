@@ -1,0 +1,15 @@
+{
+  "kind": "typeScale",
+  "title": "The docs' type scale",
+  "intent": "The site's sizes with the line heights its roles give them (1.2 on headings, 1.4 on UI, 1.7 on prose), each specimen drawn at its own size.",
+  "source": "apps/docs/src/tokens.json (fontSize, lineHeight) and src/prose.ts's roles",
+  "data": [
+    { "name": "fontSize.3xl", "size": 40, "lineHeight": 48 },
+    { "name": "fontSize.2xl", "size": 28, "lineHeight": 34 },
+    { "name": "fontSize.xl", "size": 22, "lineHeight": 26 },
+    { "name": "fontSize.lg", "size": 18, "lineHeight": 22 },
+    { "name": "fontSize.md", "size": 16, "lineHeight": 27 },
+    { "name": "fontSize.sm", "size": 14, "lineHeight": 20 },
+    { "name": "fontSize.xs", "size": 12, "lineHeight": 17 }
+  ]
+}

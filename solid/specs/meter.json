@@ -1,0 +1,14 @@
+{
+  "kind": "meter",
+  "title": "The link, against the floor it is held to",
+  "intent": "One ratio (the docs' link on bgSubtle) in its 0..21 range, with the verdict the engine's comparison makes.",
+  "source": "apps/docs/src/palettes.ts (open-props, light); ratio: cssints/src/color.ts",
+  "data": {
+    "label": "link on bgSubtle",
+    "fg": "#1971c2",
+    "bg": "#f1f3f5",
+    "min": 4.5,
+    "value": 4.51389948656367,
+    "max": 21
+  }
+}

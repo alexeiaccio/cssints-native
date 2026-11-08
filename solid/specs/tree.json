@@ -1,0 +1,27 @@
+{
+  "kind": "tree",
+  "title": "The targets and their pages",
+  "intent": "This repository's own map: one root, the four targets under it, and the pages each one draws.",
+  "source": "native/docs/map.md, Targets; native/solid/app/*.tsx, the pages",
+  "data": {
+    "name": "one UI, many targets",
+    "children": [
+      {
+        "name": "desktop",
+        "children": [{ "name": "sensors" }, { "name": "figure" }]
+      },
+      {
+        "name": "terminal",
+        "children": [{ "name": "sky" }, { "name": "figure" }]
+      },
+      {
+        "name": "browser",
+        "children": [{ "name": "sensors" }, { "name": "figure" }]
+      },
+      {
+        "name": "board",
+        "children": [{ "name": "sensors" }]
+      }
+    ]
+  }
+}

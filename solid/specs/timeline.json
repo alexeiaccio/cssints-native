@@ -1,0 +1,67 @@
+{
+  "kind": "timeline",
+  "title": "The plan's order, one step a row",
+  "intent": "docs/map.md's steps of work, each a row across one shared axis: the span is the step's place in the map's order, not hours.",
+  "source": "docs/map.md, steps 1-8; a span is the order, a date is a note",
+  "data": [
+    {
+      "label": "cssints/clay",
+      "start": 0,
+      "end": 1,
+      "status": "Done"
+    },
+    {
+      "label": "desktop window",
+      "start": 1,
+      "end": 2,
+      "status": "Done",
+      "note": "2026-10-19"
+    },
+    {
+      "label": "states, tokens, fonts",
+      "start": 2,
+      "end": 3,
+      "status": "Done",
+      "note": "2026-10-19"
+    },
+    {
+      "label": "Solid on the desktop",
+      "start": 3,
+      "end": 4,
+      "status": "Left",
+      "note": "2026-10-31"
+    },
+    {
+      "label": "JSX to C",
+      "start": 4,
+      "end": 5,
+      "status": "Left"
+    },
+    {
+      "label": "the terminal renderer",
+      "start": 5,
+      "end": 6,
+      "status": "Done"
+    },
+    {
+      "label": "Back to the board",
+      "start": 6,
+      "end": 7,
+      "status": "Left",
+      "note": "2026-10-19"
+    },
+    {
+      "label": "the browser",
+      "start": 7,
+      "end": 8,
+      "status": "Done",
+      "note": "2026-10-29"
+    }
+  ],
+  "options": {
+    "start": 0,
+    "end": 8,
+    "width": 32,
+    "unit": " step"
+  }
+}

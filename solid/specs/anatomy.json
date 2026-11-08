@@ -1,0 +1,335 @@
+{
+  "kind": "anatomy",
+  "title": "The Widgets switch, part by part",
+  "intent": "The widgets page's own frame cut to 296x120px at 32,56 — the button and the two checkbox rows — with 4 numbered callouts and their legend. The drawing is the page's command stream; the numbers are the annotation.",
+  "source": "solid/specs/from-page.ts: solid/dump.ts's capture of the widgets page at 360x760, cropped to 296x120 at 32,56",
+  "data": {
+    "page": "widgets",
+    "width": 360,
+    "height": 760,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 760
+      },
+      {
+        "x": 40,
+        "y": 71.5,
+        "width": 280,
+        "height": 40
+      },
+      {
+        "x": 40,
+        "y": 71.5,
+        "width": 280,
+        "height": 40
+      },
+      {
+        "x": 50,
+        "y": 121.5,
+        "width": 44,
+        "height": 24
+      },
+      {
+        "x": 52,
+        "y": 123.5,
+        "width": 20,
+        "height": 20
+      },
+      {
+        "x": 50,
+        "y": 159.5,
+        "width": 20,
+        "height": 20
+      },
+      {
+        "x": 74,
+        "y": 193.5,
+        "width": 20,
+        "height": 20
+      },
+      {
+        "x": 74,
+        "y": 227.5,
+        "width": 20,
+        "height": 20
+      },
+      {
+        "x": 50,
+        "y": 261.5,
+        "width": 20,
+        "height": 20
+      },
+      {
+        "x": 126,
+        "y": 330.96875,
+        "width": 18,
+        "height": 18
+      },
+      {
+        "x": 188.914062,
+        "y": 330.96875,
+        "width": 18,
+        "height": 18
+      },
+      {
+        "x": 251.828125,
+        "y": 330.96875,
+        "width": 18,
+        "height": 18
+      },
+      {
+        "x": 40,
+        "y": 359.34375,
+        "width": 96.7734375,
+        "height": 32.75
+      },
+      {
+        "x": 40,
+        "y": 359.34375,
+        "width": 96.7734375,
+        "height": 32.75
+      },
+      {
+        "x": 40,
+        "y": 392.09375,
+        "width": 280,
+        "height": 58
+      },
+      {
+        "x": 167.600006,
+        "y": 460.09375,
+        "width": 16,
+        "height": 16
+      },
+      {
+        "x": 167.600006,
+        "y": 460.09375,
+        "width": 16,
+        "height": 16
+      },
+      {
+        "x": 50,
+        "y": 486.09375,
+        "width": 55.9921875,
+        "height": 34.75
+      },
+      {
+        "x": 50,
+        "y": 486.09375,
+        "width": 55.9921875,
+        "height": 34.75
+      },
+      {
+        "x": 111.992188,
+        "y": 486.09375,
+        "width": 58.421875,
+        "height": 34.75
+      },
+      {
+        "x": 111.992188,
+        "y": 486.09375,
+        "width": 58.421875,
+        "height": 34.75
+      },
+      {
+        "x": 176.414062,
+        "y": 486.09375,
+        "width": 119.8125,
+        "height": 34.75
+      },
+      {
+        "x": 176.414062,
+        "y": 486.09375,
+        "width": 119.8125,
+        "height": 34.75
+      }
+    ],
+    "texts": [
+      {
+        "x": 40,
+        "y": 28,
+        "text": "Widgets"
+      },
+      {
+        "x": 142.984375,
+        "y": 82.125,
+        "text": "Presses: 0"
+      },
+      {
+        "x": 106,
+        "y": 124.125,
+        "text": "Wi-Fi"
+      },
+      {
+        "x": 82,
+        "y": 160.125,
+        "text": "Select all"
+      },
+      {
+        "x": 106,
+        "y": 194.125,
+        "text": "Wired"
+      },
+      {
+        "x": 106,
+        "y": 228.125,
+        "text": "Wireless"
+      },
+      {
+        "x": 82,
+        "y": 262.125,
+        "text": "Beta (disabled)"
+      },
+      {
+        "x": 50,
+        "y": 295.5,
+        "text": "+"
+      },
+      {
+        "x": 72.2041016,
+        "y": 296.671875,
+        "text": "Details"
+      },
+      {
+        "x": 50,
+        "y": 330.59375,
+        "text": "Speed"
+      },
+      {
+        "x": 152,
+        "y": 330.59375,
+        "text": "1x"
+      },
+      {
+        "x": 214.914062,
+        "y": 330.59375,
+        "text": "4x"
+      },
+      {
+        "x": 277.828125,
+        "y": 330.59375,
+        "text": "16x"
+      },
+      {
+        "x": 56,
+        "y": 366.34375,
+        "text": "Overview"
+      },
+      {
+        "x": 154.773438,
+        "y": 366.34375,
+        "text": "Stats"
+      },
+      {
+        "x": 225.671875,
+        "y": 366.34375,
+        "text": "Log"
+      },
+      {
+        "x": 54,
+        "y": 402.09375,
+        "text": "Three tabs, three panels."
+      },
+      {
+        "x": 54,
+        "y": 420.5,
+        "text": "Left and Right move and select."
+      },
+      {
+        "x": 50,
+        "y": 458.71875,
+        "text": "Volume"
+      },
+      {
+        "x": 276.3125,
+        "y": 458.71875,
+        "text": "40%"
+      },
+      {
+        "x": 62,
+        "y": 491.09375,
+        "text": "Bold"
+      },
+      {
+        "x": 123.992188,
+        "y": 491.09375,
+        "text": "Italic"
+      },
+      {
+        "x": 188.414062,
+        "y": 491.09375,
+        "text": "Size: Medium"
+      },
+      {
+        "x": 48,
+        "y": 529.84375,
+        "text": "-"
+      },
+      {
+        "x": 64,
+        "y": 529.84375,
+        "text": "Network"
+      },
+      {
+        "x": 82,
+        "y": 554.59375,
+        "text": "Wi-Fi"
+      },
+      {
+        "x": 82,
+        "y": 579.34375,
+        "text": "Bluetooth"
+      },
+      {
+        "x": 48,
+        "y": 604.09375,
+        "text": "+"
+      },
+      {
+        "x": 64,
+        "y": 604.09375,
+        "text": "Display"
+      },
+      {
+        "x": 64,
+        "y": 628.84375,
+        "text": "Storage"
+      }
+    ],
+    "crop": {
+      "x": 32,
+      "y": 56,
+      "width": 296,
+      "height": 120
+    },
+    "parts": [
+      {
+        "n": 1,
+        "x": 32,
+        "y": 72,
+        "label": "the button: one tappable panel"
+      },
+      {
+        "n": 2,
+        "x": 128,
+        "y": 82,
+        "label": "its label, the press count"
+      },
+      {
+        "n": 3,
+        "x": 40,
+        "y": 122,
+        "label": "a checkbox and its box"
+      },
+      {
+        "n": 4,
+        "x": 40,
+        "y": 159,
+        "label": "the same control, one row down"
+      }
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "kind": "easingTable",
+  "title": "The app's easing curves",
+  "intent": "The springs the Dialog and the Sky page really run on, a row a curve: its class, its duration and bounce, and where it is at 0, 25, 50, 75 and 100% of its duration — the solver's own numbers, so a curve's end is where its span ends, not where it stops.",
+  "source": "solid/src/animations.ts's springs, sampled by solid/src/motion.ts",
+  "data": {
+    "rows": [
+      {
+        "label": "the panel's entry",
+        "motion": {
+          "kind": "spatial",
+          "duration": 220,
+          "bounce": 0.1
+        },
+        "progress": [
+          0,
+          49.4,
+          86.85,
+          98.04,
+          100.04
+        ]
+      },
+      {
+        "label": "the menu's slide",
+        "motion": {
+          "kind": "spatial",
+          "duration": 220,
+          "bounce": 0.1
+        },
+        "progress": [
+          0,
+          49.4,
+          86.85,
+          98.04,
+          100.04
+        ]
+      },
+      {
+        "label": "the scrim's fade",
+        "motion": {
+          "kind": "effect",
+          "duration": 200
+        },
+        "progress": [
+          0,
+          46.56,
+          82.1,
+          94.87,
+          98.64
+        ]
+      },
+      {
+        "label": "the panel's exit",
+        "motion": {
+          "kind": "spatial",
+          "duration": 200,
+          "bounce": 0
+        },
+        "progress": [
+          0,
+          46.56,
+          82.1,
+          94.87,
+          98.64
+        ]
+      },
+      {
+        "label": "the card's entry",
+        "motion": {
+          "kind": "spatial",
+          "duration": 300,
+          "bounce": 0
+        },
+        "progress": [
+          0,
+          46.56,
+          82.1,
+          94.87,
+          98.64
+        ]
+      },
+      {
+        "label": "the card's fade",
+        "motion": {
+          "kind": "effect",
+          "duration": 300
+        },
+        "progress": [
+          0,
+          46.56,
+          82.1,
+          94.87,
+          98.64
+        ]
+      },
+      {
+        "label": "a hover's fade",
+        "motion": {
+          "kind": "effect",
+          "duration": 120
+        },
+        "progress": [
+          0,
+          46.56,
+          82.1,
+          94.87,
+          98.64
+        ]
+      }
+    ]
+  }
+}

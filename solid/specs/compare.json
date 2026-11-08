@@ -1,0 +1,9 @@
+{
+  "kind": "compare",
+  "title": "Hero animation, before and after",
+  "intent": "Two versions of the same two measures, side by side.",
+  "source": "Sample: glyph-kit's comparison (areas/metrics.md)",
+  "sample": true,
+  "data": "@data/compare.json",
+  "options": { "width": 10, "headers": ["MEASURE", "BEFORE", "AFTER"] }
+}

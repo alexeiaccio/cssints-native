@@ -1,0 +1,16 @@
+{
+  "kind": "redline",
+  "title": "The Wi-Fi switch's row, redlined",
+  "intent": "The row's own spacing, from the page's style: 10px of padding either side, 4 above and below, the 44x24 track, the 12px gap, and the label that takes what is left.",
+  "source": "native/solid/app/Widgets.tsx and solid/goldens/widgets.json",
+  "data": {
+    "box": { "label": "row", "width": 280, "height": 32 },
+    "parts": [
+      { "label": "padding left", "x": 0, "y": 0, "width": 10, "height": 32, "inset": true },
+      { "label": "track", "x": 10, "y": 4, "width": 44, "height": 24 },
+      { "label": "gap", "x": 54, "y": 0, "width": 12, "height": 32, "inset": true },
+      { "label": "label", "x": 66, "y": 8, "width": 204, "height": 16 },
+      { "label": "padding right", "x": 270, "y": 0, "width": 10, "height": 32, "inset": true }
+    ]
+  }
+}

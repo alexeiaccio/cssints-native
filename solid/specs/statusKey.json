@@ -1,0 +1,12 @@
+{
+  "kind": "statusKey",
+  "title": "What the map's statuses mean",
+  "intent": "The legend the planning figures here use: the map's own two words for a step, and its word for work that waits.",
+  "source": "native/docs/map.md's 'Done:'/'Left:' lines; 'Blocked': 'a blocked poll'",
+  "data": [
+    { "label": "Done", "sentence": "the step's heading says Done, and its check runs in test.sh" },
+    { "label": "Left", "sentence": "its Left: line lists what the step did not do" },
+    { "label": "Blocked", "sentence": "it waits on something outside the plan; no step is Blocked today" }
+  ],
+  "options": { "used": ["Done", "Left", "Blocked"] }
+}

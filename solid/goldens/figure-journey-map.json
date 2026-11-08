@@ -1,0 +1,27 @@
+{
+  "commands": [
+    { "box": [0, 0, 480, 224], "color": [16, 19, 22, 255], "element": "Root", "id": 3621781681, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [16, 16, 369.498047, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 2708358769, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "+==================== SAMPLE DATA =====================+", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 32, 212.195312, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 742889473, "letterSpacing": 0, "lineHeight": 16, "size": 16, "text": "The first week, in three stages", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 48, 50.1845703, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 296316848, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "Discover", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [112, 48, 64, 16], "color": [45, 51, 61, 255], "element": "fig-track-0", "id": 615539687, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [112, 48, 32, 16], "color": [90, 190, 120, 255], "element": "fig-fill-0", "id": 2285240037, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [176, 48, 47.3408203, 16], "color": [90, 190, 120, 255], "element": null, "font": 0, "id": 2027140063, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "+1 good", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 64, 216.486328, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 4122380000, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            Finds the tool through a colleague", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 80, 184.740234, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 685557786, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            \"Will this replace my sheet?\"", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 96, 38.2827148, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 3199350648, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "Import", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [112, 96, 64, 16], "color": [45, 51, 61, 255], "element": "fig-track-1", "id": 2338992477, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [112, 96, 64, 16], "color": [230, 60, 60, 255], "element": "fig-fill-1", "id": 1979210346, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [176, 96, 35.8007812, 16], "color": [230, 60, 60, 255], "element": null, "font": 0, "id": 4126839568, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "-2 bad", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 112, 201.222656, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 2966238922, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            Uploads a CSV with 4,000 rows", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 128, 175.96875, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3162964418, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            \"Why did my dates break?\"", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 144, 58.5888672, 16], "color": [230, 233, 236, 255], "element": null, "font": 0, "id": 755720958, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "First chart", "type": "text", "wrap": "none", "z": 0 },
+    { "box": [112, 144, 64, 16], "color": [45, 51, 61, 255], "element": "fig-track-2", "id": 3048605172, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "box": [112, 144, 64, 16], "color": [90, 190, 120, 255], "element": "fig-fill-2", "id": 1660892224, "radii": [0, 0, 0, 0], "type": "rectangle", "z": 0 },
+    { "align": "left", "box": [176, 144, 47.7851562, 16], "color": [90, 190, 120, 255], "element": null, "font": 0, "id": 2630587992, "letterSpacing": 0, "lineHeight": 16, "size": 13, "text": "+2 great", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 160, 210.996094, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 2858142605, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            Picks a template and edits labels", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 176, 140.871094, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 487444354, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "            \"Oh, that was quick\"", "type": "text", "wrap": "none", "z": 0 },
+    { "align": "left", "box": [16, 192, 311.583984, 16], "color": [139, 152, 165, 255], "element": null, "font": 0, "id": 3732032235, "letterSpacing": 0, "lineHeight": 16, "size": 12, "text": "glyph-kit's journeyMap example (areas/flows.md), adapted", "type": "text", "wrap": "none", "z": 0 }
+  ],
+  "effects": { "backdrops": [], "gradients": [], "groups": [], "shadows": [], "textWeight": 0 }
+}

@@ -1,0 +1,83 @@
+{
+  "kind": "qaChecklist",
+  "title": "Twelve tests the suite runs",
+  "intent": "A hand-picked dozen of this package's own checks, named as `test.sh` names them: the file a test is, run in order. The summary is the rows counted.",
+  "source": "test.sh, the names as the suite runs them",
+  "data": {
+    "summary": "12 of 12 pass",
+    "rows": [
+      {
+        "check": "figure",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-charts",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-planning",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-motion",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-wireframe",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-anatomy",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-modal",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-table",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-cohort",
+        "area": "figures",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-export",
+        "area": "export",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-text",
+        "area": "text",
+        "verdict": "pass",
+        "source": "test.sh"
+      },
+      {
+        "check": "figure-label-lang",
+        "area": "accessibility",
+        "verdict": "pass",
+        "source": "test.sh"
+      }
+    ]
+  }
+}

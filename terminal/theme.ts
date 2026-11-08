@@ -9,14 +9,12 @@
 // catches the page's page-colour and accent, not every token).
 import type { ClayShape } from "cssints/clay";
 
-import {
-  createSystemTheme,
-  type Report,
-  type Role,
-  type Roles,
-  type Solved,
-  type SystemTheme,
-} from "../../packages/tui/src/system.ts";
+import type { Report, Role, Roles, Solved, SystemTheme } from "@cssints/tui/system";
+
+/** The tui package's solver, when it is installed. `@cssints/tui` is deprecated and this host is what replaces it, but the
+ *  solver's move here is its own change: until then a tree without the package answers nothing and keeps the static theme
+ *  (which is what a terminal that does not report its colours gets anyway). */
+const tui = await import("@cssints/tui/system").catch(() => undefined);
 import { packBox, packText, resolve, type State, type Variant } from "../solid/src/pack.ts";
 
 /** The page's token table as it is at run time: a token is its `var(--name)` string. */
@@ -96,9 +94,10 @@ const HUES = {
 
 const themes = new WeakMap<object, SystemTheme>();
 /** The solver for a token table, built once (`createSystemTheme` checks the roles: an `on` without a role, a cycle). */
-export const solverOf = (t: Tokens): SystemTheme => {
+export const solverOf = (t: Tokens): SystemTheme | undefined => {
+  if (!tui) return undefined;
   let s = themes.get(t as object);
-  if (!s) themes.set(t as object, (s = createSystemTheme(t, rolesOf(t), { hues: HUES })));
+  if (!s) themes.set(t as object, (s = tui.createSystemTheme(t, rolesOf(t), { hues: HUES })));
   return s;
 };
 
@@ -117,7 +116,9 @@ export interface Paint {
  * static theme: `--theme light`, or the page's default dark).
  */
 export const solve = (t: Tokens, report: Report): Paint | undefined => {
-  const solved: Solved = solverOf(t).solve(report);
+  const theme = solverOf(t);
+  if (!theme) return undefined;
+  const solved: Solved = theme.solve(report);
   const page = solved.values["color-page"];
   if (!page) return undefined;
   const map = new Map<number, number>();

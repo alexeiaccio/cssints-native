@@ -1,0 +1,8 @@
+{
+  "kind": "journeyMap",
+  "title": "The first week, in three stages",
+  "intent": "How a new user finds the tool, imports a sheet and gets a first chart, and how each stage felt.",
+  "source": "glyph-kit's journeyMap example (areas/flows.md), adapted",
+  "sample": true,
+  "data": "@data/journey-map.json"
+}

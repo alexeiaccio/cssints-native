@@ -1,0 +1,15 @@
+{
+  "name": "dialog-menu",
+  "page": "dialog",
+  "size": [360, 480],
+  "theme": "dark",
+  "steps": [
+    { "t": 0.0166667, "kind": "key", "name": "Tab", "down": true },
+    { "t": 0.0166667, "kind": "key", "name": "Tab", "down": false },
+    { "t": 0.0333333, "kind": "key", "name": "Tab", "down": true },
+    { "t": 0.0333333, "kind": "key", "name": "Tab", "down": false },
+    { "t": 0.05, "kind": "key", "name": "Enter", "down": true },
+    { "t": 0.05, "kind": "key", "name": "Enter", "down": false },
+    { "t": 0.0666667, "kind": "settle", "frames": 30 }
+  ]
+}

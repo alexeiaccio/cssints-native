@@ -1,0 +1,4 @@
+[
+  { "label": "lines moving", "a": 1, "aText": "100%", "b": 0.23, "bText": "23%" },
+  { "label": "build time", "a": 0.27, "aText": "2.7 s", "b": 0.77, "bText": "7.7 s" }
+]
