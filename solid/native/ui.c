@@ -875,18 +875,25 @@ int ui_diff_png(const char *ref_path, const char *actual)
 /** The layout is the window: Clay's dimensions, the pixel buffer and the presentation follow a resize (a fullscreen
  *  window is the same page, laid out over a bigger screen). The pixel density comes from the window, so a Retina
  *  fullscreen keeps its scale. */
+static void rescale(void)
+{
+    const float scale = SDL_GetWindowPixelDensity(window);
+    if (retarget(scale)) return;
+    SDL_DestroyTexture(texture);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING,
+                                (int)(width * scale), (int)(height * scale));
+    if (texture && gpu) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+}
+
+/** A resize, in the window's own points: SDL's RESIZED event. The texture is rebuilt for the new size, and a screen
+ *  with another density is handled by the density's own event. */
 static void resize(int w, int h)
 {
     if (w <= 0 || h <= 0 || (w == width && h == height)) return;
     width = w, height = h;
     Clay_SetLayoutDimensions((Clay_Dimensions){w, h});
     SDL_SetRenderLogicalPresentation(renderer, w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX);
-    const float scale = SDL_GetWindowPixelDensity(window);
-    if (retarget(scale)) return;
-    SDL_DestroyTexture(texture);
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING,
-                                (int)(w * scale), (int)(h * scale));
-    if (texture && gpu) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+    rescale();
 }
 
 /** Opens the window (on Metal) and returns its pixel density; the canvas is rebuilt at that scale. 0 on failure. */
@@ -1062,8 +1069,10 @@ void ui_window_poll(float *out)
     out[3] = 0, out[4] = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_EVENT_QUIT) out[3] = 1;
-        if (e.type == SDL_EVENT_WINDOW_RESIZED ||
-            e.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) resize((int)e.window.data1, (int)e.window.data2);
+        // RESIZED carries the window's points; PIXEL_SIZE_CHANGED carries its pixels, so it only re-scales the buffer
+        // (a window moved to a screen of another density), never the layout's size
+        if (e.type == SDL_EVENT_WINDOW_RESIZED) resize((int)e.window.data1, (int)e.window.data2);
+        if (e.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) rescale();
         // SDL's wheel y is positive away from the user, and so is Clay's scroll delta: no sign to flip. ui_wheel feeds
         // Clay's containers and the page's own channel at once. A shift+wheel is a horizontal scroll, as a browser's is:
         // the window's mod state swaps a vertical delta onto x when the wheel has none of its own (a trackpad sends x).
