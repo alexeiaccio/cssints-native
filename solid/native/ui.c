@@ -145,6 +145,18 @@ int ui_wheel_pop(float *out)
     return 1;
 }
 
+static float pinch_scale = 1; // accumulated since the last pop: a trackpad's pinch, as SDL reports it
+
+/** The pinch since the last pop into out[0] (a scale, 1 = none; > 1 spreads, so zooms in); 0 when there is none.
+ *  SDL sends PINCH_UPDATE with the change since the previous one, so this adds them up for one frame. */
+int ui_pinch_pop(float *out)
+{
+    if (pinch_scale == 1) return 0;
+    out[0] = pinch_scale;
+    pinch_scale = 1;
+    return 1;
+}
+
 /** Turns Clay's own wheel scrolling on (1, the default) or off (0): a page that scrolls itself owns the offset. */
 void ui_auto_scroll(int on) { auto_scroll = on != 0; }
 
@@ -1073,6 +1085,7 @@ void ui_window_poll(float *out)
     out[3] = 0, out[4] = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_EVENT_QUIT) out[3] = 1;
+        if (e.type == SDL_EVENT_PINCH_UPDATE && e.pinch.scale > 0) pinch_scale *= e.pinch.scale;
         // RESIZED carries the window's points; PIXEL_SIZE_CHANGED carries its pixels, so it only re-scales the buffer
         // (a window moved to a screen of another density), never the layout's size
         if (e.type == SDL_EVENT_WINDOW_RESIZED) resize((int)e.window.data1, (int)e.window.data2);

@@ -19,6 +19,7 @@ const open = () =>
     ui_wheel: { args: [T.f32, T.f32], returns: T.void },
     ui_wheel_pop: { args: [T.ptr], returns: T.i32 },
     ui_auto_scroll: { args: [T.i32], returns: T.void },
+    ui_pinch_pop: { args: [T.ptr], returns: T.i32 },
     ui_pointer_over: { args: [T.ptr, T.i32], returns: T.i32 },
     ui_open: { args: [T.ptr, T.i32, T.ptr], returns: T.void },
     ui_value: { args: [T.ptr, T.i32, T.i32, T.f32], returns: T.void },
@@ -81,6 +82,8 @@ export const ui = {
   /** Adds a wheel delta to the next frame: positive scrolls the content down (away from the user), as SDL's wheel y.
    *  Clay moves the scroll container the pointer is over by it at the next `begin`, unless the page turned that off. */
   wheel: (dx: number, dy: number) => lib().ui_wheel(dx, dy),
+  /** The trackpad's pinch since the last frame, into out[0] (1 = none; above 1 zooms in); false when there is none. */
+  pinchPop: (out: Float32Array) => lib().ui_pinch_pop(ptr(out)) !== 0,
   /** The wheel the polls (or `wheel`) took since the last pop, into out[2] and drained; false when there is none. */
   wheelPop: (out: Float32Array) => lib().ui_wheel_pop(ptr(out)) !== 0,
   /** Clay's own wheel scrolling of its scroll containers: on by default, off while a page animates its own offset. */
