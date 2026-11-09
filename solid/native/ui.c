@@ -252,7 +252,9 @@ void ui_begin(float px, float py, int down, float dt)
     // pages that drag write the offset themselves (the Sky feed's own track, the List's through `ui_scroll_to`). A page
     // that owns its offset (ui_auto_scroll(0)) has already taken the delta through ui_wheel_pop, so the drain still
     // happens and Clay moves nothing.
-    if (auto_scroll) Clay_UpdateScrollContainers(0, (Clay_Vector2){wheel_x, wheel_y}, dt);
+    // The table of scroll containers is cleaned by this call, not by the wheel: a page that scrolls itself
+    // (ui_auto_scroll(0)) still needs the call, with a zero delta, or the table fills and errors every frame.
+    Clay_UpdateScrollContainers(0, (Clay_Vector2){auto_scroll ? wheel_x : 0, auto_scroll ? wheel_y : 0}, dt);
     wheel_x = 0, wheel_y = 0;
     Clay_BeginLayout();
 }
@@ -870,6 +872,23 @@ int ui_diff_png(const char *ref_path, const char *actual)
     return n;
 }
 
+/** The layout is the window: Clay's dimensions, the pixel buffer and the presentation follow a resize (a fullscreen
+ *  window is the same page, laid out over a bigger screen). The pixel density comes from the window, so a Retina
+ *  fullscreen keeps its scale. */
+static void resize(int w, int h)
+{
+    if (w <= 0 || h <= 0 || (w == width && h == height)) return;
+    width = w, height = h;
+    Clay_SetLayoutDimensions((Clay_Dimensions){w, h});
+    SDL_SetRenderLogicalPresentation(renderer, w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    const float scale = SDL_GetWindowPixelDensity(window);
+    if (retarget(scale)) return;
+    SDL_DestroyTexture(texture);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING,
+                                (int)(w * scale), (int)(h * scale));
+    if (texture && gpu) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+}
+
 /** Opens the window (on Metal) and returns its pixel density; the canvas is rebuilt at that scale. 0 on failure. */
 float ui_window_open(const char *title)
 {
@@ -1042,6 +1061,8 @@ void ui_window_poll(float *out)
     out[3] = 0, out[4] = 0;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_EVENT_QUIT) out[3] = 1;
+        if (e.type == SDL_EVENT_WINDOW_RESIZED ||
+            e.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) resize((int)e.window.data1, (int)e.window.data2);
         // SDL's wheel y is positive away from the user, and so is Clay's scroll delta: no sign to flip. ui_wheel feeds
         // Clay's containers and the page's own channel at once. A shift+wheel is a horizontal scroll, as a browser's is:
         // the window's mod state swaps a vertical delta onto x when the wheel has none of its own (a trackpad sends x).
