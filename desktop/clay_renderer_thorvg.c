@@ -51,7 +51,7 @@ typedef struct {
     struct {
         const void *imageData;
         Tvg_Paint picture;
-    } images[32];
+    } images[96]; // three screenfuls of a photo grid: a scroll then reloads nothing
     int imageCount;
     // the frame's shadows (css.shadow), by the id of the element that casts one: no Clay field holds a shadow, so the
     // host sets them beside the declaration and the command stream's id finds them again here
@@ -192,7 +192,7 @@ static Tvg_Paint Clay_ThorVG_Picture(Clay_ThorVGRendererData *d, const void *ima
     if (!path) return NULL;
     for (int i = 0; i < d->imageCount; i++)
         if (d->images[i].imageData == imageData) return d->images[i].picture;
-    // a photo grid scrolls past 32 distinct pictures: evict the oldest slot instead of going blank
+    // a photo grid scrolls past 96 distinct pictures: evict the oldest slot instead of going blank
     if (d->imageCount == (int)(sizeof d->images / sizeof *d->images)) {
         tvg_paint_rel(d->images[0].picture);
         memmove(&d->images[0], &d->images[1], sizeof d->images[0] * (size_t)(d->imageCount - 1));

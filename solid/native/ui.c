@@ -61,9 +61,11 @@ static int arena_used;
 
 // image paths: a Clay image's config is one pointer (`imageData`), and the renderer caches a picture by that pointer, so
 // one path must arrive as one address every frame. Interned on first use and kept for the process.
-#define MAX_IMAGES 64
-static const char *image_paths[MAX_IMAGES];
-static int image_count;
+// A photo grid scrolls past thousands of distinct pictures, so the interned paths grow: a fixed table dropped the
+// 65th path for good, and its cell drew blank forever. Strings are kept for the process, compared by content.
+static const char **image_paths;
+static uint32_t *image_hashes;
+static int image_count, image_cap;
 static const char *pending_image;
 // the shadow (css.shadow) the next ui_open declares: Clay has no shadow field, so it rides the renderer's table instead
 static float pending_shadow[3];
@@ -274,16 +276,26 @@ static Clay_Color color(const float *f) { return (Clay_Color){f[0], f[1], f[2], 
  *  load the file again each frame and fill the renderer's cache). */
 void ui_image(const char *path, int len)
 {
+    // the hash is a cheap reject before the length and byte compares; the table only ever grows
+    uint32_t h = 2166136261u;
+    for (int i = 0; i < len; i++) h = (h ^ (unsigned char)path[i]) * 16777619u;
     for (int i = 0; i < image_count; i++)
-        if ((int)strlen(image_paths[i]) == len && memcmp(image_paths[i], path, (size_t)len) == 0) {
+        if (image_hashes[i] == h && (int)strlen(image_paths[i]) == len &&
+            memcmp(image_paths[i], path, (size_t)len) == 0) {
             pending_image = image_paths[i];
             return;
         }
-    // ponytail: 64 distinct paths a process, never freed; a page with more needs a bigger table
-    if (image_count == MAX_IMAGES) {
-        errors++;
-        return;
+    if (image_count == image_cap) {
+        int cap = image_cap ? image_cap * 2 : 64;
+        const char **paths = realloc(image_paths, sizeof *paths * (size_t)cap);
+        if (!paths) { errors++; return; }
+        image_paths = paths;
+        uint32_t *hashes = realloc(image_hashes, sizeof *hashes * (size_t)cap);
+        if (!hashes) { errors++; return; }
+        image_hashes = hashes;
+        image_cap = cap;
     }
+    image_hashes[image_count] = h;
     image_paths[image_count] = strndup(path, (size_t)len);
     pending_image = image_paths[image_count++];
 }
