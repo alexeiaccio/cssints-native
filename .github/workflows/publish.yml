@@ -1,0 +1,40 @@
+# Publishes the package to npm. No token in the repo: npm's Trusted Publishing trusts this workflow's OIDC identity
+# (npmjs.com → the package → Settings → Trusted Publisher → GitHub Actions: alexeiaccio/cssints-native, publish.yml),
+# and `--provenance` attests where the tarball was built.
+#
+# The version comes from the tag: `git tag v0.1.6 && git push --tags` publishes 0.1.6, so package.json's own version
+# no longer has to be bumped by hand (and cannot drift). A manual run takes the version as its input.
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version to publish, e.g. 0.1.6"
+        required: true
+
+permissions:
+  contents: read
+  id-token: write # the OIDC identity npm's Trusted Publishing checks
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+      # Trusted Publishing needs npm 11.5 or newer
+      - run: npm install -g npm@latest
+      - name: take the version from the tag
+        run: |
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then version="${GITHUB_REF_NAME#v}"; fi
+          echo "publishing $version"
+          # --allow-same-version: a rerun of the same tag is not an error until npm refuses a published version
+          npm version "$version" --no-git-tag-version --allow-same-version
+      - run: npm publish --access public --provenance
