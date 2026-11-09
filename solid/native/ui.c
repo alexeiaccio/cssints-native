@@ -893,7 +893,8 @@ static void resize(int w, int h)
 float ui_window_open(const char *title)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) return 0;
-    window = SDL_CreateWindow(title, width, height, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+    // resizable: the layout follows the window (resize below), so a drag of its edge is a bigger page, not letterboxing
+    window = SDL_CreateWindow(title, width, height, SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
     renderer = window ? SDL_CreateRenderer(window, NULL) : NULL;
     if (!renderer) return 0;
     SDL_SetRenderLogicalPresentation(renderer, width, height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
