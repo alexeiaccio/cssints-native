@@ -49,6 +49,7 @@ const open = () =>
     ui_window_open: { args: [T.cstring], returns: T.f32 },
     ui_window_poll: { args: [T.ptr], returns: T.void },
     ui_window_present: { args: [], returns: T.void },
+    ui_window_resized: { args: [], returns: T.i32 },
     ui_window_fullscreen: { args: [T.i32], returns: T.i32 },
     ui_key_pop: { args: [T.ptr], returns: T.i32 },
     ui_text_pop: { args: [T.ptr, T.i32], returns: T.i32 },
@@ -159,6 +160,8 @@ export const ui = {
   /** Drains the window's events into out[6]: pointer x, y, button down, quit, the last key's character, and whether the
    *  last pointer event was a finger (1) or the mouse (0). */
   windowPoll: (out: Float32Array) => lib().ui_window_poll(ptr(out)),
+  /** 1 when the layout was resized since the last call: a page covers the moment a window drag re-flows it. */
+  windowResized: () => lib().ui_window_resized() !== 0,
   /** macOS fullscreen: the drawable grows and the present letterboxes the layout until the page resizes itself. */
   windowFullscreen: (on: boolean) => lib().ui_window_fullscreen(on ? 1 : 0),
   windowPresent: () => lib().ui_window_present(),

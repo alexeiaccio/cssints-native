@@ -53,6 +53,8 @@ typedef struct { int unused; } Clay_WgTarget; // only the GPU build (desktop/bui
 static Clay_ThorVGRendererData tvg;
 static const char *font_names[MAX_FONTS];
 static int font_count, width, height, errors;
+// set by a resize, taken by ui_window_resized: the page covers the moment a window drag re-flows it
+static int resized_once;
 static Uint32 *pixels;
 static Clay_RenderCommandArray cmds;
 // text lives here for the frame: Clay keeps the pointer until the render pass
@@ -226,6 +228,7 @@ int ui_font(const char *path)
 }
 
 int ui_errors(void) { return errors; }
+int ui_window_resized(void) { return resized_once ? (resized_once = 0, 1) : 0; }
 
 static Clay_String slice(const char *s, int len) { return (Clay_String){.length = len, .chars = s}; }
 
@@ -893,6 +896,7 @@ static void resize(int w, int h)
     width = w, height = h;
     Clay_SetLayoutDimensions((Clay_Dimensions){w, h});
     SDL_SetRenderLogicalPresentation(renderer, w, h, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+    resized_once = 1;
     rescale();
 }
 
