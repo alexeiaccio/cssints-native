@@ -887,6 +887,13 @@ float ui_window_open(const char *title)
     return texture ? scale : 0;
 }
 
+/** The window's fullscreen state (1 on); 0 without a window. macOS resizes the drawable, and the page keeps laying out
+ *  at `width x height`: the present letterboxes the layout into the larger window until the page resizes itself. */
+int ui_window_fullscreen(int on)
+{
+    return window ? SDL_SetWindowFullscreen(window, on != 0) : 0;
+}
+
 // key events of the polls, in order: [down (1) or up (0), SDL keycode, SDL_Keymod, repeat]
 #define KEY_QUEUE 64
 static int keys[KEY_QUEUE][4];
