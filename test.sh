@@ -1,7 +1,8 @@
 #!/bin/sh
 # The whole package on a machine that can draw: the C side and the headless widgets (check.sh and the walk, which CI also
-# runs), the terminal's wire, the figure suite and the generated specs' `cmp`. The frames it draws need SDL3 and ThorVG
-# (brew on macOS): a machine without them runs `sh check.sh` and `bun run test:headless` only, which is what CI does.
+# runs), the terminal's wire, the pixel diff, the figure suite and the generated specs' `cmp`. The frames it draws need SDL3
+# and ThorVG (brew on macOS): a machine without them runs `sh check.sh` and `bun run test:headless` only, which is what CI
+# does.
 #
 #   sh test.sh
 set -e
@@ -9,6 +10,7 @@ cd "$(dirname "$0")"
 sh check.sh
 node focus/test/focus.test.ts
 node terminal/system.test.ts
+bun solid/diff.test.ts
 (cd headless && bun run typecheck:native && bun run test:native)
 
 # The figure suite: a test a kind or an area, each drawing its frames and reading them back.

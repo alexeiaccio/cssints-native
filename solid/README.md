@@ -53,6 +53,14 @@ bun solid/metamorphic.test.ts                     # the relations with no stored
 bun solid/watch.ts sky                           # the dev loop: the page in a child, restarted when a save changed it (below)
 ```
 
+`--expect` compares the frame with a stored PNG pixel for pixel, and a difference says **where**: `59 pixels differ in a
+7x11 box at 101,98`. The count is `ui_diff_png`'s (C, at the frame's own scale); the box is `solid/src/diff.ts`'s
+`diffImages`, read back from the two PNGs only on a failure, and the C host's own `differ` computes both, so the two hosts
+print the same sentence. The helper came from gpucanvas's `diffImages` (MIT, berkantay) — the same question, "what moved,
+and where"; its third field, the diff image, stayed behind because this host has no PNG encoder of its own.
+`bun solid/diff.test.ts` holds the rule: a planted patch, the edges, another size, alpha, and the Widgets page's switch off
+against on — **2220 pixels in a 280x32 box at 40,117**.
+
 ### The dev loop
 
 `bun solid/watch.ts <page>` (from `native/`) runs `bun solid/main.ts <page>` in a child, watches the page's and the

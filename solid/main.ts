@@ -78,6 +78,7 @@ import { dirname } from "node:path";
 
 import type { Motion } from "./src/entry.ts";
 import type { Drag } from "./app/Widgets.tsx";
+import { diffImages } from "./src/diff.ts";
 
 const page = process.argv[2]?.startsWith("--") ? "sensors" : (process.argv[2] ?? "sensors");
 if (
@@ -398,9 +399,17 @@ if (headless) {
   let status = ui.errors() ? 1 : 0;
   if (png) ui.savePng(png);
   if (expect) {
-    const n = ui.diffPng(expect, `${expect}.actual.png`);
+    const actual = `${expect}.actual.png`;
+    const n = ui.diffPng(expect, actual);
     if (n) {
-      console.error(`${expect}: ${n} pixels differ (-1: missing or another size); this frame is ${expect}.actual.png`);
+      // the count says something moved; the box says where. Read back the two PNGs only when it failed
+      const [ref, frame] = [ui.png(expect), ui.png(actual)];
+      const box = ref && frame ? diffImages(ref, frame)?.bounds : undefined;
+      console.error(
+        `${expect}: ${n} pixels differ` +
+          (n < 0 ? " (-1: missing or another size)" : box ? ` in a ${box.width}x${box.height} box at ${box.x},${box.y}` : "") +
+          `; this frame is ${actual}`,
+      );
       status = 1;
     } else console.log(`${expect}: identical`);
   }

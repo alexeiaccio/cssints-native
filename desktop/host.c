@@ -99,14 +99,28 @@ static SDL_Surface *frame_pixels(SDL_Renderer *r)
 }
 
 /** Pixels that differ between two RGBA32 surfaces of one size; -1 when the sizes differ. */
-static long differ(SDL_Surface *a, SDL_Surface *b)
+/** Pixels of b that differ from a; -1 on another size. On a difference `box` (when given) is the box that holds every
+ *  one of them, as [x, y, w, h] — the count says something moved, the box says where. */
+static long differ(SDL_Surface *a, SDL_Surface *b, int *box)
 {
     if (a->w != b->w || a->h != b->h) return -1;
     long n = 0;
+    int left = a->w, right = -1, top = a->h, bottom = -1;
     for (int y = 0; y < a->h; y++) {
         const Uint32 *pa = (const Uint32 *)((const Uint8 *)a->pixels + y * a->pitch);
         const Uint32 *pb = (const Uint32 *)((const Uint8 *)b->pixels + y * b->pitch);
-        for (int x = 0; x < a->w; x++) n += pa[x] != pb[x];
+        for (int x = 0; x < a->w; x++) {
+            if (pa[x] == pb[x]) continue;
+            n++;
+            if (x < left) left = x;
+            if (x > right) right = x;
+            if (y < top) top = y;
+            if (y > bottom) bottom = y;
+        }
+    }
+    if (n && box) {
+        box[0] = left, box[1] = top;
+        box[2] = right - left + 1, box[3] = bottom - top + 1;
     }
     return n;
 }
@@ -164,12 +178,17 @@ static int finish(SDL_Surface *got, const char *png, const char *expect, const c
     if (expect) {
         SDL_Surface *ref0 = IMG_Load(expect);
         SDL_Surface *ref = ref0 ? SDL_ConvertSurface(ref0, SDL_PIXELFORMAT_RGBA32) : NULL;
-        const long n = ref ? differ(got, ref) : -1;
+        int box[4];
+        const long n = ref ? differ(got, ref, box) : -1;
         if (n) {
             char out[1024];
             snprintf(out, sizeof out, "%s.actual.png", expect);
             IMG_SavePNG(got, out);
-            fprintf(stderr, "%s: %ld pixels differ (-1: missing or another size); this frame is %s\n", expect, n, out);
+            if (n > 0)
+                fprintf(stderr, "%s: %ld pixels differ in a %dx%d box at %d,%d; this frame is %s\n", expect, n, box[2],
+                        box[3], box[0], box[1], out);
+            else
+                fprintf(stderr, "%s: %ld pixels differ (-1: missing or another size); this frame is %s\n", expect, n, out);
             status = 1;
         } else {
             printf("%s: identical, %d commands\n", expect, cmds.length);
