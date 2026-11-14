@@ -865,6 +865,26 @@ int ui_save_png(const char *path)
     return !ok;
 }
 
+/** Saves one rectangle of the last frame, in the layout's pixels (the density multiplies it): a figure's node as its own
+ *  PNG, which is `--capture`. Clips to the frame; -1 when the clipped rectangle is empty. */
+int ui_save_png_rect(const char *path, int x, int y, int w, int h)
+{
+    const int tw = (int)(width * tvg.scale), th = (int)(height * tvg.scale);
+    const float s = tvg.scale;
+    int x0 = (int)lroundf(x * s), y0 = (int)lroundf(y * s);
+    int x1 = (int)lroundf((x + w) * s), y1 = (int)lroundf((y + h) * s);
+    if (x0 < 0) x0 = 0;
+    if (y0 < 0) y0 = 0;
+    if (x1 > tw) x1 = tw;
+    if (y1 > th) y1 = th;
+    if (x1 <= x0 || y1 <= y0) return -1;
+    SDL_Surface *part = SDL_CreateSurfaceFrom(x1 - x0, y1 - y0, SDL_PIXELFORMAT_RGBA32,
+                                             (Uint8 *)pixels + ((size_t)y0 * tw + x0) * 4, tw * 4);
+    const int ok = part ? IMG_SavePNG(part, path) : 0;
+    SDL_DestroySurface(part);
+    return ok ? 0 : -1;
+}
+
 /** Pixels of the last frame that differ from the PNG; -1 when it is missing or of another size. On a difference
  *  the frame is written to `actual`. */
 int ui_diff_png(const char *ref_path, const char *actual)

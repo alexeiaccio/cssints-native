@@ -73,7 +73,7 @@
 //                                        that leaves unmounts on the frame it closes (also REDUCED_MOTION=1)
 //   THEME=light                          the light theme
 import "./plugin.ts";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 import type { Motion } from "./src/entry.ts";
@@ -101,6 +101,9 @@ const arg = (name: string, n = 1) => {
 };
 const png = arg("--png")?.[0];
 const expect = arg("--expect")?.[0];
+// the figure's outline (its tree with an id and a rect a node), to a file or to stdout; and one node of it as a PNG
+const describeAt = process.argv.indexOf("--describe");
+const capture = arg("--capture", 2);
 // headless: a scene, `solid/scenes/*.json` — a typed event log with times that names its own page, size, theme and
 // reduced-motion flag (`solid/src/scene.ts`; the format and the steps are in native/README.md). It runs the same headless
 // loop the flags above run, so `--png`/`--expect` give it a frame, and it exits before any of the page's setup below.
@@ -293,7 +296,7 @@ const pumpWheel = () => {
   return had;
 };
 
-const headless = png || expect || idle > 0 || touch !== undefined;
+const headless = png || expect || idle > 0 || touch !== undefined || describeAt >= 0 || capture !== undefined;
 if (headless) {
   // every headless frame is the loop's: declared and laid out, drawn only when the hash changed or the input was a
   // discrete one. The buffer keeps the last drawn pixels, so a skipped frame is the frame it would have drawn.
@@ -412,6 +415,32 @@ if (headless) {
       );
       status = 1;
     } else console.log(`${expect}: identical`);
+  }
+  // the figure as an outline (its page's tree, every node's id and box), and one node of it as a PNG: what an agent
+  // reads and points at. A page other than the figure has no spec, so the two flags are the figure's.
+  if (describeAt >= 0 || capture !== undefined) {
+    if (page !== "figure") {
+      console.error("--describe and --capture are the figure's: bun solid/main.ts figure --spec <file.json> ...");
+      process.exit(2);
+    }
+    const { outline } = await import("./src/figure/outline.ts");
+    const o = outline(figureSpec!, (id) => ui.bounds(Buffer.from(id)), [W, H]);
+    if (describeAt >= 0) {
+      const to = process.argv[describeAt + 1];
+      const text = `${JSON.stringify(o, null, 2)}\n`;
+      if (to !== undefined && !to.startsWith("--")) writeFileSync(to, text);
+      else process.stdout.write(text);
+    }
+    if (capture) {
+      const [id, path] = capture;
+      const node = o.nodes.find((n) => n.id === id);
+      if (!node) {
+        const named = o.nodes.slice(0, 6).map((n) => n.id).join(", ");
+        console.error(`figure: no element ${JSON.stringify(id)} in the outline (${o.nodes.length} nodes: ${named}, ...)`);
+        status = 1;
+      } else if (!ui.savePngRect(path!, ...node.rect))
+        console.error(`figure: cannot write ${path}`), (status = 1);
+    }
   }
   if (bench) {
     const px = click?.[0] ?? -1;

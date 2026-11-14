@@ -246,6 +246,7 @@ export const ui = {
   },
   png: (_path: string) => undefined,
   savePng: (_path: string) => false,
+  savePngRect: (_path: string, _x: number, _y: number, _w: number, _h: number) => false,
   diffPng: (_ref: string, _actual: string) => -1,
   /** No window: the page is one. */
   windowOpen: (_title: string) => 0,
