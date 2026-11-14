@@ -1231,9 +1231,15 @@ anchor, the first slide the no-fragment default — CSS only, so no arrow keys a
 `forced-colors` and `@page { size: A4 landscape; margin: 12mm }` + `break-after: page` per slide. `--png <spec> -o
 out.png [--scale N]` wraps the desktop host (`bun solid/main.ts figure --spec … --warm 30 --png`, a child process, with
 `--density N`: the layout in cells × 8 × N by × 16 × N pixels, default 2). `--pdf a.json b.json … -o deck.pdf` prints
-that deck through Playwright's Chromium (`page.pdf()`, A4 landscape, 12 mm margins, one page a slide). All three
-`parse`/`check` every spec first, so one bad spec writes no file; `figure-export-deck.test.ts` counts the slides, pages
-and pixels, reads the PDF's titles back as text, `cmp`s two runs and mutates the deck, the print CSS and the 2× raster.
+that deck through Playwright's Chromium (`page.pdf()`, A4 landscape, 12 mm margins, one page a slide). `--og -o card.png`
+writes a **1200×630 Open Graph card** — the title, the intent, the figure filling the card's room, the source — from
+`src/figure/export/og.ts`, the HTML page's own SVG and roles printed by that same Chromium. It is not the desktop host
+because 630 is not on the cell grid (a frame is `(rows + 2) × 16 × density` tall, and 16 · 39.375 rows is no row): the
+card is a document, and the figure inside it keeps its aspect (the Targets table's 632×192 draws at 1072×326, 1.70×,
+in the 1072 px of room the card leaves). Each export `parse`/`check`s every spec first, so one bad spec writes no file;
+`figure-export-deck.test.ts` counts the slides, pages and pixels, reads the PDF's titles back as text, `cmp`s two runs
+and mutates the deck, the print CSS and the 2× raster, and `figure-export.test.ts` holds the card to 1200×630, its
+words, the room its figure fills and that nothing overflows.
 
 ## The accessibility tree
 
