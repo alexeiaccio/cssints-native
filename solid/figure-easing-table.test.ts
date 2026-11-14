@@ -9,13 +9,14 @@
 //       progress are the frame's own texts;
 //   (d) the refusals, in their sentences;
 //   (e) the command golden, the stored frame, the terminal's rows and the text half;
-//   (f) a mutation: a progress value a point off the solver is refused with both numbers.
+//   (f) a mutation: a progress value a point off the solver is refused with both numbers;
+//   (g) a frame that differs says where: a label one character off is one glyph cell, and the diff names its box.
 //
 //   bun solid/figure-easing-table.test.ts
 import "./plugin.ts";
 
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -258,6 +259,36 @@ refuses(
     `solid/frames/figure-easing-table.png, ${statSync(new URL("./frames/figure-easing-table.png", import.meta.url)).size} B, identical`,
     `exit ${run.status}: ${(run.stderr || run.stdout).trim()}`,
   );
+
+  // a frame that differs says where: one character of a label is one glyph cell, and the diff names it (a count alone
+  // would send a reader through 75 KB of pixels). The numbers are the cell measured on this frame.
+  {
+    const wrong = join(work, "easing-table.json");
+    writeFileSync(
+      wrong,
+      readFileSync(new URL("./specs/easing-table.json", import.meta.url), "utf8").replace(
+        `"the scrim's fade"`,
+        `"the scrim's fad3"`,
+      ),
+    );
+    const actual = new URL("./frames/figure-easing-table.png.actual.png", import.meta.url);
+    const miss = spawnSync(
+      "bun",
+      [
+        "solid/main.ts", "figure", "--spec", wrong,
+        "--warm", "30", "--expect", "solid/frames/figure-easing-table.png",
+      ],
+      { cwd: new URL("..", import.meta.url).pathname, encoding: "utf8" },
+    );
+    const message = (miss.stderr || miss.stdout).trim();
+    yes(
+      miss.status === 1 && /59 pixels differ in a 7x11 box at 101,98/.test(message),
+      "a wrong label names its cell",
+      message,
+      `exit ${miss.status}: ${message}`,
+    );
+    rmSync(actual, { force: true });
+  }
 
   const report = dump as unknown as { commands: Cmd[] };
   const rows = layout.lines.reduce((n, line) => n + (line.height ?? 1), 0) + 2 * PADDING_Y;

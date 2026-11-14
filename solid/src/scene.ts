@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs";
 import type { Drag } from "../app/Widgets.tsx";
 import type { Motion } from "./entry.ts";
 import { ui } from "./ffi.ts";
+import { diffImages } from "./diff.ts";
 import { createDrawer, createFrame, type View } from "./frame.ts";
 import { createInput, type Input } from "./input.ts";
 import { setReducedMotion } from "./motion.ts";
@@ -343,7 +344,14 @@ export async function runSceneFile(path: string, options: SceneFileOptions = {})
     const actual = `${options.expect}.actual.png`;
     const n = ui.diffPng(options.expect, actual);
     if (n) {
-      console.error(`${options.expect}: ${n} pixels differ (-1: missing or another size); this frame is ${actual}`);
+      // the count says something moved; the box says where
+      const [ref, frame] = [ui.png(options.expect), ui.png(actual)];
+      const box = ref && frame ? diffImages(ref, frame)?.bounds : undefined;
+      console.error(
+        `${options.expect}: ${n} pixels differ` +
+          (n < 0 ? " (-1: missing or another size)" : box ? ` in a ${box.width}x${box.height} box at ${box.x},${box.y}` : "") +
+          `; this frame is ${actual}`,
+      );
       status = 1;
     } else console.log(`${options.expect}: identical`);
   }

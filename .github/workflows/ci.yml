@@ -65,4 +65,6 @@ jobs:
       - run: sh check.sh
       # the focus manager's walk, and the headless widgets against their Quint scenarios
       - run: node focus/test/focus.test.ts
+      # the pixel diff's rule (its stored-frame cases are skipped without libui.dylib, which needs SDL3 and ThorVG)
+      - run: bun solid/diff.test.ts
       - run: cd headless && bun run typecheck:native && bun run test:native
