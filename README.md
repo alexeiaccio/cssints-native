@@ -3265,6 +3265,12 @@ back (the objects, the page's content stream through zlib, the `/Fn … Tf` and 
 61,115 B for 3 pages, and two runs differ only in the two dates Chromium stamps (`/CreationDate`, `/ModDate`), which the
 test masks before `cmp`.
 
+`--og -o card.png` writes a **1200×630 card** — the size a social scraper asks for — of one spec: the title, the intent,
+the figure filling the room left, the source, which is `html.ts`'s own SVG and roles printed by the same Chromium. It is a
+document rather than a frame because 630 is off the cell grid (a frame is `(rows + 2) × 16 × density` tall, and
+16 × 39.375 rows is no row): the Targets table's 632×192 draws at **1072×326 (1.70×)** in the 1072 px of room, the file is
+**105,242 B**, and two runs are byte-identical.
+
 **The docs draw themselves.** The eight figures below are drawn by the renderer from their specs, and `test.sh` regenerates
 them (`bun solid/figure.ts --redraw native/README.md`) and `cmp`s the result with this file, so a figure here cannot drift
 from its spec — the same discipline as the generated C and the goldens. The line above each fence names the spec, relative

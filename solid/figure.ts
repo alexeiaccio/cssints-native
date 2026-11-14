@@ -8,7 +8,8 @@
 //   bun solid/figure.ts solid/specs/pipeline.json --svg out.svg   the figure as one standalone SVG
 //   bun solid/figure.ts solid/specs/palette.json --html page.html  the figure as one self-contained page
 //   bun solid/figure.ts bars.json funnel.json --deck -o deck.html  a deck: one self-contained page, a slide a spec
-//   bun solid/figure.ts solid/specs/bars.json --png out.png --scale 2   the figure as a raster, through the desktop host
+//   bun solid/figure.ts solid/specs/bars.json --png -o out.png --scale 2   the figure as a raster, through the desktop host
+//   bun solid/figure.ts solid/specs/table.json --og -o card.png         a 1200x630 OG card: title, figure, source, Chromium
 //   bun solid/figure.ts bars.json funnel.json --pdf -o deck.pdf   the deck printed, one page a slide (Playwright's Chromium)
 //   bun solid/figure.ts bars.json --deck -o -                  any export to stdout with -
 //   bun solid/figure.ts --redraw native/README.md             the document with every marked figure drawn again (stdout)
@@ -38,7 +39,7 @@ let mode: "text" | "markdown" = "text";
 let compact = false;
 let width = 80;
 /** An export: what it is, and where it goes (`-` is stdout, for the SVG, the HTML and the deck). */
-let exportAs: { mode: "svg" | "html" | "deck" | "png" | "pdf"; path: string } | undefined;
+let exportAs: { mode: "svg" | "html" | "deck" | "png" | "pdf" | "og"; path: string } | undefined;
 /** The deck's title (`--title`): the first spec's unless given. */
 let title: string | undefined;
 /** A PNG's density: 2 is the Retina raster, 1 the layout's own pixels. */
@@ -56,13 +57,13 @@ for (let i = 0; i < args.length; i++) {
     if (!path) fail(`${arg} needs a file, or - for stdout`, 2);
     if (exportAs) fail(`one export at a time: --${exportAs.mode} and ${arg}`, 2);
     exportAs = { mode: arg === "--svg" ? "svg" : "html", path };
-  } else if (arg === "--deck" || arg === "--pdf" || arg === "--png") {
+  } else if (arg === "--deck" || arg === "--pdf" || arg === "--png" || arg === "--og") {
     if (exportAs) fail(`one export at a time: --${exportAs.mode} and ${arg}`, 2);
-    exportAs = { mode: arg.slice(2) as "deck" | "pdf" | "png", path: "" };
+    exportAs = { mode: arg.slice(2) as "deck" | "pdf" | "png" | "og", path: "" };
   } else if (arg === "-o" || arg === "--out") {
     const path = args[++i];
     if (!path) fail(`${arg} needs a file, or - for stdout`, 2);
-    if (!exportAs) fail(`${arg} needs an export to write: --deck, --pdf or --png`, 2);
+    if (!exportAs) fail(`${arg} needs an export to write: --deck, --pdf, --png or --og`, 2);
     if (exportAs.path) fail(`two destinations: ${exportAs.path} and ${path}`, 2);
     exportAs.path = path;
   } else if (arg === "--title") {
@@ -90,15 +91,15 @@ if (docPath) {
 
 const USAGE =
   "a spec: bun solid/figure.ts solid/specs/bars.json [--text|--markdown|--compact] [--width N] [--svg|--html FILE], " +
-  "or specs and --deck|--pdf -o FILE [--title T], or a spec and --png -o FILE [--scale N]";
+  "or specs and --deck|--pdf -o FILE [--title T], or a spec and --png -o FILE [--scale N], or a spec and --og -o FILE";
 if (specPaths.length === 0) fail(USAGE, 2);
 if (!exportAs && specPaths.length > 1) fail(`one spec at a time: ${specPaths[0]} and ${specPaths[1]}`, 2);
 if (exportAs) {
-  const one = exportAs.mode === "svg" || exportAs.mode === "html" || exportAs.mode === "png";
+  const one = exportAs.mode === "svg" || exportAs.mode === "html" || exportAs.mode === "png" || exportAs.mode === "og";
   if (one && specPaths.length !== 1)
     fail(`--${exportAs.mode} is one spec, not ${specPaths.length}: ${specPaths.slice(1).join(", ")}`, 2);
   if (!exportAs.path) fail(`--${exportAs.mode} needs a file: -o <file>`, 2);
-  if (exportAs.path === "-" && (exportAs.mode === "png" || exportAs.mode === "pdf"))
+  if (exportAs.path === "-" && (exportAs.mode === "png" || exportAs.mode === "pdf" || exportAs.mode === "og"))
     fail(`--${exportAs.mode} writes a file, not stdout`, 2);
 }
 
@@ -138,6 +139,16 @@ else if (exportAs.mode === "deck") write(exportAs.path, deck(specs, { title }));
 else if (exportAs.mode === "png") {
   const written = png(specPaths[0]!, exportAs.path, { scale });
   if (!written.ok) fail(written.message || `cannot write ${exportAs.path}`);
+} else if (exportAs.mode === "og") {
+  const { og } = await import("./src/figure/export/og.ts");
+  try {
+    await og(spec, { path: resolve(exportAs.path) });
+  } catch (error) {
+    fail(
+      `cannot write ${exportAs.path}: ${error instanceof Error ? error.message : String(error)} ` +
+        `(--og needs Playwright's Chromium: bunx playwright install chromium)`,
+    );
+  }
 } else {
   const { pdf } = await import("./src/figure/export/pdf.ts");
   try {

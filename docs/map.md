@@ -211,7 +211,8 @@ data. As files, the same layout is `docs/exports/palette.html` (one self-contain
 and for a review, `docs/exports/review.html` (a three-slide deck — `palette`, `bars`, `timeline` — with `:target`
 navigation and a print sheet that is a page a slide) and `docs/exports/bars.png`/`bars@2x.png` (the desktop host's frame
 at 1× and 2×, 400×112 and 800×224), written by `--deck`/`--png` and regenerated and `cmp`'d the same way; `--pdf` prints
-that deck to a PDF, one page a slide, through Playwright's Chromium.
+that deck to a PDF, one page a slide, through Playwright's Chromium; `--og` writes a 1200×630 card the same way (the figure
+inside a document, because 630 is off the 16 px cell grid — a frame is `(rows + 2) × 16 × density` tall).
 
 **The console as a fourth screen** (2026-11-05). The terminal's cells, printed to a browser's console instead of drawn:
 `terminal/cells.c`'s `cells_console` makes one `console.log` call of a grid — a `%c` run a foreground/background pair, a

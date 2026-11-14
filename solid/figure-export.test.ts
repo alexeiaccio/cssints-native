@@ -28,6 +28,7 @@ import {
   type Layout,
 } from "./src/figure/kinds.ts";
 import { html } from "./src/figure/export/html.ts";
+import { OG, ogCard } from "./src/figure/export/og.ts";
 import { svg } from "./src/figure/export/svg.ts";
 import { parse, type Spec } from "./src/figure/spec.ts";
 
@@ -336,6 +337,78 @@ for (const name of SPECS) {
       `${name}: viewBox`,
       `${size.width}x${size.height} px = ${size.width / CELL_WIDTH}x${size.height / CELL_HEIGHT} cells`,
     );
+}
+
+// (g): the OG card, 1200x630 — Chromium's, because the desktop host's frames are multiples of the cell grid and 630 is not
+{
+  const pngSize = (path: string): [number, number] | undefined => {
+    const bytes = readFileSync(path).subarray(0, 33);
+    return bytes.subarray(1, 4).toString("latin1") === "PNG" ? [bytes.readUInt32BE(16), bytes.readUInt32BE(20)] : undefined;
+  };
+  const one = join(work, "og-one.png");
+  const two = join(work, "og-two.png");
+  const first = spawnSync(process.execPath, [CLI, "solid/specs/table.json", "--og", "-o", one], { cwd: NATIVE });
+  const second = spawnSync(process.execPath, [CLI, "solid/specs/table.json", "--og", "-o", two], { cwd: NATIVE });
+  const size = existsSync(one) ? pngSize(one) : undefined;
+  if (first.status === 0 && size && size[0] === OG.width && size[1] === OG.height)
+    ok("og: 1200x630", `the CLI wrote a ${size[0]}x${size[1]} PNG, ${(statSync(one).size / 1024).toFixed(0)} KB`);
+  else bad("og: 1200x630", `exit ${first.status}, ${size ? `${size[0]}x${size[1]}` : first.stderr?.toString().trim()}`);
+
+  if (first.status === 0 && second.status === 0 && readFileSync(one).equals(readFileSync(two)))
+    ok("og: two runs, the same bytes", "cmp");
+  else bad("og: two runs, the same bytes", `exit ${first.status}/${second.status}, or the files differ`);
+
+  // the two refusals a one-spec export owes: a second spec, and stdout
+  const many = spawnSync(process.execPath, [CLI, "solid/specs/bars.json", "solid/specs/funnel.json", "--og", "-o", join(work, "x.png")], { cwd: NATIVE });
+  const stdout = spawnSync(process.execPath, [CLI, "solid/specs/bars.json", "--og", "-o", "-"], { cwd: NATIVE });
+  if (many.status === 2 && /--og is one spec, not 2/.test(many.stderr.toString()) && stdout.status === 2 && /writes a file, not stdout/.test(stdout.stderr.toString()))
+    ok("og: one spec, and a file", "--og is one spec, not 2; --og writes a file, not stdout");
+  else bad("og: one spec, and a file", `exit ${many.status}/${stdout.status}: ${many.stderr.toString().trim()} ${stdout.stderr.toString().trim()}`);
+
+  // the card itself, in Chromium: the title is text, the figure grew to the card's room and kept its aspect, and nothing
+  // overflows the 630 px. A figure that overflowed would be cropped by the screenshot, which is what this is for.
+  const executable = chromium.executablePath();
+  if (!existsSync(executable)) console.log("skip the og card: Playwright's chromium is not installed (bunx playwright install chromium)");
+  else {
+    const browser = await chromium.launch();
+    try {
+      const s = spec("table.json");
+      const page = await browser.newPage({ viewport: { width: OG.width, height: OG.height }, deviceScaleFactor: 1 });
+      await page.setContent(ogCard(s), { waitUntil: "load" });
+      const card = await page.evaluate(() => {
+        const svg = document.querySelector(".fig svg") as SVGSVGElement | null;
+        const box = svg?.getBoundingClientRect();
+        return {
+          title: document.querySelector("h1")?.textContent ?? "",
+          caption: document.querySelector("figcaption")?.textContent ?? "",
+          scrollHeight: document.scrollingElement?.scrollHeight ?? 0,
+          // the element is the room it was given; its content keeps its aspect inside (the attribute is the default
+          // xMidYMid meet, which is what "not stretched" is), so the drawn figure is `width` by `width / aspect`
+          stretch: svg?.getAttribute("preserveAspectRatio") ?? "xMidYMid meet",
+          figure: box ? { x: box.x, y: box.y, width: box.width, height: box.height } : undefined,
+          viewBox: svg ? { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height } : undefined,
+        };
+      });
+      const layout = sizeOf(s);
+      const f = card.figure;
+      // the drawn height: the element's width carried through the layout's aspect, which must fit the element's box
+      const drawn = f ? (f.width * layout.height) / layout.width : 0;
+      if (card.title === s.title && card.caption === (s.source ?? ""))
+        ok("og: the card's words", `"${card.title}", its source as the caption`);
+      else bad("og: the card's words", `${JSON.stringify(card.title)} / ${JSON.stringify(card.caption)}`);
+      if (f && card.viewBox && f.width === OG.width - 128 && drawn <= f.height + 0.5 && !/none/.test(card.stretch))
+        ok(
+          "og: the figure fills the card",
+          `${card.viewBox.width}x${card.viewBox.height} in ${f.width.toFixed(0)}x${f.height.toFixed(0)} of room, ` +
+            `drawn ${f.width.toFixed(0)}x${drawn.toFixed(0)} (${(f.width / layout.width).toFixed(2)}x), ${card.stretch}`,
+        );
+      else bad("og: the figure fills the card", JSON.stringify(card));
+      if (card.scrollHeight === OG.height) ok("og: nothing overflows", `the card is ${OG.width}x${OG.height}, no scroll`);
+      else bad("og: nothing overflows", `the document is ${card.scrollHeight} px tall`);
+    } finally {
+      await browser.close();
+    }
+  }
 }
 
 console.log(`figure-export: ${checks - failed} of ${checks} ok; worst rect error ${worstRect.toFixed(3)} px`);
