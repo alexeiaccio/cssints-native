@@ -46,6 +46,8 @@ bun solid/main.ts --warm 30 --click 180 250 --expect examples/sensors/expected-t
 THEME=light bun solid/main.ts --warm 30 --expect examples/sensors/expected-thorvg-light.png
 bun solid/main.ts sheet --density 2 --png out.png   # the text sheet at the window's pixel density (880x1128)
 bun solid/text-oracle.ts                          # the sheet's ink weight and SSIM against CoreText; --density 2, --canvas, --update
+bun solid/main.ts figure --spec solid/specs/table.json --describe                  # the figure as an outline: ids, boxes, words
+bun solid/main.ts figure --spec solid/specs/table.json --capture fig-title-cell node.png   # one node of it, as pixels
 bun solid/main.ts --png out.png --bench 1000     # ms a frame by phase
 bun solid/main.ts sky --settle 60 --idle 600     # the page at rest: 0 draws of 600, and the ms the tick takes
 sh solid/test.sh                                 # all of it; `bun run test` calls it last
@@ -60,6 +62,13 @@ print the same sentence. The helper came from gpucanvas's `diffImages` (MIT, ber
 and where"; its third field, the diff image, stayed behind because this host has no PNG encoder of its own.
 `bun solid/diff.test.ts` holds the rule: a planted patch, the edges, another size, alpha, and the Widgets page's switch off
 against on — **2220 pixels in a 280x32 box at 40,117**.
+
+`--describe` is the figure as an **outline**: its kind, title and size, and one node an item that draws — its id, its box
+in pixels, its words — in reading order, with the spacers and the wrappers around a cell left out
+(`solid/src/figure/outline.ts` reads `layoutOf`; the boxes are Clay's). The Targets table is **34 nodes and 5366 B**
+against its 8983 B command golden, the palette 146 and 20997 B against 33446 B. `--capture <id> <path>` writes that node's
+pixels: the frame's own crop, the size the outline says. Both are gpucanvas's agent view again (MIT, berkantay) —
+`describe()` as a short tree with ids and an image of any region, "for an AI agent to read and point at".
 
 ### The dev loop
 

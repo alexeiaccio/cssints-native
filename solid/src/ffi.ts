@@ -45,6 +45,7 @@ const open = () =>
     ui_png_size: { args: [T.ptr], returns: T.i32 },
     ui_png_copy: { args: [T.ptr, T.i32], returns: T.i32 },
     ui_save_png: { args: [T.cstring], returns: T.i32 },
+    ui_save_png_rect: { args: [T.cstring, T.i32, T.i32, T.i32, T.i32], returns: T.i32 },
     ui_diff_png: { args: [T.cstring, T.cstring], returns: T.i32 },
     ui_touch_map: { args: [T.f32, T.f32, T.ptr], returns: T.void },
     ui_window_open: { args: [T.cstring], returns: T.f32 },
@@ -150,6 +151,9 @@ export const ui = {
     return lib().ui_png_copy(ptr(pixels), pixels.length) < 0 ? undefined : { width, height, pixels };
   },
   savePng: (path: string) => lib().ui_save_png(cstr(path)) === 0,
+  /** One rectangle of the last frame as a PNG: `x`, `y`, `w`, `h` in the layout's pixels (a Retina frame scales them). */
+  savePngRect: (path: string, x: number, y: number, w: number, h: number) =>
+    lib().ui_save_png_rect(cstr(path), x, y, w, h) === 0,
   /** Pixels of the last frame that differ from a PNG (-1: missing or another size); the frame goes to `actual`. */
   diffPng: (ref: string, actual: string) => lib().ui_diff_png(cstr(ref), cstr(actual)),
   windowOpen: (title: string) => lib().ui_window_open(cstr(title)),
