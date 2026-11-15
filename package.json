@@ -23,6 +23,8 @@
     "./generator/*": "./generator/*",
     "./focus/*": "./focus/*",
     "./headless": "./headless/src/index.ts",
+    "./card": "./solid/src/card/card.ts",
+    "./card/render": "./solid/src/card/render.ts",
     "./solid/*": "./solid/*",
     "./vendor/*": "./vendor/*"
   },
@@ -44,7 +46,13 @@
   ],
   "peerDependencies": {
     "cssints": "^0.35.0",
+    "playwright": "^1.64.1",
     "solid-js": "2.0.0-rc.21"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@cssints/stories": "^0.35.0",
