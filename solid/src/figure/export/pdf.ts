@@ -14,6 +14,7 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { inflateSync } from "node:zlib";
 
+import { loadChromium } from "../../playwright.ts";
 import { PAGE } from "./deck.ts";
 
 export interface PdfOptions {
@@ -165,8 +166,7 @@ export function pdfMediaBox(bytes: Uint8Array): { width: number; height: number 
  * backgrounds printed. The two flags repeat the sheet so the file is the same shape even if the deck's rule is lost.
  */
 export async function pdf(html: string, options: PdfOptions): Promise<void> {
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch();
+  const browser = await (await loadChromium()).launch();
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });

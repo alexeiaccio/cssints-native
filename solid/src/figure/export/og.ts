@@ -15,6 +15,7 @@ import type { Spec } from "../spec.ts";
 import { DARK, FIGURE_ROLES, paletteVars } from "./html.ts";
 import { escapeXml, svg } from "./svg.ts";
 import { layoutOf } from "../kinds.ts";
+import { loadChromium } from "../../playwright.ts";
 
 /** The card's size in pixels: the 1.91:1 Open Graph size every scraper documents. */
 export const OG = { width: 1200, height: 630 } as const;
@@ -90,8 +91,7 @@ ${spec.source ? `<figcaption>${escapeXml(spec.source)}</figcaption>` : ""}</figu
 export async function og(spec: Spec, options: OgOptions): Promise<void> {
   const width = options.width ?? OG.width;
   const height = options.height ?? OG.height;
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch();
+  const browser = await (await loadChromium()).launch();
   try {
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
     await page.setContent(ogCard(spec, { width, height }), { waitUntil: "load" });

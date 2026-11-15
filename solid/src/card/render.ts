@@ -2,6 +2,7 @@
 // index, so a hundred cards are a few seconds and not a browser each. Kept beside the document rather than in it: this
 // module imports Playwright, and a page that only shows a card must not.
 import { CARD, cardHtml, type CardInput } from "./card.ts";
+import { loadChromium } from "../playwright.ts";
 
 export interface CardOptions {
   /** The card's size; `CARD` unless given. `inputs` may also carry their own. */
@@ -14,8 +15,7 @@ export interface CardOptions {
  * every run.
  */
 export async function renderCards(inputs: readonly CardInput[], options: CardOptions = {}): Promise<Uint8Array[]> {
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch();
+  const browser = await (await loadChromium()).launch();
   const out: Uint8Array[] = [];
   try {
     let page: Awaited<ReturnType<typeof browser.newPage>> | undefined;
