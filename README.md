@@ -3795,3 +3795,48 @@ projection's own 1), the legend and the fit's words, the six sentences, two muta
 (`solid/goldens/figure-forecast.json`, 39 commands) and the terminal's rows. The frame is
 `solid/frames/figure-forecast.png` (632x272), and the browser draws `?spec=forecast`. It is a projection of a count, not
 a promise.
+
+## A social card from a page's data
+
+**What it is.** `cssints-native/card` is the one module here a website outside this repository uses: a title, a subtitle,
+a badge and one picture as a **1200×630** document, the size `og:image` is read at. It is not a figure
+(`solid/src/figure/export/og.ts` draws a glyph-kit figure, which has no picture and its own cell grid) and it is not a
+second drawing of a page: `cardHtml(input)` is one self-contained HTML document — the picture and the font inline as data
+URIs, the styles in a `<style>`, no script — and `renderCards(inputs)` (`cssints-native/card/render`) is that document
+printed by Chromium.
+
+```ts
+import { cardHtml } from "cssints-native/card";            // a page: an <iframe srcdoc>, no rasteriser, no dependency
+import { renderCards } from "cssints-native/card/render";  // the build: one browser, a screenshot a card
+
+const cards = await renderCards(records.map((record) => ({
+  title: record.title,
+  subtitle: record.medium,       // "Живопись, Картон/Масло, ок. 50×40, 1980-е"
+  badge: "AK",
+  media: imageBytes,             // or a URL
+  mediaBackground: record.dominantColor,
+  ink: "#171615", muted: "#79716b", accent: "#A05339", background: "#E9E7E6",
+  font: { family: "Shantell Sans", bytes: fontBytes, weight: 800 },
+})));
+```
+
+**Why HTML and not SVG.** Because the browser wraps the text with the font's **real metrics**, and a card's text is the
+one thing that cannot be guessed. The longest title in kocharin.art's index — 66 Cyrillic characters, *«РОМАНТИЧЕСКИЕ
+ПРИТЧИ, ИЛИ РАЗМЫШЛЕНИЯ О ХУДОЖНИКЕ АЛЕКСЕЕ КОЧАРИНЕ»* — is **4 lines, 528×166 px** in the 570 px text column at 36 px,
+with the medium line under it ending at y=594 of 630: it fits, and no character count would have said so. An SVG exporter
+would have to read the font's own tables (`cmap`, `hmtx`) to break the same lines, which is a font parser, not a card.
+
+**The layout** is the common one and the whole of it: the picture takes the right half (`mediaWidth`, 630 of 1200) over
+its own dominant colour, `object-fit: contain` so the work is whole; the left column is the badge at the top and the title
+over the subtitle at the bottom, 36 px of padding; the card's four colours and its typeface are the input's. Nothing is
+fetched at render time — the picture and the font ride in the document as data URIs — so the bytes are the same on every
+run, and a page can show the card without a rasteriser.
+
+**Numbers.** The test's two cards are **29 KB** and **10 KB** of PNG, from one browser; two runs are byte-identical
+(`cmp`). `solid/card.test.ts` (6 checks) holds the base64 encoder against the runtime's, the document (data URIs of the
+right type, escaped text, no script, no external stylesheet, 1200×630), the two cards' size and determinism, and the
+longest real title's wrapping and non-overflow in Chromium.
+
+**What is not here.** No SVG output (an SVG card would need the font parser above), no in-browser raster (a page shows
+the document itself, and the PNG is the build's), and no crop-by-face for a portrait work — `cover` fills the box and
+crops from the centre, which is all the card asks of a picture.
