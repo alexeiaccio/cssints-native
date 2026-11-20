@@ -141,14 +141,12 @@ else if (exportAs.mode === "png") {
   if (!written.ok) fail(written.message || `cannot write ${exportAs.path}`);
 } else if (exportAs.mode === "og") {
   const { og } = await import("./src/figure/export/og.ts");
-  try {
-    await og(spec, { path: resolve(exportAs.path) });
-  } catch (error) {
+  const written = og({ specPath: specPaths[0]!, path: resolve(exportAs.path) });
+  if (!written.ok)
     fail(
-      `cannot write ${exportAs.path}: ${error instanceof Error ? error.message : String(error)} ` +
-        `(--og needs Playwright's Chromium: bunx playwright install chromium)`,
+      `cannot write ${exportAs.path}: ${written.message}` +
+        ` (--og draws with the desktop host: build/solid/libui.dylib, SDL3 and ThorVG)`,
     );
-  }
 } else {
   const { pdf } = await import("./src/figure/export/pdf.ts");
   try {

@@ -1233,13 +1233,54 @@ out.png [--scale N]` wraps the desktop host (`bun solid/main.ts figure --spec �
 `--density N`: the layout in cells × 8 × N by × 16 × N pixels, default 2). `--pdf a.json b.json … -o deck.pdf` prints
 that deck through Playwright's Chromium (`page.pdf()`, A4 landscape, 12 mm margins, one page a slide). `--og -o card.png`
 writes a **1200×630 Open Graph card** — the title, the intent, the figure filling the card's room, the source — from
-`src/figure/export/og.ts`, the HTML page's own SVG and roles printed by that same Chromium. It is not the desktop host
-because 630 is not on the cell grid (a frame is `(rows + 2) × 16 × density` tall, and 16 · 39.375 rows is no row): the
-card is a document, and the figure inside it keeps its aspect (the Targets table's 632×192 draws at 1072×326, 1.70×,
-in the 1072 px of room the card leaves). Each export `parse`/`check`s every spec first, so one bad spec writes no file;
+`app/FigureCard.tsx`, a page of the desktop host, so the card needs no Chromium. The figure is the spec's own SVG
+(`./svg.ts`), drawn as a picture: the box is the room the header and the caption leave, and the picture inside it is the
+viewBox's aspect (the Targets table's 632×192 draws at 1072×326, 1.70×). The card's own HTML (`src/figure/export/og.ts`'s
+`ogCard`) is kept as the **reference** and is what `figure-export.test.ts` rasterises in Chromium to hold the host to:
+the header, the figure and the caption land in the same boxes (±1 px), and the two rasters agree to a mean of 8.5/255 —
+the text's rasteriser and the intent's wrap (ThorVG's measure puts one word on the next line where the browser fits it). Each export `parse`/`check`s every spec first, so one bad spec writes no file;
 `figure-export-deck.test.ts` counts the slides, pages and pixels, reads the PDF's titles back as text, `cmp`s two runs
 and mutates the deck, the print CSS and the 2× raster, and `figure-export.test.ts` holds the card to 1200×630, its
 words, the room its figure fills and that nothing overflows.
+
+## The Card page: the social card without a browser
+
+`app/Card.tsx` is the 1200×630 social card `src/card/card.ts` writes as an HTML document, declared as Clay's boxes and
+texts and drawn by the host: the badge at the top (tilted −5° through the channel's `ROTATE`), the title over the subtitle
+at the bottom, the picture in its own column, contained by its own aspect over the work's dominant colour. The geometry is
+the HTML's — half the card a column, 36px of padding, title 36/41, subtitle 24/30 — and so is the wrapping: Clay's
+`white-space: normal` breaks words with the font's own metrics, and a 66-character Cyrillic title breaks into the same
+lines the browser makes.
+
+```
+bun solid/main.ts card --title "Арлекин" --subtitle "Живопись · 2001" --badge АК \
+    --image work.jpg --color "#322718" --png card.png
+bun solid/main.ts card --cards cards.json          # one PNG a card, in one process
+```
+
+A card a process pays the start of the process for the card; `--cards` re-renders the page into the same root instead —
+`[{ title, subtitle, badge, image: { path }, mediaBackground, out }, …]`, a `CardPageProps` a line. **86 cards take
+10.5 s** in one process against **14.6 s** through Chromium for the same index (the site's own run, 2026-11-15): about
+110 ms a card (47 for the text's layout, the raster and the PNG; the rest for the picture's decode, its resample and the
+larger PNG's zlib), and 0.7 s of start.
+
+That start is the reason only the page that runs is imported: cssints compiles a page's `.tsx` in a subprocess, and nine
+of them was ten seconds before the first card either way. The page a branch reads is guarded by that branch's own
+`page === …`, so the `!` on it is the check, spelled once.
+
+A card's literals are at scale 1 and take `--scale` (the page's width / 1200, unless given) as a multiple: the padding,
+the badge, the gap and the type all move, so a 1920×1080 card is the same design at 1.6× and not 36px type on a big page.
+The type goes through `mergeText` (`src/pack.ts`) — a compiled style's colour, alignment and wrap with the size and the
+face a page has — and the boxes through the value channel, because a style is a literal. `--face <ttf>` loads a second
+font (`ui_font` numbers them, so the title's `fontId` is 1) for a display cut; the repository ships one face.
+
+Against the HTML card, the same input differs in 0.8 % of the text column's pixels (mean 0.75/255 — glyph antialiasing)
+and in the picture's resampling (mean 2.1/255), with the picture's box at 653–1146 against 652–1146: the layout is the
+same to a pixel, the rasterisers are not. What it does not have: a rotation in a style (the badge's tilt is the channel's,
+per frame), a fractional line height (Clay stores it as `uint16_t`, so 41 against the browser's 41.4 — 3 px over four
+lines), and an ellipsis: Clay wraps but does not cut, and a clip on the box that holds a text stops Clay wrapping it at
+that box's width — so a title longer than 120 characters is cut by characters (`MAX_TITLE`), and one that is tall enough
+to reach the badge is clipped by the frame, which is the card's own edge.
 
 ## The accessibility tree
 

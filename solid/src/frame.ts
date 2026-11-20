@@ -3,7 +3,7 @@
 import { flush } from "solid-js";
 
 import { ui } from "./ffi.ts";
-import { hasStates, packText, STYLE_FIELDS, variant, type State } from "./pack.ts";
+import { hasStates, mergeText, packText, STYLE_FIELDS, variant, type State, type TextOverride } from "./pack.ts";
 import { El, Txt } from "./renderer.ts";
 
 const encoder = new TextEncoder();
@@ -112,7 +112,11 @@ export function createFrame(root: El, view: View = {}) {
     if (el.tag === "text") {
       // a text with an id can have its colour moved (the value channel's fields 51..54), so the id goes in with it
       const tid = el.props.id ? idBytes(el.props.id) : undefined;
-      ui.text(tid, bytesOf(el), (style && variant(style, view.theme).text) || WHITE_14);
+      const base = (style && variant(style, view.theme).text) || WHITE_14;
+      // a text whose size is data rather than a literal: a card's scale, a face a caller loaded. The rest of the config
+      // is still the style's, so the palette and the wrap are written once.
+      const over = el.props.text as TextOverride | undefined;
+      ui.text(tid, bytesOf(el), over === undefined ? base : mergeText(base, over));
       return;
     }
     const id = el.props.id ? idBytes(el.props.id) : undefined;
@@ -123,8 +127,10 @@ export function createFrame(root: El, view: View = {}) {
     }
     if (id && (el.props.onClick || el.props.onPress)) seen.push(el);
     const v = style ? variant(style, view.theme, states) : undefined;
-    // an image's path goes in before its element: Clay's image config is a pointer, not a float field
-    if (v?.image) ui.image(pathBytes(v.image));
+    // an image's path goes in before its element: Clay's image config is a pointer, not a float field. A style's is
+    // compiled (`css.image`), and a page whose picture is data passes it as the element's `image` prop instead.
+    const picture = (el.props.image as string | undefined) ?? v?.image;
+    if (picture) ui.image(pathBytes(picture));
     // ... and so does a shadow: no Clay field holds one, so it rides the renderer's table by the element's id
     const shadow = v?.shadow;
     if (shadow)

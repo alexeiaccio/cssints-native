@@ -150,6 +150,39 @@ export function packText(t: Shape): Float32Array {
   return f;
 }
 
+/** What a page may change about a text it did not compile: the size, and the face when a second one is loaded. The
+ *  colours, the alignment and the wrap stay the style's, so a page moves a card's type without repeating its palette. */
+export interface TextOverride {
+  /** The type's size in px; `uint16` in Clay, so a fractional size is rounded by the host. */
+  readonly size?: number;
+  readonly lineHeight?: number;
+  /** The index `ui_font` returned for the face, 0 being the first loaded. */
+  readonly fontId?: number;
+  readonly letterSpacing?: number;
+  /** `#rrggbb`, for a text whose colour is data rather than a token. */
+  readonly color?: string;
+}
+
+/**
+ * A compiled text's config with a page's overrides: `packText`'s order, base copied, so a card's scaled title is the
+ * style's colour and wrap with its own size and line height.
+ */
+export function mergeText(base: Float32Array, over: TextOverride): Float32Array {
+  const f = base.slice();
+  if (over.color !== undefined) {
+    const hex = /^#?([0-9a-f]{6})$/i.exec(over.color)?.[1] ?? "000000";
+    f[0] = Number.parseInt(hex.slice(0, 2), 16);
+    f[1] = Number.parseInt(hex.slice(2, 4), 16);
+    f[2] = Number.parseInt(hex.slice(4, 6), 16);
+    f[3] = 255;
+  }
+  if (over.fontId !== undefined) f[4] = over.fontId;
+  if (over.size !== undefined) f[5] = Math.round(over.size);
+  if (over.letterSpacing !== undefined) f[6] = over.letterSpacing;
+  if (over.lineHeight !== undefined) f[7] = Math.round(over.lineHeight);
+  return f;
+}
+
 export interface Variant {
   box?: Float32Array;
   text?: Float32Array;
