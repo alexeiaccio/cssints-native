@@ -17,7 +17,8 @@
 //                                        the Card page: the 1200x630 social card of `src/card/card.ts`, drawn by the host
 //                                        instead of Chromium; --image is the picture (PNG, JPEG, WebP), --color the box
 //                                        behind it, --w/--h the card's size, --scale the design's multiple (1.6 is a
-//                                        slide's type), --face bold|regular|<path> the title's second face
+//                                        slide's type), --face bold|regular|<path> the display face of the title and
+//                                        the badge, --body <path> the subtitle's
 //   bun solid/main.ts figure-card --spec solid/specs/bars.json
 //                                        the Figure card: the 1200x630 card `figure.ts --og` writes — the title, the intent,
 //                                        the figure as its own SVG and the source — drawn by the host, not Chromium
@@ -193,8 +194,12 @@ const FACES: Record<string, string> = {
   bold: "../vendor/fonts/Roboto-Bold.ttf",
 };
 const faceArg = page === "card" ? arg("--face")?.[0] : undefined;
-const cardFace =
-  faceArg === undefined ? undefined : (FACES[faceArg] ? new URL(FACES[faceArg]!, import.meta.url).pathname : faceArg);
+// the subtitle's face, when a site has one cut for the display and another for the text
+const bodyArg = page === "card" ? arg("--body")?.[0] : undefined;
+const faceOf = (name: string | undefined): string | undefined =>
+  name === undefined ? undefined : FACES[name] ? new URL(FACES[name]!, import.meta.url).pathname : name;
+const cardFace = faceOf(faceArg);
+const cardBody = faceOf(bodyArg);
 // ... and a batch: a file of cards, drawn in one process (the start of this one is 14 s of compiling the pages, so a
 // card a process is a card every 15 s; the hundredth is the same 14 s plus the drawing)
 const cardsFile = page === "card" ? arg("--cards")?.[0] : undefined;
@@ -316,14 +321,17 @@ if (cardImagePath !== undefined) {
   }
 }
 // the title's second face, when a caller loaded one: `ui_font`'s own numbering, 1 after the page's Roboto
-let cardTitleFont: number | undefined;
-if (cardFace !== undefined) {
-  cardTitleFont = ui.font(cardFace);
-  if (cardTitleFont < 0) {
-    console.error(`card: --face ${cardFace} did not load (ThorVG's font loader: a TTF or OTF, not a collection)`);
+const loadFace = (flag: string, path: string | undefined): number | undefined => {
+  if (path === undefined) return undefined;
+  const id = ui.font(path);
+  if (id < 0) {
+    console.error(`card: ${flag} ${path} did not load (ThorVG's font loader: a TTF or OTF, not a collection)`);
     process.exit(1);
   }
-}
+  return id;
+};
+const cardTitleFont = loadFace("--face", cardFace);
+const cardBodyFont = cardBody === undefined || cardBody === cardFace ? undefined : loadFace("--body", cardBody);
 const root = new El("root");
 const input = createInput();
 // `t` is the page's shortcut only while no text field has focus: a letter typed into one is a character, not a key
@@ -364,6 +372,7 @@ let dispose = render(
                     mediaBackground: arg("--color")?.[0],
                     scale: pageScale,
                     titleFont: cardTitleFont,
+                    bodyFont: cardBodyFont,
                     motion,
                   })
               : page === "figure"
@@ -419,7 +428,17 @@ if (cardsFile !== undefined) {
     const image = picture === undefined ? undefined : { ...entry.image, width: picture.width, height: picture.height };
     dispose();
     dispose = render(
-      () => card!.Card({ ...entry, image, width: W, height: H, scale: pageScale, titleFont: cardTitleFont, motion }),
+      () =>
+        card!.Card({
+          ...entry,
+          image,
+          width: W,
+          height: H,
+          scale: pageScale,
+          titleFont: cardTitleFont,
+          bodyFont: cardBodyFont,
+          motion,
+        }),
       root,
     );
     // the first frame lays the card out, the second is the page at rest: a card that moves would be caught here, and the

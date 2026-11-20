@@ -126,8 +126,10 @@ export interface CardPageProps {
   /** The picture column's width at scale 1: half the card unless given. */
   readonly mediaWidth?: number;
   readonly mutedTitle?: boolean;
-  /** The face of the title, as `ui_font` numbered it: 0 unless a caller loaded a second one. */
+  /** The display face of the title and the badge, as `ui_font` numbered it: 0 unless a caller loaded one. */
   readonly titleFont?: number;
+  /** The face of the subtitle, `ui_font`'s number: the title's when a site has one display cut and one body cut. */
+  readonly bodyFont?: number;
   readonly motion?: Motion;
 }
 
@@ -199,7 +201,7 @@ export function Card(props: CardPageProps) {
       <box id="card-text" style={textColumn}>
         {props.badge ? (
           <box id="card-badge" style={badge}>
-            <text style={badgeText} text={type(36, 36)}>
+            <text style={badgeText} text={type(36, 36, props.titleFont)}>
               {props.badge}
             </text>
           </box>
@@ -213,7 +215,7 @@ export function Card(props: CardPageProps) {
           </box>
           {props.subtitle ? (
             <box id="card-subtitle-box">
-              <text style={subtitleStyle} text={type(24, 30)}>
+              <text style={subtitleStyle} text={type(24, 30, props.bodyFont)}>
                 {subtitle()}
               </text>
             </box>
