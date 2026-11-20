@@ -50,6 +50,11 @@ export interface CardInput {
   readonly accent?: string;
   readonly mutedTitle?: boolean;
   readonly font?: CardFont;
+  /**
+   * The **display** face: the title's and the badge's. A site's own headings are rarely its body face — the brand's
+   * cut is what a card wants at 36px — and the subtitle keeps `font`. Without one the title is set in `font`.
+   */
+  readonly display?: CardFont;
   readonly size?: { readonly width: number; readonly height: number };
   /** The picture column's width in pixels: half the card unless given. */
   readonly mediaWidth?: number;
@@ -110,13 +115,21 @@ export function cardHtml(input: CardInput): string {
   // the text column is what the picture leaves, and it too is measured in the card's own pixels
   const textWidth = width - mediaWidth;
   const font = input.font;
-  const face = font
-    ? font.bytes
-      ? dataUri(fontTypeOf(font.bytes), font.bytes)
-      : font.src
-    : undefined;
-  const family = font ? `'${font.family.replace(/'/g, "")}', ${FALLBACK}` : FALLBACK;
+  const display = input.display ?? font;
+  const srcOf = (f: CardFont | undefined) =>
+    f ? (f.bytes ? dataUri(fontTypeOf(f.bytes), f.bytes) : f.src) : undefined;
+  const familyOf = (f: CardFont | undefined) => (f ? `'${f.family.replace(/'/g, "")}', ${FALLBACK}` : FALLBACK);
+  /** One `@font-face` a face: the display's only when it is a face of its own. */
+  const faceOf = (f: CardFont | undefined) =>
+    f && srcOf(f)
+      ? `@font-face { font-family: '${esc(f.family)}'; font-weight: ${f.weight ?? 400}; font-style: normal; src: url(${srcOf(f)}); }\n`
+      : "";
+  const face = faceOf(font);
+  const displayFace = display === font ? "" : faceOf(display);
+  const family = familyOf(font);
+  const displayFamily = familyOf(display);
   const weight = font?.weight ?? 400;
+  const displayWeight = display?.weight ?? weight;
   const titleColor = input.mutedTitle ? muted : ink;
   return `<!doctype html>
 <html lang="en">
@@ -124,8 +137,7 @@ export function cardHtml(input: CardInput): string {
 <meta charset="utf-8">
 <title>${esc(input.title)}</title>
 <style>
-${face ? `@font-face { font-family: '${esc(font!.family)}'; font-weight: ${weight}; font-style: normal; src: url(${face}); }` : ""}
-* { box-sizing: border-box; }
+${face}${displayFace}* { box-sizing: border-box; }
 html, body { margin: 0; width: ${width}px; height: ${height}px; }
 body { background: ${background}; color: ${ink}; font-family: ${family}; overflow: hidden; }
 main { display: flex; width: 100%; height: 100%; }
@@ -142,12 +154,12 @@ main { display: flex; width: 100%; height: 100%; }
   width: 64px; height: 64px; border-radius: 50%;
   background: ${accent}; color: ${background};
   display: flex; align-items: center; justify-content: center;
-  font-size: 36px; font-weight: ${weight}; line-height: 1;
+  font-family: ${displayFamily}; font-size: 36px; font-weight: ${displayWeight}; line-height: 1;
   transform: rotate(-5deg);
   flex: none;
 }
 .lines { min-height: 0; }
-h1 { margin: 0; font-size: 36px; line-height: 1.15; font-weight: ${weight}; color: ${titleColor}; }
+h1 { margin: 0; font-family: ${displayFamily}; font-size: 36px; line-height: 1.15; font-weight: ${displayWeight}; color: ${titleColor}; }
 p { margin: 0.4em 0 0; font-size: 24px; line-height: 1.25; font-weight: ${weight}; color: ${muted}; }
 .media {
   width: ${mediaWidth}px; height: 100%;

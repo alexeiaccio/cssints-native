@@ -1273,7 +1273,12 @@ the badge, the gap and the type all move, so a 1920×1080 card is the same desig
 The type goes through `mergeText` (`src/pack.ts`) — a compiled style's colour, alignment and wrap with the size and the
 face a page has — and the boxes through the value channel, because a style is a literal. `--face <ttf|bold|regular>` loads a second
 font (`ui_font` numbers them, so the title's `fontId` is 1) for a display cut: `bold` and `regular` are the repository's
-two (`vendor/fonts/Roboto-Bold.ttf` is the display one), and a path is any TTF or OTF.
+two (`vendor/fonts/Roboto-Bold.ttf` is the display one), and a path is any TTF or OTF. `--body` loads a third for the
+subtitle, so a site with a display cut and a body cut sets both (`--face headings.ttf --body body.ttf`); the badge takes
+the display face, as a monogram does.
+
+The HTML document has the same pair: `CardInput.display` is the title's and the badge's face, `CardInput.font` the
+subtitle's, and a card without one sets the title in `font` — the two rasterisers draw one card either way.
 
 Against the HTML card, the same input differs in 0.8 % of the text column's pixels (mean 0.75/255 — glyph antialiasing)
 and in the picture's resampling (mean 2.1/255), with the picture's box at 653–1146 against 652–1146: the layout is the
