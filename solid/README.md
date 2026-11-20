@@ -1231,8 +1231,8 @@ anchor, the first slide the no-fragment default — CSS only, so no arrow keys a
 `forced-colors` and `@page { size: A4 landscape; margin: 12mm }` + `break-after: page` per slide. `--png <spec> -o
 out.png [--scale N]` wraps the desktop host (`bun solid/main.ts figure --spec … --warm 30 --png`, a child process, with
 `--density N`: the layout in cells × 8 × N by × 16 × N pixels, default 2). `--pdf a.json b.json … -o deck.pdf` prints
-that deck through Playwright's Chromium (`page.pdf()`, A4 landscape, 12 mm margins, one page a slide). `--og -o card.png`
-writes a **1200×630 Open Graph card** — the title, the intent, the figure filling the card's room, the source — from
+that deck through Playwright's Chromium (`page.pdf()`, A4 landscape, 12 mm margins, one page a slide). `--og -o card.png [--scale N]`
+writes a **1200×630 Open Graph card** (× N with `--scale`) — the title, the intent, the figure filling the card's room, the source — from
 `app/FigureCard.tsx`, a page of the desktop host, so the card needs no Chromium. The figure is the spec's own SVG
 (`./svg.ts`), drawn as a picture: the box is the room the header and the caption leave, and the picture inside it is the
 viewBox's aspect (the Targets table's 632×192 draws at 1072×326, 1.70×). The card's own HTML (`src/figure/export/og.ts`'s
@@ -1271,16 +1271,19 @@ of them was ten seconds before the first card either way. The page a branch read
 A card's literals are at scale 1 and take `--scale` (the page's width / 1200, unless given) as a multiple: the padding,
 the badge, the gap and the type all move, so a 1920×1080 card is the same design at 1.6× and not 36px type on a big page.
 The type goes through `mergeText` (`src/pack.ts`) — a compiled style's colour, alignment and wrap with the size and the
-face a page has — and the boxes through the value channel, because a style is a literal. `--face <ttf>` loads a second
-font (`ui_font` numbers them, so the title's `fontId` is 1) for a display cut; the repository ships one face.
+face a page has — and the boxes through the value channel, because a style is a literal. `--face <ttf|bold|regular>` loads a second
+font (`ui_font` numbers them, so the title's `fontId` is 1) for a display cut: `bold` and `regular` are the repository's
+two (`vendor/fonts/Roboto-Bold.ttf` is the display one), and a path is any TTF or OTF.
 
 Against the HTML card, the same input differs in 0.8 % of the text column's pixels (mean 0.75/255 — glyph antialiasing)
 and in the picture's resampling (mean 2.1/255), with the picture's box at 653–1146 against 652–1146: the layout is the
 same to a pixel, the rasterisers are not. What it does not have: a rotation in a style (the badge's tilt is the channel's,
 per frame), a fractional line height (Clay stores it as `uint16_t`, so 41 against the browser's 41.4 — 3 px over four
-lines), and an ellipsis: Clay wraps but does not cut, and a clip on the box that holds a text stops Clay wrapping it at
-that box's width — so a title longer than 120 characters is cut by characters (`MAX_TITLE`), and one that is tall enough
-to reach the badge is clipped by the frame, which is the card's own edge.
+lines), and a true ellipsis: Clay wraps but does not cut. The page cuts instead — a title of more than four lines (a
+subtitle of more than two) is shortened to `lines`-many characters with an `…` (`MAX_TITLE_LINES`), measured from the
+title's own box on the previous frame, which is why the card gets a frame before the one it writes. The first frame is
+guarded by a character count (`FIRST_FRAME`), because a text longer than the column can wrap starts sizing the column and
+the picture is drawn over it: a card whose title is too long is a card with four lines and an ellipsis, not a broken one.
 
 ## The accessibility tree
 

@@ -17,7 +17,7 @@
 //                                        the Card page: the 1200x630 social card of `src/card/card.ts`, drawn by the host
 //                                        instead of Chromium; --image is the picture (PNG, JPEG, WebP), --color the box
 //                                        behind it, --w/--h the card's size, --scale the design's multiple (1.6 is a
-//                                        slide's type), --face a second TTF for the title's fontId 1
+//                                        slide's type), --face bold|regular|<path> the title's second face
 //   bun solid/main.ts figure-card --spec solid/specs/bars.json
 //                                        the Figure card: the 1200x630 card `figure.ts --og` writes — the title, the intent,
 //                                        the figure as its own SVG and the source — drawn by the host, not Chromium
@@ -136,7 +136,8 @@ const move = arg("--move", 3)?.map(Number);
 // headless: frames at rest before the input, so a page's mount animation is over (the Sky cards' entry)
 // the figure card is laid out from the room it gets, which is a measurement of the previous frame (`ui.bounds`): a card
 // written from the first frame would have an empty room, so the page always gets two at rest first
-const warm = Math.max(Number(arg("--warm")?.[0] ?? 0), page === "figure-card" ? 2 : 0);
+// ... and the card measures its own text the same way, one frame's ellipsis pass behind it, so it needs one frame first
+const warm = Math.max(Number(arg("--warm")?.[0] ?? 0), page === "figure-card" ? 2 : page === "card" ? 1 : 0);
 // headless: a drag on the widgets slider: two fractions of the rail (press at the first, held, then move to the second)
 const drag = arg("--drag", 2)?.map(Number);
 // headless: a drag on the Sky feed: the press point, then a dy a frame, then the release at the last point
@@ -177,16 +178,23 @@ for (let i = 2; i < process.argv.length; i++) {
 let theme = process.env.THEME === "light" ? "light" : undefined;
 // the Card page: the card's own data. `--w`/`--h` are the page's size (1200x630, the Open Graph card), and the picture
 // is a file with its own size, read for `contain` — the box a work of other proportions gets inside the media column
-// the card's design scale: the literals at this multiple. A card given only a scale is the Open Graph size times it, so
-// `--scale 2` is a 2400x1260 card and not 72px type clipped by a 1200px page
-const cardScale = Number(arg("--scale")?.[0] ?? 0) || undefined;
-const cardWidth = Number(arg("--w")?.[0] ?? 0) || (cardScale === undefined ? undefined : Math.round(1200 * cardScale));
-const cardHeight = Number(arg("--h")?.[0] ?? 0) || (cardScale === undefined ? undefined : Math.round(630 * cardScale));
+// the card's design scale: the literals at this multiple, for the Card and the Figure card alike. A card given only a
+// scale is the Open Graph size times it, so `--scale 2` is a 2400x1260 card and not 72px type clipped by a 1200px page
+const pageScale = Number(arg("--scale")?.[0] ?? 0) || undefined;
+const cardWidth = Number(arg("--w")?.[0] ?? 0) || (pageScale === undefined ? undefined : Math.round(1200 * pageScale));
+const cardHeight = Number(arg("--h")?.[0] ?? 0) || (pageScale === undefined ? undefined : Math.round(630 * pageScale));
 const cardImagePath = page === "card" ? arg("--image")?.[0] : undefined;
 // the picture's own size, for a picture nothing can measure (an SVG, a figure's file): `--image-size 1200x630`
 const cardImageSize = (arg("--image-size")?.[0] ?? "").split("x").map(Number);
-// a second face for the card's title: a path `ui_font` loads, so the title's fontId is 1
-const cardFace = page === "card" ? arg("--face")?.[0] : undefined;
+// a second face for the card's title: a path `ui_font` loads, so the title's fontId is 1. `bold` and `regular` are the
+// repository's own two, and a path is any TTF or OTF
+const FACES: Record<string, string> = {
+  regular: "../vendor/fonts/Roboto-Regular.ttf",
+  bold: "../vendor/fonts/Roboto-Bold.ttf",
+};
+const faceArg = page === "card" ? arg("--face")?.[0] : undefined;
+const cardFace =
+  faceArg === undefined ? undefined : (FACES[faceArg] ? new URL(FACES[faceArg]!, import.meta.url).pathname : faceArg);
 // ... and a batch: a file of cards, drawn in one process (the start of this one is 14 s of compiling the pages, so a
 // card a process is a card every 15 s; the hundredth is the same 14 s plus the drawing)
 const cardsFile = page === "card" ? arg("--cards")?.[0] : undefined;
@@ -251,7 +259,7 @@ const W =
   page === "card"
     ? (cardWidth ?? card!.CARD.width)
     : page === "figure-card"
-      ? figureCard!.size.width
+      ? Math.round(figureCard!.size.width * (pageScale ?? 1))
       : page === "sheet"
       ? sheet!.size.width
       : page === "figure"
@@ -265,7 +273,7 @@ const H =
   page === "card"
     ? (cardHeight ?? card!.CARD.height)
     : page === "figure-card"
-      ? figureCard!.size.height
+      ? Math.round(figureCard!.size.height * (pageScale ?? 1))
       : page === "widgets"
       ? widgets!.size.height
       : page === "dialog"
@@ -341,6 +349,7 @@ let dispose = render(
                     intent: figureSpec!.intent,
                     source: figureSpec!.source,
                     picture: figurePicture!,
+                    scale: pageScale,
                     motion,
                   })
               : page === "card"
@@ -353,7 +362,7 @@ let dispose = render(
                     badge: arg("--badge")?.[0],
                     image: cardImage,
                     mediaBackground: arg("--color")?.[0],
-                    scale: cardScale,
+                    scale: pageScale,
                     titleFont: cardTitleFont,
                     motion,
                   })
@@ -410,7 +419,7 @@ if (cardsFile !== undefined) {
     const image = picture === undefined ? undefined : { ...entry.image, width: picture.width, height: picture.height };
     dispose();
     dispose = render(
-      () => card!.Card({ ...entry, image, width: W, height: H, scale: cardScale, titleFont: cardTitleFont, motion }),
+      () => card!.Card({ ...entry, image, width: W, height: H, scale: pageScale, titleFont: cardTitleFont, motion }),
       root,
     );
     // the first frame lays the card out, the second is the page at rest: a card that moves would be caught here, and the

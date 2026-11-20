@@ -32,6 +32,8 @@ export interface OgOptions {
   readonly specPath: string;
   /** The file to write. */
   readonly path: string;
+  /** The card's design multiple: 1 (the default) is 1200×630, 2 is 2400×1260. */
+  readonly scale?: number;
 }
 
 const STYLE = `:root {
@@ -91,7 +93,7 @@ ${spec.source ? `<figcaption>${escapeXml(spec.source)}</figcaption>` : ""}</figu
 }
 
 /**
- * Writes one spec's card to `options.path` at 1200×630: one child process of `bun solid/main.ts`, the spec and the
+ * Writes one spec's card to `options.path` at 1200×630 (or that times `options.scale`): one child process of `bun solid/main.ts`, the spec and the
  * destination passed through — the same shape `./png.ts` has, and the same reason: the card is the host's own page, not a
  * second drawer. A spec the host refuses exits non-zero and its stderr is this call's message.
  */
@@ -99,7 +101,15 @@ export function og(options: OgOptions): { ok: boolean; message: string } {
   const bun = (): string => process.env.BUN ?? process.execPath;
   const run = spawnSync(
     bun(),
-    [resolve(NATIVE, "solid/main.ts"), "figure-card", "--spec", resolve(options.specPath), "--png", resolve(options.path)],
+    [
+      resolve(NATIVE, "solid/main.ts"),
+      "figure-card",
+      "--spec",
+      resolve(options.specPath),
+      "--png",
+      resolve(options.path),
+      ...(options.scale === undefined || options.scale === 1 ? [] : ["--scale", String(options.scale)]),
+    ],
     { cwd: NATIVE, encoding: "utf8" },
   );
   if (run.status === 0) return { ok: true, message: "" };

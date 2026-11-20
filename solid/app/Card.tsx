@@ -11,6 +11,8 @@
 // −5° tilt is the channel's `ROTATE` rather than a style, so it is a transform of the drawn group, not of the layout.
 import * as css from "cssints/clay" with { type: "cssints" };
 
+import { createSignal } from "solid-js";
+
 import type { Motion } from "../src/entry.ts";
 import { ui } from "../src/ffi.ts";
 import { FIELDS, type TextOverride } from "../src/pack.ts";
@@ -47,20 +49,35 @@ const badge = css.cn(
 );
 const badgeText = css.cn(font.Roboto, css.color(t.color.page), css.fontSize(36), css.lineHeight(36), css.whiteSpace("nowrap"));
 const lines = css.cn(css.width("stretch"), css.gap(10), css.flexDirection("column"));
-const title = css.cn(font.Roboto, css.color(t.color.ink), css.fontSize(36), css.lineHeight(41), css.whiteSpace("normal"));
-const subtitle = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(24), css.lineHeight(30), css.whiteSpace("normal"));
+const titleStyle = css.cn(font.Roboto, css.color(t.color.ink), css.fontSize(36), css.lineHeight(41), css.whiteSpace("normal"));
+const subtitleStyle = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(24), css.lineHeight(30), css.whiteSpace("normal"));
 const mutedTitle = css.cn(font.Roboto, css.color(t.color.muted), css.fontSize(36), css.lineHeight(41), css.whiteSpace("normal"));
 // the picture's column: a fixed share of the card, its own colour behind the work
 const media = css.cn(css.height("stretch"), css.justifyContent("center"), css.alignItems("center"));
 
-/** How much text a card's lines hold: Clay wraps but does not cut, and there is no ellipsis in its text config, so a
- *  title longer than this is cut by characters instead of spilling over the badge and the picture. The artist's index
- *  tops out at 66 characters of title and 52 of subtitle (2026-11-15), so the cap is a guard, not a layout rule.
- *  ponytail: a character count, not a measured line count — a title of wide glyphs at 2× scale can still run to the edge. */
-const MAX_TITLE = 120;
-const MAX_SUBTITLE = 90;
-const cut = (text: string, max: number): string =>
-	text.length <= max ? text : `${text.slice(0, max - 1).trimEnd()}…`;
+/** How many lines a card's title and subtitle hold before the ellipsis. The artist's index makes 66 characters of title in
+ *  four lines at scale 1 (2026-11-15), so four is what the design carries and one more is what it refuses. */
+const MAX_TITLE_LINES = 4;
+const MAX_SUBTITLE_LINES = 2;
+/** The first frame's guard, a character count: a text longer than the design's lines can hold stops wrapping where the
+ *  column does and starts sizing it, and a column sized by its own overflow is a column the picture is drawn over. So the
+ *  first frame is cut to about what four lines hold (the index's 66 characters fit with room), and the measurement after
+ *  it cuts the rest. */
+const FIRST_FRAME = 100;
+const FIRST_FRAME_SUBTITLE = 60;
+
+/** The lines a text took, from its box's height over the line height its config rounds to. */
+const linesOf = (id: string, lineHeight: number): number | undefined => {
+  const bounds = ui.bounds(idBytes(id));
+  if (bounds === undefined) return undefined;
+  return Math.max(1, Math.round(bounds[3]! / Math.max(1, lineHeight)));
+};
+
+/** The text cut to `maxLines` with an ellipsis: the characters kept are that many lines' share of the lines it has. */
+const fitLines = (text: string, lines: number, maxLines: number): string => {
+  const keep = Math.max(1, Math.floor((text.length * maxLines) / lines) - 1);
+  return `${text.slice(0, keep).trimEnd()}…`;
+};
 
 const ids = new Map<string, Uint8Array>();
 const idBytes = (id: string): Uint8Array => {
@@ -131,8 +148,21 @@ export function Card(props: CardPageProps) {
         })();
   const pad = Math.round(36 * scale);
 
+  // the lines as drawn: the first frame's guard, then what the measurement leaves
+  const [title, setTitle] = createSignal(props.title.slice(0, FIRST_FRAME));
+  const [subtitle, setSubtitle] = createSignal((props.subtitle ?? "").slice(0, FIRST_FRAME_SUBTITLE));
+
   if (props.motion) {
     props.motion.tick = () => {
+      // the ellipsis: the last frame's lines, cut to the design's — one cut a frame converges, and a text that fits is
+      // left alone
+      const line = (px: number) => Math.round(px * scale);
+      const titleLines = linesOf("card-title-box", line(41));
+      if (titleLines !== undefined && titleLines > MAX_TITLE_LINES) setTitle(fitLines(title(), titleLines, MAX_TITLE_LINES));
+      const subtitleLines = linesOf("card-subtitle-box", line(30));
+      if (subtitleLines !== undefined && subtitleLines > MAX_SUBTITLE_LINES)
+        setSubtitle(fitLines(subtitle(), subtitleLines, MAX_SUBTITLE_LINES));
+
       // the text column's padding, the badge's circle and the gap between the title and the subtitle are the HTML's
       // 36/64/32/10 at this scale; the column's width is what the picture leaves
       sides("card-text", FIELDS.PADDING, pad);
@@ -176,13 +206,17 @@ export function Card(props: CardPageProps) {
         ) : null}
         <box style={spacer} />
         <box id="card-lines" style={lines}>
-          <text id="card-title" style={props.mutedTitle ? mutedTitle : title} text={type(36, 41, props.titleFont)}>
-            {cut(props.title, MAX_TITLE)}
-          </text>
-          {props.subtitle ? (
-            <text id="card-subtitle" style={subtitle} text={type(24, 30)}>
-              {cut(props.subtitle, MAX_SUBTITLE)}
+          <box id="card-title-box">
+            <text style={props.mutedTitle ? mutedTitle : titleStyle} text={type(36, 41, props.titleFont)}>
+              {title()}
             </text>
+          </box>
+          {props.subtitle ? (
+            <box id="card-subtitle-box">
+              <text style={subtitleStyle} text={type(24, 30)}>
+                {subtitle()}
+              </text>
+            </box>
           ) : null}
         </box>
       </box>

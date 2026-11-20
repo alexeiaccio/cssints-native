@@ -6,13 +6,17 @@
 // and the picture inside it is the aspect the SVG's viewBox has, computed from the room's bounds — the layout's, read from
 // the previous frame by `ui.bounds`, because the room is what is left after the header wraps and no literal knows it.
 //
+// **The scale.** The card is the Open Graph size at scale 1 and `1200·s × 630·s` at `s`: the padding, the gaps, the
+// intent's 62ch column and every type size are the HTML's numbers times `s`, the boxes through the channel and the type
+// through `mergeText` — the same two doors `app/Card.tsx` uses.
+//
 // The palette is the dark one, as the HTML card's is (`FIGURE_ROLES`, `color-scheme: dark`): the figure is drawn for a dark
 // page and its SVG carries that page as its own first rectangle, so the card behind it is the same colour.
 import * as css from "cssints/clay" with { type: "cssints" };
 
 import type { Motion } from "../src/entry.ts";
 import { ui } from "../src/ffi.ts";
-import { FIELDS } from "../src/pack.ts";
+import { FIELDS, type TextOverride } from "../src/pack.ts";
 
 /** The card's size: the Open Graph one, the size `figure.ts --og` writes. */
 export const size = { width: 1200, height: 630 };
@@ -67,6 +71,8 @@ export interface FigureCardPicture {
 }
 
 export interface FigureCardProps {
+  /** The design's multiple: 1 is the Open Graph card, 2 a 2400×1260 one. The page's size is this times `size`. */
+  readonly scale?: number;
   readonly title: string;
   readonly intent?: string;
   readonly source?: string;
@@ -76,8 +82,22 @@ export interface FigureCardProps {
 
 export function FigureCard(props: FigureCardProps) {
   const picture = props.picture;
+  const scale = props.scale ?? 1;
+  /** A size or a gap at this scale, a whole number of pixels: Clay's padding, line height and font size are integers. */
+  const at = (px: number) => Math.round(px * scale);
+  const type = (size: number, lineHeight: number): TextOverride => ({ size: at(size), lineHeight: at(lineHeight) });
+
   if (props.motion) {
     props.motion.tick = () => {
+      // the page's own numbers, at this scale: 56 by 64 of padding, 18 between the header and the figure, 14 over the
+      // caption, and the intent's 62ch (655px of Roboto at 19px)
+      put("fcard", FIELDS.PADDING, at(64));
+      put("fcard", FIELDS.PADDING + 1, at(64));
+      put("fcard", FIELDS.PADDING + 2, at(56));
+      put("fcard", FIELDS.PADDING + 3, at(56));
+      put("fcard", FIELDS.GAP, at(18));
+      put("fcard-block", FIELDS.GAP, at(14));
+      fixed("fcard-intent", FIELDS.WIDTH, at(655));
       // the room the header and the caption leave: the last layout's, which is why the saved frame is the second one
       const bounds = ui.bounds(idBytes("fcard-room"));
       if (bounds === undefined) return;
@@ -98,11 +118,15 @@ export function FigureCard(props: FigureCardProps) {
           </box>
         ) : null}
       </box>
-      <box style={figureBlock}>
+      <box id="fcard-block" style={figureBlock}>
         <box id="fcard-room" style={room}>
           <box id="fcard-picture" image={picture.path} />
         </box>
-        {props.source ? <text style={captionText}>{props.source}</text> : null}
+        {props.source ? (
+          <text style={captionText} text={type(16, 22)}>
+            {props.source}
+          </text>
+        ) : null}
       </box>
     </box>
   );
