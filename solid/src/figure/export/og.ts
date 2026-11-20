@@ -1,31 +1,39 @@
-// A figure as an **OG card**: 1200×630, the size social scrapers ask for, which the desktop host cannot draw — its
-// frames are multiples of the cell grid (8 × 16 px, times a whole density), and 630 is not (16 · 39.375). So the card is
-// the HTML export's own markup, printed by Chromium — the same Playwright dependency `./pdf.ts` uses, and no second
-// renderer: the SVG inside is `./svg.ts`, the roles are `./html.ts`'s, and the text is text.
+// A figure as an **OG card**: 1200×630, the size social scrapers ask for. Two things live here, and only one of them
+// draws the card now:
+//
+// - `og()`, the exporter: the desktop host's `figure-card` page (`solid/app/FigureCard.tsx`) — the title, the intent, the
+//   figure filling the room and keeping its aspect, the source as the caption — drawn by Clay and ThorVG, with no
+//   Chromium under it. The figure is the spec's own SVG (`./svg.ts`), which the host draws like any picture.
+// - `ogCard()`, the HTML document, kept as the **reference**: what the card looked like printed by a browser, what
+//   `figure-export.test.ts` rasterises to check the geometry the host has to match, and what `figure.ts` used to write.
+//   Its layout and the page's are the same numbers; the test holds the two to each other.
 //
 // The card is the document, not the figure: the title at the top, the intent under it, the figure filling the room left
 // and keeping its aspect (`preserveAspectRatio` letterboxes it inside a box that is the card's), and the source at the
 // bottom. A figure wider than the card's 1072 px of room shrinks; a tall one stops at the height. Nothing is cropped.
 //
 // `--og -o out.png` is the CLI's (`solid/figure.ts`); the size is `OG` below unless a caller asks for another.
-import { writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 
 import type { Spec } from "../spec.ts";
 import { DARK, FIGURE_ROLES, paletteVars } from "./html.ts";
 import { escapeXml, svg } from "./svg.ts";
 import { layoutOf } from "../kinds.ts";
-import { loadChromium } from "../../playwright.ts";
+
+/** The native host, the process that draws the card: `png.ts`'s own path, one directory down from this file. */
+const NATIVE = new URL("../../../../", import.meta.url).pathname;
 
 /** The card's size in pixels: the 1.91:1 Open Graph size every scraper documents. */
 export const OG = { width: 1200, height: 630 } as const;
 
 export interface OgOptions {
+  /** The spec's file: the host parses it itself, so a bad one is refused by the page that draws it. */
+  readonly specPath: string;
   /** The file to write. */
   readonly path: string;
-  /** The card's size, in pixels; `OG` unless given. */
-  readonly width?: number;
-  readonly height?: number;
+  /** The card's design multiple: 1 (the default) is 1200×630, 2 is 2400×1260. */
+  readonly scale?: number;
 }
 
 const STYLE = `:root {
@@ -85,21 +93,25 @@ ${spec.source ? `<figcaption>${escapeXml(spec.source)}</figcaption>` : ""}</figu
 }
 
 /**
- * Writes one spec's card to `options.path`, at `options.width`×`options.height` (1200×630). Throws what Chromium throws;
- * the caller says which flag was missing Playwright.
+ * Writes one spec's card to `options.path` at 1200×630 (or that times `options.scale`): one child process of `bun solid/main.ts`, the spec and the
+ * destination passed through — the same shape `./png.ts` has, and the same reason: the card is the host's own page, not a
+ * second drawer. A spec the host refuses exits non-zero and its stderr is this call's message.
  */
-export async function og(spec: Spec, options: OgOptions): Promise<void> {
-  const width = options.width ?? OG.width;
-  const height = options.height ?? OG.height;
-  const browser = await (await loadChromium()).launch();
-  try {
-    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
-    await page.setContent(ogCard(spec, { width, height }), { waitUntil: "load" });
-    // the card is the viewport: a full-page shot would be the document's height, which is the card's either way, but a
-    // clip says it once
-    const bytes = await page.screenshot({ type: "png", clip: { x: 0, y: 0, width, height } });
-    writeFileSync(resolve(options.path), bytes);
-  } finally {
-    await browser.close();
-  }
+export function og(options: OgOptions): { ok: boolean; message: string } {
+  const bun = (): string => process.env.BUN ?? process.execPath;
+  const run = spawnSync(
+    bun(),
+    [
+      resolve(NATIVE, "solid/main.ts"),
+      "figure-card",
+      "--spec",
+      resolve(options.specPath),
+      "--png",
+      resolve(options.path),
+      ...(options.scale === undefined || options.scale === 1 ? [] : ["--scale", String(options.scale)]),
+    ],
+    { cwd: NATIVE, encoding: "utf8" },
+  );
+  if (run.status === 0) return { ok: true, message: "" };
+  return { ok: false, message: (run.stderr ?? "").trim() };
 }

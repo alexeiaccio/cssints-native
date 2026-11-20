@@ -13,6 +13,17 @@
 //   bun solid/main.ts figure --spec solid/specs/bars.json   the Figure page: one glyph-kit spec (solid/specs/*.json),
 //                                        declared as Clay boxes and texts — a bar's fill is a box whose width is its value.
 //                                        An invalid spec fails with its sentences before a frame (exit 1)
+//   bun solid/main.ts card --title T [--subtitle S] [--badge B] [--image F] [--color C] [--w N] [--h N]
+//                                        the Card page: the 1200x630 social card of `src/card/card.ts`, drawn by the host
+//                                        instead of Chromium; --image is the picture (PNG, JPEG, WebP), --color the box
+//                                        behind it, --w/--h the card's size, --scale the design's multiple (1.6 is a
+//                                        slide's type), --face bold|regular|<path> the title's second face
+//   bun solid/main.ts figure-card --spec solid/specs/bars.json
+//                                        the Figure card: the 1200x630 card `figure.ts --og` writes — the title, the intent,
+//                                        the figure as its own SVG and the source — drawn by the host, not Chromium
+//   bun solid/main.ts card --cards cards.json
+//                                        the same page for a file of cards, one PNG each in one process: a card a process
+//                                        pays the 14s compile of the pages for every card
 //   bun solid/main.ts --png out.png      one frame headless, written to out.png
 //   bun solid/main.ts --expect ref.png   the same frame compared with ref.png pixel for pixel; exit 1 and write
 //                                        ref.png.actual.png on a difference
@@ -74,7 +85,8 @@
 //   THEME=light                          the light theme
 import "./plugin.ts";
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
 import type { Motion } from "./src/entry.ts";
 import type { Drag } from "./app/Widgets.tsx";
@@ -89,10 +101,12 @@ if (
   page !== "list" &&
   page !== "sheet" &&
   page !== "figure" &&
+  page !== "figure-card" &&
+  page !== "card" &&
   page !== "storybook" &&
   page !== "dev"
 ) {
-  console.error(`unknown page "${page}": sensors, widgets, dialog, form, list, sky, notify, sheet, figure or dev`);
+  console.error(`unknown page "${page}": sensors, widgets, dialog, form, list, sky, notify, sheet, figure, figure-card, card or dev`);
   process.exit(1);
 }
 const arg = (name: string, n = 1) => {
@@ -120,7 +134,10 @@ const touch = arg("--touch", 2)?.map(Number);
 // headless: a hover: the pointer to X,Y after the settle, N frames there (no press)
 const move = arg("--move", 3)?.map(Number);
 // headless: frames at rest before the input, so a page's mount animation is over (the Sky cards' entry)
-const warm = Number(arg("--warm")?.[0] ?? 0);
+// the figure card is laid out from the room it gets, which is a measurement of the previous frame (`ui.bounds`): a card
+// written from the first frame would have an empty room, so the page always gets two at rest first
+// ... and the card measures its own text the same way, one frame's ellipsis pass behind it, so it needs one frame first
+const warm = Math.max(Number(arg("--warm")?.[0] ?? 0), page === "figure-card" ? 2 : page === "card" ? 1 : 0);
 // headless: a drag on the widgets slider: two fractions of the rail (press at the first, held, then move to the second)
 const drag = arg("--drag", 2)?.map(Number);
 // headless: a drag on the Sky feed: the press point, then a dy a frame, then the release at the last point
@@ -159,13 +176,35 @@ for (let i = 2; i < process.argv.length; i++) {
   if (name !== undefined && name !== "" && rest.length > 0) storyArgs[name] = rest.join("=");
 }
 let theme = process.env.THEME === "light" ? "light" : undefined;
+// the Card page: the card's own data. `--w`/`--h` are the page's size (1200x630, the Open Graph card), and the picture
+// is a file with its own size, read for `contain` — the box a work of other proportions gets inside the media column
+// the card's design scale: the literals at this multiple, for the Card and the Figure card alike. A card given only a
+// scale is the Open Graph size times it, so `--scale 2` is a 2400x1260 card and not 72px type clipped by a 1200px page
+const pageScale = Number(arg("--scale")?.[0] ?? 0) || undefined;
+const cardWidth = Number(arg("--w")?.[0] ?? 0) || (pageScale === undefined ? undefined : Math.round(1200 * pageScale));
+const cardHeight = Number(arg("--h")?.[0] ?? 0) || (pageScale === undefined ? undefined : Math.round(630 * pageScale));
+const cardImagePath = page === "card" ? arg("--image")?.[0] : undefined;
+// the picture's own size, for a picture nothing can measure (an SVG, a figure's file): `--image-size 1200x630`
+const cardImageSize = (arg("--image-size")?.[0] ?? "").split("x").map(Number);
+// a second face for the card's title: a path `ui_font` loads, so the title's fontId is 1. `bold` and `regular` are the
+// repository's own two, and a path is any TTF or OTF
+const FACES: Record<string, string> = {
+  regular: "../vendor/fonts/Roboto-Regular.ttf",
+  bold: "../vendor/fonts/Roboto-Bold.ttf",
+};
+const faceArg = page === "card" ? arg("--face")?.[0] : undefined;
+const cardFace =
+  faceArg === undefined ? undefined : (FACES[faceArg] ? new URL(FACES[faceArg]!, import.meta.url).pathname : faceArg);
+// ... and a batch: a file of cards, drawn in one process (the start of this one is 14 s of compiling the pages, so a
+// card a process is a card every 15 s; the hundredth is the same 14 s plus the drawing)
+const cardsFile = page === "card" ? arg("--cards")?.[0] : undefined;
 // the Figure page's spec: a file, read and checked before the window or a frame — an invalid one exits with every
 // sentence it has, so a figure is never drawn from data the kit's own rules refuse
 const specPath = arg("--spec")?.[0];
 let figureSpec: import("./src/figure/spec.ts").Spec | undefined;
-if (page === "figure") {
+if (page === "figure" || page === "figure-card") {
   if (!specPath) {
-    console.error("figure: --spec <file.json> (solid/specs/bars.json, funnel.json, compare.json, pipeline.json)");
+    console.error(`${page}: --spec <file.json> (solid/specs/bars.json, funnel.json, compare.json, pipeline.json)`);
     process.exit(2);
   }
   const { parse } = await import("./src/figure/spec.ts");
@@ -177,20 +216,39 @@ if (page === "figure") {
   figureSpec = spec;
 }
 
+// the figure card's picture: the spec's own SVG, written once to a file the host draws like any picture, and the
+// viewBox that file has (cells × 8 across, × 16 down) — the aspect the card's room gets
+let figurePicture: { path: string; width: number; height: number } | undefined;
+if (page === "figure-card") {
+  const [{ svg }, { sizeOf }] = await Promise.all([
+    import("./src/figure/export/svg.ts"),
+    import("./src/figure/kinds.ts"),
+  ]);
+  const file = join(tmpdir(), `cssints-figure-card-${process.pid}.svg`);
+  writeFileSync(file, svg(figureSpec!));
+  const size = sizeOf(figureSpec!);
+  figurePicture = { path: file, width: size.width, height: size.height };
+}
+
 const { ui } = await import("./src/ffi.ts");
 const { createFrame, createDrawer } = await import("./src/frame.ts");
 const { createInput, selectionName } = await import("./src/input.ts");
 const { El, render } = await import("./src/renderer.ts");
 const { setReducedMotion } = await import("./src/motion.ts");
 if (reducedMotion) setReducedMotion(true);
-const { Sensors } = await import("./app/Sensors.tsx");
-const { Widgets, size } = await import("./app/Widgets.tsx");
-const { Dialog, size: dialogSize } = await import("./app/Dialog.tsx");
-const { Field, size: fieldSize } = await import("./app/Field.tsx");
-const { List, size: listSize } = await import("./app/List.tsx");
-const { Sheet, size: sheetSize } = await import("./app/Sheet.tsx");
-const { Figure, size: figureSize } = await import("./app/Figure.tsx");
-const { Dev, size: devSize, stats: devStats } = await import("./app/Dev.tsx");
+// Only the page that runs is imported. A page's `.tsx` is compiled by cssints in a subprocess of its own, and all nine
+// of them is ten seconds at the start of every run — a price a headless card or a figure's PNG pays for pages it never
+// opens. The page a branch reads is the branch's own `page === ...`, so the `!` is that check, spelled once.
+const sensors = page === "sensors" ? await import("./app/Sensors.tsx") : undefined;
+const widgets = page === "widgets" ? await import("./app/Widgets.tsx") : undefined;
+const dialog = page === "dialog" ? await import("./app/Dialog.tsx") : undefined;
+const field = page === "form" ? await import("./app/Field.tsx") : undefined;
+const list = page === "list" ? await import("./app/List.tsx") : undefined;
+const sheet = page === "sheet" ? await import("./app/Sheet.tsx") : undefined;
+const figure = page === "figure" ? await import("./app/Figure.tsx") : undefined;
+const card = page === "card" ? await import("./app/Card.tsx") : undefined;
+const figureCard = page === "figure-card" ? await import("./app/FigureCard.tsx") : undefined;
+const devPage = page === "dev" ? await import("./app/Dev.tsx") : undefined;
 // the storybook is imported only for its own page: it pulls the story files and @cssints/stories, and every other page
 // must not compile them (two token sets of one namespace stop the build, and a watcher of `widgets` would rebuild them)
 const storybook = page === "storybook" ? await import("./app/Storybook.tsx") : undefined;
@@ -198,30 +256,38 @@ const storybook = page === "storybook" ? await import("./app/Storybook.tsx") : u
 // the sheet is the one page wider than 360: the oracle draws a page, not a window group. The Figure page's size is its
 // layout's, from the spec: cells times the cell, and the padding
 const W =
-  page === "sheet"
-    ? sheetSize.width
-    : page === "figure"
-      ? figureSize(figureSpec!).width
-      : page === "dev"
-        ? devSize.width
-        : page === "storybook"
-          ? (storybook?.size.width ?? 720)
-          : 360;
+  page === "card"
+    ? (cardWidth ?? card!.CARD.width)
+    : page === "figure-card"
+      ? Math.round(figureCard!.size.width * (pageScale ?? 1))
+      : page === "sheet"
+      ? sheet!.size.width
+      : page === "figure"
+        ? figure!.size(figureSpec!).width
+        : page === "dev"
+          ? devPage!.size.width
+          : page === "storybook"
+            ? (storybook?.size.width ?? 720)
+            : 360;
 const H =
-  page === "widgets"
-    ? size.height
-    : page === "dialog"
-      ? dialogSize.height
-      : page === "form"
-        ? fieldSize.height
-        : page === "list"
-          ? listSize.height
-          : page === "sheet"
-              ? sheetSize.height
+  page === "card"
+    ? (cardHeight ?? card!.CARD.height)
+    : page === "figure-card"
+      ? Math.round(figureCard!.size.height * (pageScale ?? 1))
+      : page === "widgets"
+      ? widgets!.size.height
+      : page === "dialog"
+        ? dialog!.size.height
+        : page === "form"
+          ? field!.size.height
+          : page === "list"
+            ? list!.size.height
+            : page === "sheet"
+              ? sheet!.size.height
               : page === "figure"
-                ? figureSize(figureSpec!).height
+                ? figure!.size(figureSpec!).height
                 : page === "dev"
-                  ? devSize.height
+                  ? devPage!.size.height
                   : page === "storybook"
                     ? (storybook?.size.height ?? 560)
                     : 360;
@@ -234,6 +300,30 @@ if (
   console.error("ui_init or ui_font failed (is thorvg installed, and build/solid/libui.dylib built?)");
   process.exit(1);
 }
+// the card's picture: its own size, which `contain` needs; a file that does not load is a flag's mistake, not a card
+let cardImage: import("./app/Card.tsx").CardImage | undefined;
+if (cardImagePath !== undefined) {
+  const [given, givenHeight] = cardImageSize;
+  if (given !== undefined && givenHeight !== undefined && Number.isFinite(given) && Number.isFinite(givenHeight)) {
+    cardImage = { path: cardImagePath, width: given, height: givenHeight };
+  } else {
+    const picture = ui.png(cardImagePath);
+    if (picture === undefined) {
+      console.error(`card: --image ${cardImagePath} did not load (IMG_Load: PNG, JPEG, WebP); an SVG needs --image-size WxH`);
+      process.exit(1);
+    }
+    cardImage = { path: cardImagePath, width: picture.width, height: picture.height };
+  }
+}
+// the title's second face, when a caller loaded one: `ui_font`'s own numbering, 1 after the page's Roboto
+let cardTitleFont: number | undefined;
+if (cardFace !== undefined) {
+  cardTitleFont = ui.font(cardFace);
+  if (cardTitleFont < 0) {
+    console.error(`card: --face ${cardFace} did not load (ThorVG's font loader: a TTF or OTF, not a collection)`);
+    process.exit(1);
+  }
+}
 const root = new El("root");
 const input = createInput();
 // `t` is the page's shortcut only while no text field has focus: a letter typed into one is a character, not a key
@@ -241,19 +331,43 @@ input.fallback = (name) => (name === "t" && !input.editing() ? ((theme = theme ?
 const dragState: Drag = {};
 // the page's frame hook: the pages put their wheel handler and their tick on it, the host calls them
 const motion: Motion = {};
-const dispose = render(
+let dispose = render(
   page === "widgets"
-    ? () => Widgets({ input, drag: dragState, motion })
+    ? () => widgets!.Widgets({ input, drag: dragState, motion })
     : page === "dialog"
-      ? () => Dialog({ input, motion })
+      ? () => dialog!.Dialog({ input, motion })
       : page === "form"
-        ? () => Field({ input, motion })
+        ? () => field!.Field({ input, motion })
         : page === "list"
-          ? () => List({ input, motion, count, wide })
+          ? () => list!.List({ input, motion, count, wide })
           : page === "sheet"
-              ? () => Sheet()
+              ? () => sheet!.Sheet()
+              : page === "figure-card"
+              ? () =>
+                  figureCard!.FigureCard({
+                    title: figureSpec!.title ?? "A figure",
+                    intent: figureSpec!.intent,
+                    source: figureSpec!.source,
+                    picture: figurePicture!,
+                    scale: pageScale,
+                    motion,
+                  })
+              : page === "card"
+              ? () =>
+                  card!.Card({
+                    width: W,
+                    height: H,
+                    title: arg("--title")?.[0] ?? "",
+                    subtitle: arg("--subtitle")?.[0],
+                    badge: arg("--badge")?.[0],
+                    image: cardImage,
+                    mediaBackground: arg("--color")?.[0],
+                    scale: pageScale,
+                    titleFont: cardTitleFont,
+                    motion,
+                  })
               : page === "figure"
-                ? () => Figure({ spec: figureSpec!, motion })
+                ? () => figure!.Figure({ spec: figureSpec!, motion })
                 : page === "storybook"
                   ? () =>
                       storybook!.Storybook({
@@ -263,13 +377,13 @@ const dispose = render(
                         args: storyArgs,
                       })
                   : page === "dev"
-                  ? () => Dev({ input, motion, drag: dragState, theme: () => theme, tune: arg("--tune")?.[0] })
-                  : () => Sensors({ motion }),
+                  ? () => devPage!.Dev({ input, motion, drag: dragState, theme: () => theme, tune: arg("--tune")?.[0] })
+                  : () => sensors!.Sensors({ motion }),
   root,
 );
 // the dev page's panel reads the frames' phases (solid/app/Dev.tsx): its own array, so what the panel prints is what the
 // frame pushed
-const stats: [number, number, number, number][] = page === "dev" ? devStats : [];
+const stats: [number, number, number, number][] = page === "dev" ? devPage!.stats : [];
 const frame = createFrame(root, {
   get theme() {
     return theme;
@@ -296,6 +410,28 @@ const pumpWheel = () => {
   return had;
 };
 
+// a file of cards, one PNG each, in one process: the page, the frame and the drawer are the single card's; only the
+// component and the file change, and the root is re-rendered rather than re-created
+if (cardsFile !== undefined) {
+  const cards = JSON.parse(readFileSync(cardsFile, "utf8")) as import("./app/Card.tsx").CardPageProps[];
+  for (const [i, entry] of cards.entries()) {
+    const picture = entry.image === undefined ? undefined : ui.png(entry.image.path);
+    const image = picture === undefined ? undefined : { ...entry.image, width: picture.width, height: picture.height };
+    dispose();
+    dispose = render(
+      () => card!.Card({ ...entry, image, width: W, height: H, scale: pageScale, titleFont: cardTitleFont, motion }),
+      root,
+    );
+    // the first frame lays the card out, the second is the page at rest: a card that moves would be caught here, and the
+    // buffer is the second frame's
+    draw(-1, -1, false, 1 / 60);
+    draw(-1, -1, false, 1 / 60);
+    if (!ui.savePng(entry.out))
+      console.error(`card ${i}: ${entry.out} did not write (the first frame is not drawn?)`), process.exit(1);
+  }
+  console.log(`cards: ${cards.length} PNGs from one process`);
+  process.exit(0);
+}
 const headless = png || expect || idle > 0 || touch !== undefined || describeAt >= 0 || capture !== undefined;
 if (headless) {
   // every headless frame is the loop's: declared and laid out, drawn only when the hash changed or the input was a

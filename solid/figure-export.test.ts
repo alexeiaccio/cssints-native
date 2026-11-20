@@ -13,7 +13,7 @@
 //
 //   bun solid/figure-export.test.ts
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -339,7 +339,9 @@ for (const name of SPECS) {
     );
 }
 
-// (g): the OG card, 1200x630 — Chromium's, because the desktop host's frames are multiples of the cell grid and 630 is not
+// (g): the OG card, 1200x630 — the CLI's card is the **host's** now (`app/FigureCard.tsx`), and the HTML document in
+// `export/og.ts` is the reference it is held to: Chromium rasterises the reference, and the host's PNG is compared with it
+// band by band (the header, the figure, the caption) once the library is built.
 {
   const pngSize = (path: string): [number, number] | undefined => {
     const bytes = readFileSync(path).subarray(0, 33);
@@ -405,8 +407,63 @@ for (const name of SPECS) {
       else bad("og: the figure fills the card", JSON.stringify(card));
       if (card.scrollHeight === OG.height) ok("og: nothing overflows", `the card is ${OG.width}x${OG.height}, no scroll`);
       else bad("og: nothing overflows", `the document is ${card.scrollHeight} px tall`);
+
+      // the reference as pixels, for the comparison below: the same viewport, the same clip
+      writeFileSync(join(work, "og-ref.png"), await page.screenshot({ clip: { x: 0, y: 0, width: OG.width, height: OG.height } }));
     } finally {
       await browser.close();
+    }
+
+    // the host's card against the reference's: the ink of each band (the header, the figure, the caption) has to sit in the
+    // same box, and the two rasters have to agree about the pixels — the text is rasterised differently and the intent may
+    // wrap a word earlier (ThorVG's measure against the browser's), so the bar is a mean, not equality.
+    const lib = join(NATIVE, "build/solid/libui.dylib");
+    if (!existsSync(lib)) console.log("skip the host's card: build/solid/libui.dylib is not built (sh desktop/build.sh solid)");
+    else {
+      const { ui } = await import("./src/ffi.ts");
+      const ref = ui.png(join(work, "og-ref.png"));
+      const host = ui.png(one);
+      const ink = (r: { width: number; height: number; pixels: Uint8Array }, y0: number, y1: number) => {
+        let left = r.width, right = -1, top = y1, bottom = -1;
+        for (let y = y0; y < y1; y++)
+          for (let x = 0; x < r.width; x++) {
+            const i = (y * r.width + x) * 4;
+            if (r.pixels[i]! + r.pixels[i + 1]! + r.pixels[i + 2]! > 120) {
+              if (x < left) left = x;
+              if (x > right) right = x;
+              if (y < top) top = y;
+              if (y > bottom) bottom = y;
+            }
+          }
+        return { left, right, top, bottom };
+      };
+      if (ref && host) {
+        const bands: [string, number, number][] = [
+          ["header", 0, 175],
+          ["figure", 175, 545],
+          ["caption", 545, 630],
+        ];
+        const off = bands.map(([name, y0, y1]) => {
+          const [a, b] = [ink(ref, y0, y1), ink(host, y0, y1)];
+          return { name, dy: Math.max(Math.abs(a.top - b.top), Math.abs(a.bottom - b.bottom)), dx: Math.abs(a.left - b.left) };
+        });
+        const worst = off.reduce((w, o) => (Math.max(o.dx, o.dy) > Math.max(w.dx, w.dy) ? o : w), off[0]!);
+        if (Math.max(worst.dx, worst.dy) <= 2)
+          ok("og: the host's bands are the reference's", off.map((o) => `${o.name} ±${Math.max(o.dx, o.dy)}`).join(", "));
+        else bad("og: the host's bands are the reference's", JSON.stringify(off));
+        let sum = 0;
+        for (let i = 0; i < ref.pixels.length; i += 4) {
+          const d = Math.max(
+            Math.abs(ref.pixels[i]! - host.pixels[i]!),
+            Math.abs(ref.pixels[i + 1]! - host.pixels[i + 1]!),
+            Math.abs(ref.pixels[i + 2]! - host.pixels[i + 2]!),
+          );
+          sum += d;
+        }
+        const mean = sum / (ref.pixels.length / 4);
+        if (mean < 12) ok("og: the host's card is close to the reference", `mean ${mean.toFixed(2)}/255`);
+        else bad("og: the host's card is close to the reference", `mean ${mean.toFixed(2)}/255`);
+      }
     }
   }
 }

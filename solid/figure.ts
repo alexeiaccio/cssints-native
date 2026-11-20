@@ -9,7 +9,8 @@
 //   bun solid/figure.ts solid/specs/palette.json --html page.html  the figure as one self-contained page
 //   bun solid/figure.ts bars.json funnel.json --deck -o deck.html  a deck: one self-contained page, a slide a spec
 //   bun solid/figure.ts solid/specs/bars.json --png -o out.png --scale 2   the figure as a raster, through the desktop host
-//   bun solid/figure.ts solid/specs/table.json --og -o card.png         a 1200x630 OG card: title, figure, source, Chromium
+//   bun solid/figure.ts solid/specs/table.json --og -o card.png         a 1200x630 OG card: title, figure, source, the host
+//   bun solid/figure.ts solid/specs/table.json --og -o card.png --scale 2   the same card at 2400x1260
 //   bun solid/figure.ts bars.json funnel.json --pdf -o deck.pdf   the deck printed, one page a slide (Playwright's Chromium)
 //   bun solid/figure.ts bars.json --deck -o -                  any export to stdout with -
 //   bun solid/figure.ts --redraw native/README.md             the document with every marked figure drawn again (stdout)
@@ -44,6 +45,8 @@ let exportAs: { mode: "svg" | "html" | "deck" | "png" | "pdf" | "og"; path: stri
 let title: string | undefined;
 /** A PNG's density: 2 is the Retina raster, 1 the layout's own pixels. */
 let scale = 2;
+// whether `--scale` was given: the 2 above is the PNG's Retina default, and a card is 1:1 unless the caller says otherwise
+let scaleGiven = false;
 for (let i = 0; i < args.length; i++) {
   const arg = args[i]!;
   if (arg === "--width") {
@@ -70,6 +73,7 @@ for (let i = 0; i < args.length; i++) {
     title = args[++i];
     if (!title) fail("--title needs a deck's title", 2);
   } else if (arg === "--scale") {
+    scaleGiven = true;
     scale = Number(args[++i]);
     if (!Number.isInteger(scale) || scale < 1) fail(`--scale needs a whole number of pixels a pixel (2 is Retina): it is ${arg} ${args[i]}`, 2);
   } else if (arg === "--compact") compact = true;
@@ -91,7 +95,7 @@ if (docPath) {
 
 const USAGE =
   "a spec: bun solid/figure.ts solid/specs/bars.json [--text|--markdown|--compact] [--width N] [--svg|--html FILE], " +
-  "or specs and --deck|--pdf -o FILE [--title T], or a spec and --png -o FILE [--scale N], or a spec and --og -o FILE";
+  "or specs and --deck|--pdf -o FILE [--title T], or a spec and --png -o FILE [--scale N], or a spec and --og -o FILE [--scale N]";
 if (specPaths.length === 0) fail(USAGE, 2);
 if (!exportAs && specPaths.length > 1) fail(`one spec at a time: ${specPaths[0]} and ${specPaths[1]}`, 2);
 if (exportAs) {
@@ -141,14 +145,12 @@ else if (exportAs.mode === "png") {
   if (!written.ok) fail(written.message || `cannot write ${exportAs.path}`);
 } else if (exportAs.mode === "og") {
   const { og } = await import("./src/figure/export/og.ts");
-  try {
-    await og(spec, { path: resolve(exportAs.path) });
-  } catch (error) {
+  const written = og({ specPath: specPaths[0]!, path: resolve(exportAs.path), scale: scaleGiven ? scale : 1 });
+  if (!written.ok)
     fail(
-      `cannot write ${exportAs.path}: ${error instanceof Error ? error.message : String(error)} ` +
-        `(--og needs Playwright's Chromium: bunx playwright install chromium)`,
+      `cannot write ${exportAs.path}: ${written.message}` +
+        ` (--og draws with the desktop host: build/solid/libui.dylib, SDL3 and ThorVG)`,
     );
-  }
 } else {
   const { pdf } = await import("./src/figure/export/pdf.ts");
   try {
