@@ -112,6 +112,13 @@ typedef struct {
     // the whole draw, so it sets none and a backdrop is not blurred there (the frame is not cut either)
     uint32_t *target;
     int targetWidth, targetHeight;
+    // The rectangle of the target this frame draws, in device pixels (Clay_ThorVG_SetDamage). Off: the whole target.
+    // The target keeps the last frame outside it, so a host that draws a small change does not clear or rasterise the
+    // rest. Only the software canvas: the WebGPU target is a swapchain the host does not own.
+    struct {
+        int32_t x, y, w, h;
+        bool on;
+    } damage;
 } Clay_ThorVGRendererData;
 
 // CSS sizes a box-shadow's blur as twice the gaussian's standard deviation; ThorVG takes sigma, in the scene's own
@@ -774,11 +781,27 @@ static void Clay_ThorVG_BlurBackdrop(Clay_ThorVGRendererData *d, Clay_RenderComm
     free(a), free(b);
 }
 
+/** The rectangle of the target the next frame draws, in device pixels. Empty (w or h <= 0): the whole target. A host
+ *  that keeps the last frame in the target sets this to the box the frame changed in, so the rest is neither cleared
+ *  nor rasterised. The software canvas only; a WebGPU target is a swapchain and draws whole. */
+static void Clay_ThorVG_SetDamage(Clay_ThorVGRendererData *d, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    d->damage.on = w > 0 && h > 0;
+    d->damage.x = x, d->damage.y = y, d->damage.w = w, d->damage.h = h;
+}
+
 /** Rebuilds the canvas from the commands and draws it into the target buffer, over what the buffer holds (or, with
  *  d->clear, clearing it first); false if the canvas could not sync its target. */
 static bool Clay_ThorVG_RenderClayCommands(Clay_ThorVGRendererData *d, Clay_RenderCommandArray *rcommands)
 {
     tvg_canvas_remove(d->canvas, NULL);
+    // The damage box, before anything is added: ThorVG takes the viewport only on a synced canvas, and clips the draw
+    // to it. A frame with no damage set draws the whole target, so the viewport has to be put back after a partial one.
+    if (d->target && d->canvas) {
+        tvg_canvas_sync(d->canvas);
+        if (d->damage.on) tvg_canvas_set_viewport(d->canvas, d->damage.x, d->damage.y, d->damage.w, d->damage.h);
+        else tvg_canvas_set_viewport(d->canvas, 0, 0, d->targetWidth, d->targetHeight);
+    }
     // Which element each command belongs to: `userData` is the node's index in the frame's tree + 1 (ui.c). A command
     // that carries none — a scissor's own start or end, which Clay emits from an id it derives itself — belongs to the
     // last element that had one; it is emitted inside that element's subtree, so it cannot widen a group past it.

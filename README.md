@@ -30,7 +30,8 @@ generator/clay-header.ts   styles.ts -> styles.h through the cssints plugin
 generator/page-to-c.ts     a Solid page at build time to C: renders it, walks the tree, reuses styles.h's names
 examples/units/            the pill proven on the board, and same.c: generated vs hand-written, same render commands
 examples/sensors/          the Sensors page: styles.ts, page.c, its stored frames
-desktop/                   host.c (SDL3 window or a headless frame, --dump), clay_renderer_thorvg.c, thorvg_wg.c, build.sh,
+desktop/                   host.c (SDL3 window or a headless frame, --dump), clay_renderer_thorvg.c, clay_frame.c (a frame
+                           against the one on screen: the box it damages), thorvg_wg.c, build.sh,
                            build-thorvg-gpu.sh (ThorVG's WebGPU engine, from source), clay_dump.c/.h (a frame as JSON, every target)
 dump-check.ts              a C host's dump against a golden, field by field (desktop/host.c --dump, the C page)
 solid/                     Solid 2 on the desktop: a universal renderer over Clay through bun:ffi; the Sensors and Widgets pages (solid/README.md)
@@ -951,14 +952,58 @@ Measured (macOS, a 360x760 window at pixel density 2, 2026-10-25):
 - the bench's phases are unchanged: events+flush 0.001, declare 0.004, layout 0.013, draw 0.30 ms (Sensors, 1000
   frames).
 
-Not here: a **blocked** poll (`SDL_WaitEventTimeout`) instead of the 16 ms sleep, so the loop would wake only for an
-event and hand back the tick's latency (the sleep bounds the input latency at ≤16 ms, with the frame drawn at once on
-wake); the board's equivalent (its 22 ms frame is where this would pay most — it draws nothing at rest already,
-though its diff is the firmware's, not a hash); dirty rects (a changed frame draws all of it — a hover fade
-re-renders the page, where a wrapped-frame diff
-could redraw only the boxes that moved); a window-expose present (SDL asks for a redraw when the window is uncovered,
-and an idle loop has none in hand, so the next input redraws it); and the terminal and browser targets, which have no
+Not here: a window-expose present (SDL asks for a redraw when the window is uncovered, and an idle loop has none in
+hand, so the next input redraws it); the board's equivalent (its 22 ms frame is where a damage box would pay most — it
+draws nothing at rest already, and its diff is the firmware's); and the terminal and browser targets, which have no
 hash loop of their own.
+
+### The C host: the same rule
+
+`desktop/host.c` — the examples' host, `build/sensors/app` — had neither half: it laid out, rasterised, uploaded and
+presented every 16 ms whether or not the frame changed, and slept on a timer. It now diffs its command array against the
+one on screen (`Clay_FrameDiff`, the same file the Solid host uses), draws, uploads and presents only a frame that
+differs, and sleeps in `SDL_WaitEvent` after a frame that drew nothing. A frame that drew waits 16 ms, so a scroll's
+momentum or a transition keeps its clock; the first frame that does not move puts the loop back to sleep. `dt` is
+clamped to 100 ms, so a loop that slept for a while does not fling a scroll.
+
+Sensors at 360x360, the same Mac, four seconds of nothing (three runs each):
+
+| | idle CPU | frames | draws |
+|---|---|---|---|
+| before | **11.4 %** | 60 a second | 60 |
+| after | **0.0 %** | 2, then asleep | 1 |
+
+`CSSINTS_STATS=1` prints the counters (`stats: 2 frames, 1 drawn, 1 skipped, 0.5 MB uploaded (100.0 % of a frame a
+draw), asleep`), and `CSSINTS_PRESENT_CHECK=1` draws the frame once more through a damage box, presents it and reads the
+window back against the buffer — `present check: identical (0 pixels differ)`, which is the check the stored frames
+cannot make.
+
+### Only what changed: the box a frame damages
+
+A drawn frame used to be a whole one: the target was cleared to black, every command rasterised, and the whole buffer
+uploaded. `desktop/clay_frame.c` keeps the frame that was drawn and diffs the next one against it — every field a draw
+reads, text by its bytes (copied into the frame's own buffer, because a page formats into one it reuses) — and returns
+the box the changed commands live in, on both sides: a command that moved covers where it was and where it is.
+
+That box is what the frame touches. The target keeps the last frame, only the box is erased, `tvg_canvas_set_viewport`
+clips the raster to it, and `SDL_UpdateTexture` uploads its rows. A command count that changed, a shadow, a backdrop or
+a group (their pixels are not where their commands are), the first frame and a resize are whole frames.
+
+Measured on the Solid host (macOS, 2026-11-23, `solid/main.ts --scene …`, the scene's own draws; `CSSINTS_FULL_RASTER=1`
+draws the same frames whole for the A/B, two runs each):
+
+| scene | raster, damaged | raster, whole | uploaded |
+|---|---|---|---|
+| `list-select` 360x400, a list scrolling | 31.6 / 34.6 ms, 87 draws | 39.4 / 48.8 ms | 39 % of a frame |
+| `widgets-switch-on` 360x760, a toggle | 2.1 / 2.4 ms, 25 draws | 3.3 / 3.6 ms | 8 % |
+| `dialog-menu` 360x480, a menu over a shadow | 26.1 / 30.3 ms, 23 draws | 25.5 / 32.7 ms | 71 % (the shadow's frames are whole) |
+
+The pixels are the same ones: every scene and every stored frame in `test.sh` is byte-identical to the whole frame's,
+and the C host's `CSSINTS_PRESENT_CHECK` holds the presented window to the buffer. What it is worth is bounded by the
+damage: a scrolling list changes most of its rows and pays for most of the frame; a toggle pays a thirtieth of it. The
+bigger win would need the scene itself kept between frames (a paint per element, mutated in place) rather than rebuilt
+and clipped — that is not this.
+
 
 ### A dev panel: the tree, the bounds, the phases
 

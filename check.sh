@@ -31,6 +31,10 @@ $P --events "$OUT/sensors-gen/page_generated_events.c" --events-name sensors
 for f in page_generated.c page_generated_g.c page_generated_pressed.c page_generated_image.c page_generated_events.c; do
   cmp "$OUT/sensors-gen/$f" "examples/sensors/$f" || { echo "FAIL: examples/sensors/$f is stale"; exit 1; }
 done
+# The frame diff every host draws through (desktop/clay_frame.c): what a frame that did not change costs, and the box
+# a changed one damages. No SDL, no ThorVG: the Clay types and the file.
+cc -std=c99 -Wall -I "$CLAY_H" desktop/frame.test.c -lm -o "$OUT/frame"
+"$OUT/frame"
 cc -std=c99 -Wall -Wno-unused-variable -I "$OUT/sensors" -I "$CLAY_H" -I generator examples/sensors/gen.c \
   "$OUT/sensors-gen/page_generated.c" "$OUT/sensors-gen/page_generated_g.c" \
   "$OUT/sensors-gen/page_generated_pressed.c" "$OUT/sensors-gen/page_generated_image.c" \

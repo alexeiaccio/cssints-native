@@ -680,7 +680,7 @@ for (let n = 0; n < maxFrames; n++) {
 }
 if (maxFrames !== Infinity) {
   const ms = performance.now() - start;
-  console.log(`window: ${frames} frames, ${drew} draw${drew === 1 ? "" : "s"}, ${ui.presents()} presents, ${ms.toFixed(0)} ms`);
+  console.log(`window: ${frames} frames, ${drew} draw${drew === 1 ? "" : "s"}, ${ui.presents()} presents, ${ms.toFixed(0)} ms, last upload ${(ui.uploaded() / 256).toFixed(0)} KB`);
 }
 dispose();
 process.exit(0);
