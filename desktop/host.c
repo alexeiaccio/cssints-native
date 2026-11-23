@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "clay_dump.c"
+#include "clay_frame.c"
 #include "clay_renderer_SDL3.c"
 #include "clay_renderer_thorvg.c"
 
@@ -125,12 +126,24 @@ static long differ(SDL_Surface *a, SDL_Surface *b, int *box)
     return n;
 }
 
-/** One frame on a black ground, by the chosen raster. */
-static void draw(bool thorvg, Clay_WgTarget *wg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int n,
-                 Clay_SDL3RendererData *sdl, Clay_RenderCommandArray *cmds)
+/** One frame on a black ground, by the chosen raster. `damage` is the box of the target the frame changes, in device
+ *  pixels (empty: the whole target): only that part is cleared and rasterised, and the rest of the buffer is the last
+ *  frame's. A caller that always draws the whole target passes an empty box. */
+static void draw(bool thorvg, Clay_WgTarget *wg, Clay_ThorVGRendererData *tvg, Uint32 *pixels, int tw, int th,
+                 Clay_SDL3RendererData *sdl, Clay_RenderCommandArray *cmds, Clay_FrameBox damage)
 {
     if (thorvg) {
-        if (!wg) for (int i = 0; i < n; i++) pixels[i] = 0xff000000; // the WebGPU texture is its own cleared target
+        if (!wg) { // the WebGPU texture is its own cleared target
+            if (Clay_FrameBoxEmpty(damage)) {
+                for (int i = 0; i < tw * th; i++) pixels[i] = 0xff000000;
+            } else {
+                for (int y = damage.y; y < damage.y + damage.h; y++) {
+                    Uint32 *row = pixels + (size_t)y * tw + damage.x;
+                    for (int x = 0; x < damage.w; x++) row[x] = 0xff000000;
+                }
+            }
+            Clay_ThorVG_SetDamage(tvg, damage.x, damage.y, damage.w, damage.h);
+        }
         Clay_ThorVG_RenderClayCommands(tvg, cmds);
 #ifdef CLAY_THORVG_WG
         if (wg) Clay_Wg_Readback(wg, pixels);
@@ -282,7 +295,7 @@ static int run_scene(const Scene *scene, Target t, const char *png, const char *
         Clay_BeginLayout();
         PAGE_STATE(_frame)(page_state, page_light);
         cmds = Clay_EndLayout(1.0f / 60.0f);
-        draw(t.thorvg, t.wg, t.tvg, t.pixels, t.n, t.sdl, &cmds);
+        draw(t.thorvg, t.wg, t.tvg, t.pixels, t.tw, t.th, t.sdl, &cmds, (Clay_FrameBox){0, 0, 0, 0});
     }
     printf("scene %s: page %s, %d steps, %d frames, ending state %d \"%s\"\n", scene->name, scene->page, scene->count,
            frames, page_state, PAGE_STATE(_state_name)(page_state));
@@ -291,6 +304,29 @@ static int run_scene(const Scene *scene, Target t, const char *png, const char *
     return finish(got, png, expect, dump, cmds, t.tvg);
 }
 #endif
+
+/** One SDL event into the loop's input: the pointer and the button, a key, and quit. The pointer stays where it was
+ *  between events, as a window's does. */
+static void host_event(const SDL_Event *e, SDL_Renderer *renderer, bool *running, bool *down, float *px, float *py)
+{
+    if (e->type == SDL_EVENT_QUIT) *running = false;
+    if (e->type == SDL_EVENT_KEY_DOWN && !e->key.repeat) {
+#ifdef PAGE_STATES
+        if (e->key.key == 't') page_light = !page_light;
+#else
+        app_key((int)e->key.key);
+#endif
+    }
+    if (e->type == SDL_EVENT_MOUSE_MOTION || e->type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
+        e->type == SDL_EVENT_MOUSE_BUTTON_UP) {
+        SDL_Event converted = *e;
+        SDL_ConvertEventToRenderCoordinates(renderer, &converted);
+        *px = converted.type == SDL_EVENT_MOUSE_MOTION ? converted.motion.x : converted.button.x;
+        *py = converted.type == SDL_EVENT_MOUSE_MOTION ? converted.motion.y : converted.button.y;
+        if (converted.type == SDL_EVENT_MOUSE_BUTTON_DOWN) *down = true;
+        if (converted.type == SDL_EVENT_MOUSE_BUTTON_UP) *down = false;
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -378,6 +414,8 @@ int main(int argc, char **argv)
             fprintf(stderr, "thorvg: no software canvas\n");
             return 1;
         }
+        // the target the renderer keeps the frame in, so a damage box can be clipped to it (and a backdrop blurred in it)
+        tvg.target = tvg_pixels, tvg.targetWidth = tw, tvg.targetHeight = th;
         tvg.measurer = tvg_text_new();
         Clay_SetMeasureTextFunction(Clay_ThorVG_MeasureText, &tvg);
         if (window) {
@@ -420,32 +458,27 @@ int main(int argc, char **argv)
     float px = -1, py = -1;
     int frame = 0;
     Uint64 last = SDL_GetTicks();
+    // what the window shows: the frame's commands, so the same frame is not drawn, uploaded or presented twice, and
+    // whether the last iteration drew, so a settled page can sleep on an event instead of waking 60 times a second
+    Clay_Frame shown = {0};
+    bool haveShown = false, slept = false;
+    long frames = 0, drew = 0, skipped = 0, uploaded = 0;
+    const bool stats = getenv("CSSINTS_STATS") != NULL;
+    const bool present_check = getenv("CSSINTS_PRESENT_CHECK") != NULL; // a window's pixels against the buffer, once
+    Uint64 statsAt = last;
     while (running) {
         SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_EVENT_QUIT) running = false;
-            if (e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat) {
-#ifdef PAGE_STATES
-                if (e.key.key == 't') page_light = !page_light;
-#else
-                app_key((int)e.key.key);
-#endif
-            }
-            if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
-                e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                SDL_ConvertEventToRenderCoordinates(renderer, &e);
-                px = e.type == SDL_EVENT_MOUSE_MOTION ? e.motion.x : e.button.x;
-                py = e.type == SDL_EVENT_MOUSE_MOTION ? e.motion.y : e.button.y;
-                if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN) down = true;
-                if (e.type == SDL_EVENT_MOUSE_BUTTON_UP) down = false;
-            }
-        }
+        if (slept && !SDL_WaitEvent(&e)) break; // at rest: no timeout, no wakeups until something happens
+        if (slept) host_event(&e, renderer, &running, &down, &px, &py);
+        while (SDL_PollEvent(&e)) host_event(&e, renderer, &running, &down, &px, &py);
+        if (!running) break;
         // a scripted click: frame 0 lays out (Clay hit-tests against the last frame's boxes), pressed in frame 1,
         // released in frame 2, and frame 3 is written; --press holds it from frame 1 and writes frame 2, still pressed
         // the pointer stays at X,Y for the written frame too (so a click frame is hovered, as a browser's is)
         if (headless && click_x >= 0 && frame <= 3) px = click_x, py = click_y, down = hold ? frame >= 1 : frame == 1;
         const Uint64 now = SDL_GetTicks();
-        const float dt = (now - last) / 1000.0f;
+        float dt = (now - last) / 1000.0f;
+        if (dt > 0.1f) dt = 0.1f; // a loop that slept returns after seconds: a scroll or a transition must not jump
         last = now;
 
 #ifdef PAGE_STATES
@@ -464,19 +497,40 @@ int main(int argc, char **argv)
 #endif
         Clay_RenderCommandArray cmds = Clay_EndLayout(dt);
 
-        draw(thorvg, wg_target, &tvg, tvg_pixels, tw * th, &data, &cmds);
-        if (tvg_texture) {
-            SDL_UpdateTexture(tvg_texture, NULL, tvg_pixels, tw * 4);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-            SDL_RenderClear(renderer);
-            SDL_RenderTexture(renderer, tvg_texture, NULL, NULL);
+        // the frame against the one on screen: the same one is not drawn at all, and a different one damages the box
+        // its changed commands live in (a command added or dropped is the whole target, as is the first frame)
+        bool same = false;
+        const Clay_FrameBox box = Clay_FrameDiff(&shown, &cmds, &same);
+        Clay_FrameBox damage = Clay_FrameBoxAll(tw, th);
+        if (haveShown && !same) damage = Clay_FrameBoxScaled(box, tvg.scale, tw, th);
+        if (!same && haveShown && Clay_FrameBoxEmpty(damage)) damage = Clay_FrameBoxAll(tw, th);
+        const bool redraw = headless || !same;
+
+        if (redraw) {
+            draw(thorvg, wg_target, &tvg, tvg_pixels, tw, th, &data, &cmds, headless ? (Clay_FrameBox){0, 0, 0, 0} : damage);
+            if (tvg_texture) {
+                if (Clay_FrameBoxEmpty(damage) || headless) {
+                    SDL_UpdateTexture(tvg_texture, NULL, tvg_pixels, tw * 4);
+                    uploaded += tw * th;
+                } else {
+                    const SDL_Rect r = {damage.x, damage.y, damage.w, damage.h};
+                    SDL_UpdateTexture(tvg_texture, &r,
+                                      (const Uint8 *)tvg_pixels + (size_t)r.y * tw * 4 + (size_t)r.x * 4, tw * 4);
+                    uploaded += damage.w * damage.h;
+                }
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
+                SDL_RenderTexture(renderer, tvg_texture, NULL, NULL);
+            }
+            Clay_FrameSave(&shown, &cmds);
+            haveShown = true;
         }
 
         if (headless && click_x >= 0 && frame++ < (hold ? 2 : 3)) continue;
         if (headless && bench > 0) {
             const Uint64 t0 = SDL_GetTicksNS();
             for (int i = 0; i < bench; i++) {
-                draw(thorvg, wg_target, &tvg, tvg_pixels, tw * th, &data, &cmds);
+                draw(thorvg, wg_target, &tvg, tvg_pixels, tw, th, &data, &cmds, (Clay_FrameBox){0, 0, 0, 0});
                 if (!thorvg) SDL_FlushRenderer(renderer);
             }
             printf("%s: %.3f ms a frame (%d frames, %dx%d)\n", raster,
@@ -487,8 +541,47 @@ int main(int argc, char **argv)
                                       : frame_pixels(renderer);
             return finish(got, png, expect, dump, cmds, &tvg);
         }
-        SDL_RenderPresent(renderer);
-        SDL_Delay(16);
+        if (redraw) {
+            // CSSINTS_PRESENT_CHECK=1: the frame once more through a small damage box, then the window's pixels read
+            // back against the buffer — the two things the goldens cannot see: a wrong offset in a partial upload, and
+            // a raster clipped to a box that does not match the frame drawn whole. Exits 1 on a difference.
+            if (present_check && drew == 0 && tvg_texture) {
+                const Clay_FrameBox box = {tw / 3, th / 3, tw / 4, th / 4};
+                draw(thorvg, wg_target, &tvg, tvg_pixels, tw, th, &data, &cmds, box);
+                const SDL_Rect r = {box.x, box.y, box.w, box.h};
+                SDL_UpdateTexture(tvg_texture, &r,
+                                  (const Uint8 *)tvg_pixels + (size_t)r.y * tw * 4 + (size_t)r.x * 4, tw * 4);
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
+                SDL_RenderTexture(renderer, tvg_texture, NULL, NULL);
+                SDL_Surface *got = frame_pixels(renderer);
+                SDL_Surface *want = SDL_CreateSurfaceFrom(tw, th, SDL_PIXELFORMAT_RGBA32, tvg_pixels, tw * 4);
+                int box_differ[4];
+                const long n = got && want ? differ(got, want, box_differ) : -1;
+                printf("present check: %s (%ld pixels differ)\n", n ? "FAILED" : "identical", n);
+                SDL_DestroySurface(got);
+                SDL_DestroySurface(want);
+                free(shown.commands), free(shown.text);
+                return n ? 1 : 0;
+            }
+            SDL_RenderPresent(renderer);
+            drew++;
+        } else {
+            skipped++;
+        }
+        frames++;
+        // a frame that drew something waits one tick (a scroll or a transition may still be moving); one that did not
+        // puts the loop to sleep until an event. 16 ms is the tick it always had, now only while something changes.
+        slept = !redraw;
+        if (stats && (slept || now - statsAt >= 1000)) {
+            printf("stats: %ld frames, %ld drawn, %ld skipped, %.1f MB uploaded (%.1f%% of a frame a draw)%s\n",
+                   frames, drew, skipped, uploaded * 4.0 / 1e6,
+                   100.0 * (double)uploaded / (double)((drew ? drew : 1) * tw * th), slept ? ", asleep" : "");
+            fflush(stdout);
+            statsAt = now;
+        }
+        if (redraw) SDL_Delay(16);
     }
+    free(shown.commands), free(shown.text);
     return 0;
 }
