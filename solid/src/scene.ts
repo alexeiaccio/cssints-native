@@ -336,7 +336,9 @@ export async function runSceneFile(path: string, options: SceneFileOptions = {})
   }
   console.log(
     `scene ${path}: ${scene.page} ${scene.size[0]}x${scene.size[1]}, ${scene.theme}` +
-      `${scene.reducedMotion ? ", reduced motion" : ""}, ${scene.steps.length} steps, ${run.frames} frames`,
+      `${scene.reducedMotion ? ", reduced motion" : ""}, ${scene.steps.length} steps, ${run.frames} frames, ` +
+      `${ui.draws()} draws ${(Number(ui.drawNs()) / 1e6).toFixed(1)} ms of raster, ` +
+      `${ui.uploaded() ? ((100 * ui.uploaded()) / (ui.draws() * ui.targetPixels())).toFixed(0) : 0}% uploaded`,
   );
   let status = ui.errors() ? 1 : 0;
   if (options.png) ui.savePng(options.png);

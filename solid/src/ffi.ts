@@ -37,6 +37,9 @@ const open = () =>
     ui_dump_json: { args: [T.cstring], returns: T.i32 },
     ui_draws: { args: [], returns: T.i32 },
     ui_presents: { args: [], returns: T.i32 },
+    ui_uploaded: { args: [], returns: T.i32 },
+    ui_draw_ns: { args: [], returns: T.u64 },
+    ui_target_pixels: { args: [], returns: T.i32 },
     ui_draw: { args: [], returns: T.void },
     ui_text_weight: { args: [T.f32], returns: T.void },
     ui_pixel: { args: [T.i32, T.i32], returns: T.u32 },
@@ -127,6 +130,12 @@ export const ui = {
   draws: () => lib().ui_draws(),
   /** ui_window_present calls of the process. */
   presents: () => lib().ui_presents(),
+  /** The pixels the last present uploaded: the damage box's, or a whole frame's. */
+  uploaded: () => lib().ui_uploaded(),
+  /** The nanoseconds every draw's raster has taken so far. */
+  drawNs: () => lib().ui_draw_ns(),
+  /** The target's pixels: what a whole frame is. */
+  targetPixels: () => lib().ui_target_pixels(),
   draw: () => lib().ui_draw(),
   /** How much thicker than ThorVG's own raster a text line is drawn, in Clay units (0: as is). */
   textWeight: (px: number) => lib().ui_text_weight(px),

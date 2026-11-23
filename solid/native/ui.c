@@ -13,6 +13,7 @@
 
 #include "../../desktop/clay_renderer_thorvg.c"
 #include "../../desktop/clay_dump.c" // ui_dump_json: the frame as JSON, the one emitter every host dumps through
+#include "../../desktop/clay_frame.c" // the frame against the drawn one: what changed, and the box it changed in
 #ifdef CLAY_THORVG_WG
 #include "../../desktop/thorvg_wg.c" // --raster thorvg-gpu: the WebGPU canvas and its readback
 #else
@@ -102,6 +103,16 @@ static int value_count;
 static uint64_t frame_hash = 0xcbf29ce484222325ull;
 // ui_draw and ui_window_present calls of the process, for a test: a page at rest keeps both still
 static int draw_count, present_count;
+
+// What the window shows: the frame the last ui_draw drew, the box that frame damaged (device pixels), and whether the
+// frame it was drawn over had shadows or backdrops (their blur reaches past a command's box, so a frame that loses one
+// is a whole frame). The drawer asks for a draw only when the packed frame changed (ui_hash), so a draw is a change;
+// the box says how much of the target it has to touch.
+static Clay_Frame drawn_frame = {0};
+static Clay_FrameBox drawn_damage = {0, 0, 0, 0};
+static int drawn_once, drawn_effects;
+static long uploaded_pixels;
+static Uint64 draw_ns; // the raster of every ui_draw so far: the number a partial frame is measured by
 
 // the element names of the frame, by Clay's 32-bit id: `ui_dump_json` turns a command's id back into the page's id
 // string, and a text's node is where its alignment and wrap are kept (Clay's text command carries the colour and the
@@ -789,16 +800,70 @@ int ui_presents(void) { return present_count; }
  *  at 0 (ThorVG's text already weighs what the platform's does). */
 void ui_text_weight(float px) { tvg.textWeight = px > 0 ? px : 0; }
 
-/** Draws the commands of the last ui_end on black into the buffer. */
+/** The pixels the draws so far damaged: what the presents upload. Divided by the draws and the target, it is the share
+ *  of a frame a draw costs on the bus (a 360x360 frame at density 2 is 2 MB whole). */
+int ui_uploaded(void) { return (int)uploaded_pixels; }
+
+/** The nanoseconds the raster of every ui_draw so far took (the blur, the viewport and the pixels; not the present). */
+uint64_t ui_draw_ns(void) { return draw_ns; }
+
+/** The target's pixels: width x height at the window's density. What a whole frame is, beside ui_uploaded's damage. */
+int ui_target_pixels(void) { return (int)(width * tvg.scale) * (int)(height * tvg.scale); }
+
+/** Whether any group of this frame moves its subtree: an alpha, a scale, a translate or a rotate. The pixels of such a
+ *  frame are not where its commands' boxes are, so its damage is the whole target. */
+static int frame_groups_on(void)
+{
+    for (int i = 0; i < tvg.groupCount; i++) {
+        if (tvg.groups[i].alpha < 255 || tvg.groups[i].scale != 1 || tvg.groups[i].tx != 0 || tvg.groups[i].ty != 0 ||
+            tvg.groups[i].rotate != 0)
+            return 1;
+    }
+    return 0;
+}
+
+/** Draws the commands of the last ui_end on black into the buffer, over the last frame outside the box they change. */
 void ui_draw(void)
 {
     draw_count++;
-    const int n = (int)(width * tvg.scale) * (int)(height * tvg.scale);
-    if (!gpu) for (int i = 0; i < n; i++) pixels[i] = 0xff000000; // the WebGPU texture carries the ground
+    const int tw = (int)(width * tvg.scale), th = (int)(height * tvg.scale);
+    // The box this frame changes: the commands that differ from the drawn frame's, widened to the whole target when the
+    // diff cannot see the change (a shadow, a backdrop or a group moves pixels its commands do not) or when there is no
+    // drawn frame to compare with. The WebGPU target is a swapchain: it is always whole.
+    static int force_full = -1; // CSSINTS_FULL_RASTER=1: the same frames drawn whole, for the A/B a partial frame needs
+    if (force_full < 0) force_full = getenv("CSSINTS_FULL_RASTER") != NULL;
+    bool same = false;
+    const Clay_FrameBox box = Clay_FrameDiff(&drawn_frame, &cmds, &same);
+    const int effects = tvg.shadowCount || tvg.backdropCount || frame_groups_on();
+    Clay_FrameBox damage = Clay_FrameBoxAll(tw, th);
+    if (!gpu && !force_full && drawn_once && !same && !effects && !drawn_effects)
+        damage = Clay_FrameBoxScaled(box, tvg.scale, tw, th);
+    if (!gpu && drawn_once && !same && Clay_FrameBoxEmpty(damage)) damage = Clay_FrameBoxAll(tw, th);
+    // a draw the diff cannot find a change in (a key that moves nothing) leaves the target alone
+    if (!gpu && drawn_once && same) return;
+    if (!gpu) uploaded_pixels += (long)damage.w * damage.h; // what the present will put on the bus
+    if (!gpu) {
+        // the target keeps the last frame: only the box is erased, and only the box is drawn into
+        if (Clay_FrameBoxEmpty(damage)) {
+            for (int i = 0; i < tw * th; i++) pixels[i] = 0xff000000;
+        } else {
+            for (int y = damage.y; y < damage.y + damage.h; y++) {
+                Uint32 *row = pixels + (size_t)y * tw + damage.x;
+                for (int x = 0; x < damage.w; x++) row[x] = 0xff000000;
+            }
+        }
+        Clay_ThorVG_SetDamage(&tvg, damage.x, damage.y, damage.w, damage.h);
+    }
+    const Uint64 t0 = SDL_GetTicksNS();
     Clay_ThorVG_RenderClayCommands(&tvg, &cmds);
 #ifdef CLAY_THORVG_WG
     if (gpu) Clay_Wg_Readback(&wg, pixels);
 #endif
+    draw_ns += SDL_GetTicksNS() - t0;
+    drawn_damage = damage;
+    drawn_effects = effects; // a frame that had an effect is the whole target for the next one too: its pixels moved
+    drawn_once = 1;
+    Clay_FrameSave(&drawn_frame, &cmds);
 }
 
 /** The pixel at x, y (in Clay units) of the last frame: R, G, B, A bytes, R lowest. */
@@ -913,6 +978,7 @@ int ui_diff_png(const char *ref_path, const char *actual)
 static void rescale(void)
 {
     const float scale = SDL_GetWindowPixelDensity(window);
+    drawn_once = 0; // the target is new: the next frame is a whole one, whatever the last one damaged
     if (retarget(scale)) return;
     SDL_DestroyTexture(texture);
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING,
@@ -1157,7 +1223,16 @@ void ui_window_poll(float *out)
 void ui_window_present(void)
 {
     present_count++;
-    SDL_UpdateTexture(texture, NULL, pixels, (int)(width * tvg.scale) * 4);
+    const int tw = (int)(width * tvg.scale);
+    // The texture holds the last frame everywhere the drawn one did not change, so only the drawn frame's box goes over
+    // the bus. A whole frame (the first, or one with an effect in it) is the one upload it always was.
+    if (Clay_FrameBoxEmpty(drawn_damage)) {
+        SDL_UpdateTexture(texture, NULL, pixels, tw * 4);
+    } else {
+        const SDL_Rect r = {drawn_damage.x, drawn_damage.y, drawn_damage.w, drawn_damage.h};
+        if (!SDL_UpdateTexture(texture, &r, (const Uint8 *)pixels + (size_t)r.y * tw * 4 + (size_t)r.x * 4, tw * 4))
+            fprintf(stderr, "present: %s (%d,%d %dx%d)\n", SDL_GetError(), r.x, r.y, r.w, r.h);
+    }
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, NULL, NULL);
